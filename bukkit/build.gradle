@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.0.0'
+}
+
+shadowJar {
+    baseName = 'ObbyLangBukkit'
+    classifier = null
+}
+
+
+dependencies {
+    compile project(':core')
+    compileOnly 'org.bukkit:bukkit:1.12.2-R0.1-SNAPSHOT'
+    compileOnly 'com.github.ClubObsidian:DynamicGui:4.0.0'
+    compileOnly name: 'ProtocolLib-4.4.0'
+}

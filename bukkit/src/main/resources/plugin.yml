@@ -1,0 +1,10 @@
+name: ObbyLang
+main: com.clubobsidian.obbylang.plugin.BukkitObbyLangPlugin
+version: 2.0.0
+author: VirusTotal
+api-version: 1.13
+softdepend: [DynamicGui, ProtocolLib, SellAllSigns]
+commands:
+  obbylang:
+    description: "ObbyLang command"
+    aliases: [ol]

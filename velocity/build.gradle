@@ -1,0 +1,15 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.0.0'
+}
+
+shadowJar {
+    baseName = 'ObbyLangVelocity'
+    classifier = null
+}
+
+dependencies {
+    compile project(':core')
+    compileOnly 'com.velocitypowered:velocity-api:1.0.0-SNAPSHOT'
+    annotationProcessor 'com.velocitypowered:velocity-api:1.0.0-SNAPSHOT'
+}

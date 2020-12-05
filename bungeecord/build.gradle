@@ -1,0 +1,14 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.0.0'
+}
+
+shadowJar {
+    baseName = 'ObbyLangBungeeCord'
+    classifier = null
+}
+
+dependencies {
+    compile project(':core')
+    compileOnly 'net.md-5:bungeecord-api:1.12-SNAPSHOT'
+}

@@ -1,0 +1,18 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '5.0.0'
+    id 'application'
+}
+
+mainClassName = "com.clubobsidian.obbylang.discord.Bootstrap"
+
+shadowJar {
+    baseName = 'ObbyLangDiscord'
+    classifier = null
+}
+
+dependencies {
+    compile project(':core')
+    compile 'net.dv8tion:JDA:4.2.0_222'
+    compile 'org.slf4j:slf4j-log4j12:1.7.30'
+    compile 'org.jline:jline:3.10.0'
+}

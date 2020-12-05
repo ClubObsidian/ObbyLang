@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'eclipse'
+    id 'idea'
+}
+
+subprojects {
+    group 'com.clubobsidian'
+    version '0.13.1'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+        mavenCentral()
+        maven { url = 'https://repo.spongepowered.org/maven' }
+        maven { url = "https://oss.sonatype.org/content/repositories/snapshots" }
+        maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+        jcenter()
+        maven { url 'https://jitpack.io' }
+        maven { url = "https://repo.velocitypowered.com/snapshots/" }
+    }
+}
+

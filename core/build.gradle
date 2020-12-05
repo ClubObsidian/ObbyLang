@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+group 'com.clubobsidian'
+version '0.13.1'
+
+dependencies {
+    compileOnly 'org.slf4j:slf4j-api:1.7.21'
+
+    compile 'com.zaxxer:HikariCP:3.3.1'
+    compile 'com.github.clubobsidian:wrappy:2.1.0'
+    compile 'org.jsoup:jsoup:1.11.3'
+    compile 'io.lettuce:lettuce-core:5.1.6.RELEASE'
+    compile 'org.javassist:javassist:3.25.0-GA'
+    compile 'com.google.inject:guice:4.2.2'
+    compile 'commons-io:commons-io:2.6'
+    compile 'org.apache.commons:commons-lang3:3.9'
+    compile 'com.github.clubobsidian:trident:2.0.1'
+    compile 'com.github.clubobsidian:crouton:0.6.1'
+
+    testCompile 'junit:junit:4.12'
+}
