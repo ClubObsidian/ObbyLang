@@ -9,6 +9,26 @@ plugins {
 shadowJar {
     baseName = 'ObbyLangVelocity'
     classifier = null
+
+    relocate 'afu', 'com.clubobsidian.obbylang.afu'
+    relocate 'io.netty', 'com.clubobsidian.obbylang.netty'
+    relocate 'javassist', 'com.clubobsidian.obbylang.javassist'
+    relocate 'io.lettuce.core', 'com.clubobsidian.obbylang.io.lettuce.core'
+    relocate 'org.apache.commons.io', 'com.clubobsidian.obbylang.commons.io'
+    relocate 'com.typesafe', 'com.clubobsidian.obbylang.typesafe'
+    relocate 'com.zaxxer', 'com.clubobsidian.obbylang.zaxxer'
+    relocate 'com.fasterxml', 'com.clubobsidian.obbylang.fasterxml'
+    relocate 'org.jsoup', 'com.clubobsidian.obbylang.jsoup'
+    relocate 'reactor', 'com.clubobsidian.obbylang.reactor'
+    relocate 'org.apache', 'com.clubobsidian.obbylang.apache'
+    relocate 'org.aopalliance', 'com.clubobsidian.obbylang.aopalliance'
+    relocate 'org.checkerframework', 'com.clubobsidian.obbylang.checkerframework'
+    relocate 'org.codehaus', 'com.clubobsidian.obbylang.codehaus'
+    relocate 'org.reactivestreams', 'com.clubobsidian.obbylang.reactivestreams'
+    relocate 'org.slf4j', 'com.clubobsidian.obbylang.slf4j'
+    relocate 'org.yaml.snakeyaml', 'com.clubobsidian.obbylang.snakeyaml'
+    relocate 'com.clubobsidian.wrappy', 'com.clubobsidian.obbylang.wrappy'
+    relocate 'org.spongepowered.configurate', 'com.clubobsidian.obbylang.configurate'
 }
 
 blossom{
