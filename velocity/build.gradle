@@ -1,6 +1,9 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '5.0.0'
+    id "net.kyori.blossom" version "1.1.0"
 }
 
 shadowJar {
@@ -8,8 +11,14 @@ shadowJar {
     classifier = null
 }
 
+blossom{
+    replaceTokenIn('com/clubobsidian/obbylang/plugin/VelocityObbyLangPlugin.java')
+    replaceToken('${pluginVersion}', project.version)
+}
+
 dependencies {
     compile project(':core')
     compileOnly 'com.velocitypowered:velocity-api:1.0.0-SNAPSHOT'
     annotationProcessor 'com.velocitypowered:velocity-api:1.0.0-SNAPSHOT'
 }
+

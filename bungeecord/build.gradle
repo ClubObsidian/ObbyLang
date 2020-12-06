@@ -8,6 +8,13 @@ shadowJar {
     classifier = null
 }
 
+processResources {
+    from(sourceSets.main.resources) {
+        include 'plugin.yml'
+        expand 'pluginVersion': project.version
+    }
+}
+
 dependencies {
     compile project(':core')
     compileOnly 'net.md-5:bungeecord-api:1.12-SNAPSHOT'

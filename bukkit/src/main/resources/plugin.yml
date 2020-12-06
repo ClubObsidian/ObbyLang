@@ -1,6 +1,6 @@
 name: ObbyLang
 main: com.clubobsidian.obbylang.plugin.BukkitObbyLangPlugin
-version: 2.0.0
+version: ${pluginVersion}
 author: VirusTotal
 api-version: 1.13
 softdepend: [DynamicGui, ProtocolLib, SellAllSigns]

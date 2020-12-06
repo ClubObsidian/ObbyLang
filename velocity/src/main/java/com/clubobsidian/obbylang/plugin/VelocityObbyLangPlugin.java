@@ -24,7 +24,7 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 
 
-@Plugin(id = "obbylangvelocity", name = "ObbyLangVelocity", version = "0.0.1")
+@Plugin(id = "obbylangvelocity", name = "ObbyLangVelocity", version = "${pluginVersion}")
 public class VelocityObbyLangPlugin implements ObbyLangPlugin {
 
 	public static VelocityObbyLangPlugin instance;

@@ -6,7 +6,7 @@ plugins {
 
 subprojects {
     group 'com.clubobsidian'
-    version '0.13.1'
+    version '2.0.0'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
@@ -24,4 +24,3 @@ subprojects {
         maven { url = "https://repo.velocitypowered.com/snapshots/" }
     }
 }
-

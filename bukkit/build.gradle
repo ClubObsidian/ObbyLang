@@ -3,6 +3,13 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '5.0.0'
 }
 
+processResources {
+    from(sourceSets.main.resources) {
+        include 'plugin.yml'
+        expand 'pluginVersion': project.version
+    }
+}
+
 shadowJar {
     baseName = 'ObbyLangBukkit'
     classifier = null

@@ -1,4 +1,4 @@
 name: ObbyLang
 main: com.clubobsidian.obbylang.plugin.BungeeCordObbyLangPlugin
-version: 0.0.1
+version: ${pluginVersion}
 author: VirusTotal
