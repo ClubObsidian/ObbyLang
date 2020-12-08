@@ -12,8 +12,18 @@ public class VelocityMessageManager extends MessageManager<CommandSource> {
 	}
 
 	@Override
+	public void broadcastJson(String json) {
+		MessageUtil.broadcastJson(json);
+	}
+
+	@Override
 	public void message(CommandSource sender, String message) {
 		MessageUtil.sendMessage(sender, this.color(message));
+	}
+
+	@Override
+	public void messageJson(CommandSource sender, String json) {
+		MessageUtil.sendJsonMessage(sender, json);
 	}
 
 	@Override

@@ -174,4 +174,10 @@ public class BukkitSenderWrapper extends SenderWrapper<CommandSender> implements
 	{
 		return this.getOriginalSender().getName();
 	}
+
+	@Override
+	public Spigot spigot()
+	{
+		return this.getOriginalSender().spigot();
+	}
 }

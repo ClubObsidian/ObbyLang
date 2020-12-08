@@ -33,12 +33,13 @@ shadowJar {
     relocate 'org.yaml.snakeyaml', 'com.clubobsidian.obbylang.snakeyaml'
     relocate 'com.clubobsidian.wrappy', 'com.clubobsidian.obbylang.wrappy'
     relocate 'org.spongepowered.configurate', 'com.clubobsidian.obbylang.configurate'
+    relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
 }
 
 
 dependencies {
     compile project(':core')
-    compileOnly 'org.bukkit:bukkit:1.12.2-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
     compileOnly 'com.github.ClubObsidian:DynamicGui:4.0.0'
     compileOnly name: 'ProtocolLib-4.4.0'
 }

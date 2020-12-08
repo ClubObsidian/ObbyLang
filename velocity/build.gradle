@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '5.0.0'
@@ -29,6 +27,7 @@ shadowJar {
     relocate 'org.yaml.snakeyaml', 'com.clubobsidian.obbylang.snakeyaml'
     relocate 'com.clubobsidian.wrappy', 'com.clubobsidian.obbylang.wrappy'
     relocate 'org.spongepowered.configurate', 'com.clubobsidian.obbylang.configurate'
+    relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
 }
 
 blossom{

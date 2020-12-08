@@ -13,9 +13,21 @@ public class DiscordMessageManager extends MessageManager<MessageChannel> {
 	}
 
 	@Override
+	public void broadcastJson(String json)
+	{
+		throw new UnsupportedOperationException("Broadcast cannot be used on ObbyLang for Discord.");
+	}
+
+	@Override
 	public void message(MessageChannel channel, String message) 
 	{
 		channel.sendMessage(message);
+	}
+
+	@Override
+	public void messageJson(MessageChannel sender, String json)
+	{
+		throw new UnsupportedOperationException("Json messaging is not implemented in ObbyLang for Discord.");
 	}
 
 	@Override
