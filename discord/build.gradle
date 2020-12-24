@@ -15,4 +15,5 @@ dependencies {
     compile 'net.dv8tion:JDA:4.2.0_222'
     compile 'org.slf4j:slf4j-log4j12:1.7.30'
     compile 'org.jline:jline:3.10.0'
+    compile 'org.mariadb.jdbc:mariadb-java-client:2.7.1'
 }
