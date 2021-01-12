@@ -55,7 +55,7 @@ public class DatabaseManager implements RegisteredManager {
 			sb.append(password);
 			return this.connect(declaringClass, type, sb.toString(), maxPoolSize);
 		} else if(databaseType == Database.Type.INFLUXDB) {
-
+			return new InfluxDatabase(ip, port, database, username, password, maxPoolSize);
 		}
 		return null;
 	}
