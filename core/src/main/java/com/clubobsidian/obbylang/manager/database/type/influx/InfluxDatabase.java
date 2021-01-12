@@ -2,6 +2,7 @@ package com.clubobsidian.obbylang.manager.database.type.influx;
 
 import com.clubobsidian.obbylang.manager.database.Database;
 import com.zaxxer.influx4j.InfluxDB;
+import com.zaxxer.influx4j.Point;
 import com.zaxxer.influx4j.PointFactory;
 
 public class InfluxDatabase extends Database {
@@ -26,6 +27,14 @@ public class InfluxDatabase extends Database {
                 .setPassword(password)
                 .setDatabase(database)
                 .build();
+    }
+
+    public Point create(String tag) {
+        return this.factory.createPoint(tag);
+    }
+
+    public void write(Point point) {
+        this.db.write(point);
     }
 
     private PointFactory createFactory(int maxPoolSize) {
