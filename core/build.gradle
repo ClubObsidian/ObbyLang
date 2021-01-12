@@ -17,5 +17,6 @@ dependencies {
     compile 'com.github.clubobsidian:crouton:0.6.1'
     compile 'net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT'
     compile 'net.kyori:adventure-text-serializer-gson:4.3.0'
+    compile 'com.zaxxer:influx4j:2.14'
     testCompile 'junit:junit:4.12'
 }
