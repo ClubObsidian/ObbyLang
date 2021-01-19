@@ -1,6 +1,7 @@
 package com.clubobsidian.obbylang.plugin;
 
 import com.clubobsidian.obbylang.ObbyLang;
+import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.clubobsidian.obbylang.command.ObbyLangCommand;
 import com.clubobsidian.obbylang.guice.PluginInjector;
 import com.clubobsidian.obbylang.manager.bungeecord.BungeeCordCustomEventManager;
@@ -29,7 +30,13 @@ public class BungeeCordObbyLangPlugin extends Plugin implements ObbyLangPlugin, 
 		this.getProxy().getPluginManager().registerCommand(this, new ObbyLangCommand("gol"));
 		return true;
 	}
-	
+
+	@Override
+	public ObbyLangPlatform getPlatform()
+	{
+		return ObbyLangPlatform.BUNGEECORD;
+	}
+
 	@Override
 	public Object getServer() 
 	{

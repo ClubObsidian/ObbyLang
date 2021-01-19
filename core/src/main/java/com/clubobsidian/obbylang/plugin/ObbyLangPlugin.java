@@ -3,6 +3,7 @@ package com.clubobsidian.obbylang.plugin;
 import java.io.File;
 import java.util.logging.Logger;
 
+import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.google.inject.Injector;
 
 public interface ObbyLangPlugin {
@@ -12,5 +13,6 @@ public interface ObbyLangPlugin {
 	public Logger getLogger();
 	public Injector getInjector();
 	public boolean createObbyLangCommand();
+	public ObbyLangPlatform getPlatform();
 	
 }

@@ -1,5 +1,6 @@
 package com.clubobsidian.obbylang.plugin;
 
+import com.clubobsidian.obbylang.ObbyLangPlatform;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -33,7 +34,13 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
 		this.getCommand("obbylang").setTabCompleter(new ObbyLangCommandTabCompleter());
 		return true;
 	}
-	
+
+	@Override
+	public ObbyLangPlatform getPlatform()
+	{
+		return ObbyLangPlatform.SPIGOT;
+	}
+
 	@Override
 	public Injector getInjector() 
 	{

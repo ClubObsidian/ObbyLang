@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.logging.Logger;
 
 import com.clubobsidian.obbylang.ObbyLang;
+import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.clubobsidian.obbylang.command.ObbyLangCommand;
 import com.clubobsidian.obbylang.guice.PluginInjector;
 import com.clubobsidian.obbylang.manager.velocity.VelocityCustomEventManager;
@@ -47,7 +48,13 @@ public class VelocityObbyLangPlugin implements ObbyLangPlugin {
 		this.server.getCommandManager().register(new ObbyLangCommand(), "gobbylang", "gol");
 		return true;
 	}
-	
+
+	@Override
+	public ObbyLangPlatform getPlatform()
+	{
+		return ObbyLangPlatform.VELOCITY;
+	}
+
 	@Override
 	public ProxyServer getServer() {
 		return this.server;

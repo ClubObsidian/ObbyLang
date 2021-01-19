@@ -31,6 +31,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 
+import com.clubobsidian.obbylang.ObbyLangPlatform;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -128,6 +129,7 @@ public class ScriptManager {
 		AddonManager.get().registerAddon("dependencyManager", DependencyManager.get());
 		AddonManager.get().registerAddon("scriptManager", this);
 		AddonManager.get().registerAddon("ObbyLangPlugin", ObbyLang.get().getPlugin());
+		AddonManager.get().registerAddon("ObbyLangPlatform", ObbyLangPlatform.class);
 	}
 
 	private void loadClassPool()

@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import javax.security.auth.login.LoginException;
 
 import com.clubobsidian.obbylang.ObbyLang;
+import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.clubobsidian.obbylang.discord.command.DiscordConsoleCommandManager;
 import com.clubobsidian.obbylang.discord.command.ObbyLangCommand;
 import com.clubobsidian.obbylang.discord.command.StopCommand;
@@ -49,7 +50,13 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
 		this.consoleCommandManager.registerCommand(new ObbyLangCommand("obbylang"));
 		return true;
 	}
-	
+
+	@Override
+	public ObbyLangPlatform getPlatform()
+	{
+		return ObbyLangPlatform.DISCORD;
+	}
+
 	@Override
 	public Injector getInjector() 
 	{
