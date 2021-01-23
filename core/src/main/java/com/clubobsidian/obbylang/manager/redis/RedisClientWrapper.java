@@ -4,14 +4,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.script.CompiledScript;
 
+import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.event.connection.ReconnectFailedEvent;
 import io.lettuce.core.pubsub.RedisPubSubListener;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -121,6 +124,11 @@ public class RedisClientWrapper {
 				.autoReconnect(true)
 				.pingBeforeActivateConnection(this.pingBefore)
 				.build());
+		client.getResources().eventBus().get().subscribe(event ->
+		{
+			String eventMessage = this.declaringClass + " " + event.getClass().getName();
+			ObbyLang.get().getPlugin().getLogger().log(Level.SEVERE, eventMessage);
+		});
 		return client;
 	}
 }
