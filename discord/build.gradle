@@ -27,6 +27,7 @@ shadowJar {
     relocate 'org.yaml.snakeyaml', 'com.clubobsidian.obbylang.snakeyaml'
     relocate 'com.clubobsidian.wrappy', 'com.clubobsidian.obbylang.wrappy'
     relocate 'org.spongepowered.configurate', 'com.clubobsidian.obbylang.configurate'
+    relocate 'com.google.common', 'com.clubobsidian.obbylang.guava'
 }
 
 dependencies {

@@ -28,6 +28,7 @@ shadowJar {
     relocate 'com.clubobsidian.wrappy', 'com.clubobsidian.obbylang.wrappy'
     relocate 'org.spongepowered.configurate', 'com.clubobsidian.obbylang.configurate'
     relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
+    relocate 'com.google.common', 'com.clubobsidian.obbylang.guava'
 }
 
 blossom{
