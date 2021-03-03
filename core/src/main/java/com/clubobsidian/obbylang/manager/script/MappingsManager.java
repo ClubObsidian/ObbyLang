@@ -6,8 +6,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 import com.clubobsidian.obbylang.ObbyLang;
+import com.clubobsidian.obbylang.util.ClassUtil;
 
 public class MappingsManager {
 
@@ -37,7 +39,15 @@ public class MappingsManager {
 
 	public boolean addEventMapping(String eventClassPath, String className)
 	{
-		return this.eventMappings.put(eventClassPath, className.toLowerCase()) != null;
+		if(!ClassUtil.classExists(eventClassPath))
+		{
+			String toLog = "Invalid event class mapping" + eventClassPath;
+			ObbyLang.get().getPlugin().getLogger().log(Level.SEVERE, toLog);
+			return false;
+		}
+
+		this.eventMappings.put(eventClassPath, className.toLowerCase());
+		return true;
 	}
 
 	public boolean loadEventMappingsFromFile()
