@@ -17,7 +17,8 @@ public class InfluxDatabase extends Database {
 
     @Override
     public boolean close() {
-        return false;
+        this.db.close();
+        return true;
     }
 
     private InfluxDB createDatabase(String ip, int port, String database, String username, String password) {
