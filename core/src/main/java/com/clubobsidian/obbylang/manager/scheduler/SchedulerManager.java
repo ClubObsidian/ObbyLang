@@ -90,7 +90,7 @@ public class SchedulerManager implements RegisteredManager {
 			});
 		}, delayStart, delayRepeating);
 
-		this.jobs.get(declaringClass).add(new WeakReference<JobWrapper>(wrapper));
+		this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
 		return wrapper;
 	}
 
@@ -103,7 +103,7 @@ public class SchedulerManager implements RegisteredManager {
 			script.call(ScriptManager.get().getScript(declaringClass));
 		});
 
-		this.jobs.get(declaringClass).add(new WeakReference<JobWrapper>(wrapper));
+		this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
 		return wrapper;
 	}
 
@@ -116,7 +116,7 @@ public class SchedulerManager implements RegisteredManager {
 			script.call(ScriptManager.get().getScript(declaringClass));
 		}, delayStart, delayRepeating);
 
-		this.jobs.get(declaringClass).add(new WeakReference<JobWrapper>(wrapper));
+		this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
 		return wrapper;
 	}
 
@@ -129,16 +129,8 @@ public class SchedulerManager implements RegisteredManager {
 	{
 		this.init(declaringClass);
 
-		FutureJobWrapper wrapper = this.crouton.await(new Callable<Object>()
-		{
-			@Override
-			public Object call() throws Exception 
-			{
-				return script.call(ScriptManager.get().getScript(declaringClass));
-			}
-		});
-
-		this.jobs.get(declaringClass).add(new WeakReference<JobWrapper>(wrapper));
+		FutureJobWrapper wrapper = this.crouton.await(() -> script.call(ScriptManager.get().getScript(declaringClass)));
+		this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
 		return wrapper.getFuture();
 	}
 
