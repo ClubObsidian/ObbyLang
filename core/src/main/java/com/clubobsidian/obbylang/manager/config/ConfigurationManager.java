@@ -87,4 +87,23 @@ public class ConfigurationManager {
 		}
 		return null;
 	}
+
+	public Configuration loadRaw(String url, String fileName) {
+		return this.loadRaw(url, fileName, true);
+	}
+
+	public Configuration loadRaw(String url, String fileName, boolean overwrite) {
+		return this.loadRaw(url, fileName, new HashMap<>(), overwrite);
+	}
+
+	public Configuration loadRaw(String url, String fileName, Map<String,String> requestProperties, boolean overwrite) {
+		File saveTo = new File(this.directory.toFile(), fileName);
+		try {
+			URL u = new URL(url);
+			return Configuration.load(u, saveTo, requestProperties, overwrite);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 }
