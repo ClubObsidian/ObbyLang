@@ -6,85 +6,84 @@ import com.clubobsidian.obbylang.util.MessageUtil;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.permission.Tristate;
 import com.velocitypowered.api.proxy.Player;
-
 import net.kyori.text.Component;
 
 public class VelocitySenderWrapper extends SenderWrapper<CommandSource> implements CommandSource {
 
-	private final static String NA = "N/A";
-	
-	public VelocitySenderWrapper(CommandSource sender) {
-		super(sender);
-	}
+    private final static String NA = "N/A";
 
-	public String getName() {
-		if(this.getOriginalSender() instanceof Player) {
-			Player player = (Player) this.getOriginalSender();
-			return player.getUsername();
-		}
-		return NA;
-	}
+    public VelocitySenderWrapper(CommandSource sender) {
+        super(sender);
+    }
 
-	@Override
-	public void sendMessage(String message) {
-		MessageUtil.sendMessage(this.getOriginalSender(), ChatColor.translateAlternateColorCodes(message));
-	}
+    public String getName() {
+        if(this.getOriginalSender() instanceof Player) {
+            Player player = (Player) this.getOriginalSender();
+            return player.getUsername();
+        }
+        return NA;
+    }
 
-	@Override
-	public void sendMessage(String[] messages) {
-		for(String msg : messages) {
-			this.sendMessage(msg);
-		}
-	}
-	
-	public void sendMessages(String... messages) {
-		for(String msg : messages) {
-			this.sendMessage(msg);
-		}
-	}
+    @Override
+    public void sendMessage(String message) {
+        MessageUtil.sendMessage(this.getOriginalSender(), ChatColor.translateAlternateColorCodes(message));
+    }
 
-	@Override
-	public void sendMessage(Component message) {
-		this.getOriginalSender().sendMessage(message);
-	}
+    @Override
+    public void sendMessage(String[] messages) {
+        for(String msg : messages) {
+            this.sendMessage(msg);
+        }
+    }
 
-	@Override
-	public boolean hasPermission(String permission) {
-		return this.getOriginalSender().hasPermission(permission);
-	}
+    public void sendMessages(String... messages) {
+        for(String msg : messages) {
+            this.sendMessage(msg);
+        }
+    }
 
-	@Override
-	public Object asCommandBlock() {
-		return null;
-	}
+    @Override
+    public void sendMessage(Component message) {
+        this.getOriginalSender().sendMessage(message);
+    }
 
-	@Override
-	public Object asConsole() {
-		return null;
-	}
+    @Override
+    public boolean hasPermission(String permission) {
+        return this.getOriginalSender().hasPermission(permission);
+    }
 
-	@Override
-	public Object asPlayer() {
-		return (Player) this.getOriginalSender();
-	}
+    @Override
+    public Object asCommandBlock() {
+        return null;
+    }
 
-	@Override
-	public boolean isCommandBlock() {
-		return false;
-	}
+    @Override
+    public Object asConsole() {
+        return null;
+    }
 
-	@Override
-	public boolean isConsole() {
-		return false;
-	}
+    @Override
+    public Object asPlayer() {
+        return this.getOriginalSender();
+    }
 
-	@Override
-	public boolean isPlayer() {
-		return this.getOriginalSender() instanceof Player;
-	}
+    @Override
+    public boolean isCommandBlock() {
+        return false;
+    }
 
-	@Override
-	public Tristate getPermissionValue(String permission) {
-		return this.getOriginalSender().getPermissionValue(permission);
-	}	
+    @Override
+    public boolean isConsole() {
+        return false;
+    }
+
+    @Override
+    public boolean isPlayer() {
+        return this.getOriginalSender() instanceof Player;
+    }
+
+    @Override
+    public Tristate getPermissionValue(String permission) {
+        return this.getOriginalSender().getPermissionValue(permission);
+    }
 }

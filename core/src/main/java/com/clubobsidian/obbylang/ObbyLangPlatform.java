@@ -8,8 +8,7 @@ public enum ObbyLangPlatform {
     DISCORD,
     UNKNOWN;
 
-    public static ObbyLangPlatform getCurrent()
-    {
+    public static ObbyLangPlatform getCurrent() {
         return ObbyLang.get().getPlugin().getPlatform();
     }
 }

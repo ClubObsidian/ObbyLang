@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public  class MySQLDatabase extends AbstractSQLDatabase {
+public class MySQLDatabase extends AbstractSQLDatabase {
 
     private HikariDataSource source;
 
@@ -40,8 +40,7 @@ public  class MySQLDatabase extends AbstractSQLDatabase {
                 }
             }
             return selected;
-        }
-        catch (SQLException e) {
+        } catch(SQLException e) {
             e.printStackTrace();
         }
 
@@ -50,14 +49,14 @@ public  class MySQLDatabase extends AbstractSQLDatabase {
 
     @Override
     public boolean execute(String query, List<Object> vars) {
-        try (Connection con = this.source.getConnection()) {
+        try(Connection con = this.source.getConnection()) {
             PreparedStatement statement = con.prepareStatement(query);
             for(int i = 0; i < vars.size(); i++) {
                 statement.setObject(i + 1, vars.get(i));
             }
             statement.executeUpdate();
             return true;
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             e.printStackTrace();
         }
         return false;

@@ -5,9 +5,8 @@ import com.clubobsidian.obbylang.pipe.Pipe;
 
 public class LoggerPipe implements Pipe {
 
-	@Override
-	public void out(String msg) 
-	{
-		DiscordObbyLangPlugin.get().getLogger().info(msg);
-	}
+    @Override
+    public void out(String msg) {
+        DiscordObbyLangPlugin.get().getLogger().info(msg);
+    }
 }

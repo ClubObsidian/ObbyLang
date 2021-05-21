@@ -7,25 +7,22 @@ public class ObbyLangCustomEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
 
-    private Object[] args;
-    public ObbyLangCustomEvent(Object[] args)
-    {
-    	this.args = args;
+    private final Object[] args;
+
+    public ObbyLangCustomEvent(Object[] args) {
+        this.args = args;
     }
-    
-    public Object[] getArgs()
-    {
-    	return this.args;
+
+    public Object[] getArgs() {
+        return this.args;
     }
-    
-	@Override
-	public HandlerList getHandlers() 
-	{
-		return handlers;
-	}
-	
-	public static HandlerList getHandlerList()
-	{
-		return ObbyLangCustomEvent.handlers;
-	}
+
+    @Override
+    public HandlerList getHandlers() {
+        return handlers;
+    }
+
+    public static HandlerList getHandlerList() {
+        return ObbyLangCustomEvent.handlers;
+    }
 }

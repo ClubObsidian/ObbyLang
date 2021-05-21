@@ -3,13 +3,13 @@ package com.clubobsidian.obbylang.event;
 
 public class ObbyLangCustomEvent {
 
-    private Object[] args;
-    
+    private final Object[] args;
+
     public ObbyLangCustomEvent(Object[] args) {
-    	this.args = args;
+        this.args = args;
     }
-    
+
     public Object[] getArgs() {
-    	return this.args;
+        return this.args;
     }
 }

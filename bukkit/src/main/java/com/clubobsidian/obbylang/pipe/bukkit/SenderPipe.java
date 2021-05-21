@@ -1,20 +1,18 @@
 package com.clubobsidian.obbylang.pipe.bukkit;
 
-import org.bukkit.command.CommandSender;
-
 import com.clubobsidian.obbylang.pipe.Pipe;
+import org.bukkit.command.CommandSender;
 
 public class SenderPipe implements Pipe {
 
-	private CommandSender sender;
-	public SenderPipe(CommandSender sender)
-	{
-		this.sender = sender;
-	}
-	
-	@Override
-	public void out(String msg) 
-	{
-		this.sender.sendMessage(msg);
-	}
+    private final CommandSender sender;
+
+    public SenderPipe(CommandSender sender) {
+        this.sender = sender;
+    }
+
+    @Override
+    public void out(String msg) {
+        this.sender.sendMessage(msg);
+    }
 }

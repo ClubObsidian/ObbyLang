@@ -5,18 +5,16 @@ import com.clubobsidian.obbylang.pipe.Pipe;
 
 public class StopCommand extends Command {
 
-	public StopCommand() 
-	{
-		super("stop");
-	}
+    public StopCommand() {
+        super("stop");
+    }
 
-	@Override
-	public boolean onCommand(Pipe pipe, String[] args) 
-	{
-		pipe.out("Shutting down the server...");
-		Bootstrap.getPlugin().onDisable();
-		System.exit(0);
-		return true;
-	}
+    @Override
+    public boolean onCommand(Pipe pipe, String[] args) {
+        pipe.out("Shutting down the server...");
+        Bootstrap.getPlugin().onDisable();
+        System.exit(0);
+        return true;
+    }
 
 }
