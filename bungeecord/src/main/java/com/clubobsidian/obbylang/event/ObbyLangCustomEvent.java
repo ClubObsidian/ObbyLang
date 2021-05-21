@@ -4,14 +4,13 @@ import net.md_5.bungee.api.plugin.Event;
 
 public class ObbyLangCustomEvent extends Event {
 
-    private Object[] args;
-    public ObbyLangCustomEvent(Object[] args)
-    {
-    	this.args = args;
+    private final Object[] args;
+
+    public ObbyLangCustomEvent(Object[] args) {
+        this.args = args;
     }
-    
-    public Object[] getArgs()
-    {
-    	return this.args;
+
+    public Object[] getArgs() {
+        return this.args;
     }
 }

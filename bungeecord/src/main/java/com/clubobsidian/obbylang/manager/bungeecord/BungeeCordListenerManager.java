@@ -1,60 +1,52 @@
 package com.clubobsidian.obbylang.manager.bungeecord;
 
 import com.clubobsidian.obbylang.manager.listener.ListenerManager;
-import com.clubobsidian.obbylang.manager.script.ScriptWrapper;
-
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
 public class BungeeCordListenerManager extends ListenerManager<Byte> {
 
-	private Byte[] priorities;
-	public BungeeCordListenerManager()
-	{
-		this.priorities = new Byte[] 
-		{
-			EventPriority.LOWEST,
-			EventPriority.LOW,
-			EventPriority.NORMAL,
-			EventPriority.HIGH,
-			EventPriority.HIGHEST
-		};
-	}
-	
-	@Override
-	public String getDefaultPriority() 
-	{
-		return "NORMAL";
-	}
+    private final Byte[] priorities;
 
-	@Override
-	public Class<?> getHandlerClass() 
-	{
-		return EventHandler.class;
-	}
+    public BungeeCordListenerManager() {
+        this.priorities = new Byte[]
+                {
+                        EventPriority.LOWEST,
+                        EventPriority.LOW,
+                        EventPriority.NORMAL,
+                        EventPriority.HIGH,
+                        EventPriority.HIGHEST
+                };
+    }
 
-	@Override
-	public Class<?> getListenerClass() 
-	{
-		return Listener.class;
-	}
+    @Override
+    public String getDefaultPriority() {
+        return "NORMAL";
+    }
 
-	@Override
-	public Class<?> getEventPriorityClass() 
-	{
-		return EventPriority.class;
-	}
-	
-	@Override
-	public Byte[] getPriorities() 
-	{
-		return this.priorities;
-	}
+    @Override
+    public Class<?> getHandlerClass() {
+        return EventHandler.class;
+    }
 
-	@Override
-	public String getPriorityName() 
-	{
-		return "priority";
-	}
+    @Override
+    public Class<?> getListenerClass() {
+        return Listener.class;
+    }
+
+    @Override
+    public Class<?> getEventPriorityClass() {
+        return EventPriority.class;
+    }
+
+    @Override
+    public Byte[] getPriorities() {
+        return this.priorities;
+    }
+
+    @Override
+    public String getPriorityName() {
+        return "priority";
+    }
 }
