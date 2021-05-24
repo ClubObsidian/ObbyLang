@@ -18,10 +18,10 @@ public class MongoDatabase extends Database {
     }
 
     private MongoClient createClient(String ip, int port, String database, String username, String password) {
-        MongoCredential credentials = MongoCredential.createCredential(username, database, password.toCharArray()));
-        return MongoClients.create(MongoClientSettings.builder().applyToClusterSettings(builder -> {
-            builder.hosts(Arrays.asList(new ServerAddress(ip, port)))
-        }).credential(credentials).build());
+        MongoCredential credentials = MongoCredential.createCredential(username, database, password.toCharArray());
+        return MongoClients.create(MongoClientSettings.builder().applyToClusterSettings(builder ->
+                builder.hosts(Arrays.asList(new ServerAddress(ip, port)))
+        ).credential(credentials).build());
     }
 
     public void createDatabase(String name) {
