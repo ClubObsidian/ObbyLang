@@ -18,5 +18,6 @@ dependencies {
     compile 'net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT'
     compile 'net.kyori:adventure-text-serializer-gson:4.3.0'
     compile 'com.zaxxer:influx4j:2.14'
+    compile 'org.mongodb:mongodb-driver-sync:4.2.3'
     testCompile 'junit:junit:4.12'
 }

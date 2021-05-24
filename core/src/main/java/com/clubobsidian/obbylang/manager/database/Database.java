@@ -7,6 +7,7 @@ public abstract class Database {
     public enum Type {
         MYSQL,
         INFLUXDB,
+        MONGODB,
         UNKNOWN;
 
         public static Type fromString(String type) {
@@ -15,6 +16,8 @@ public abstract class Database {
                 return Type.MYSQL;
             } else if(lowerType.equals("influxdb") || lowerType.equals("influx")) {
                 return Type.INFLUXDB;
+            } else if(lowerType.equals("mongo") || lowerType.equals("mongodb")) {
+                return Type.MONGODB;
             }
             return Type.UNKNOWN;
         }
