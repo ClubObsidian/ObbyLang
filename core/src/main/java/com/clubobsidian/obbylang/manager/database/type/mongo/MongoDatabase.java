@@ -6,8 +6,12 @@ import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.model.Filters;
+import org.bson.Document;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 public class MongoDatabase extends Database {
 
@@ -28,6 +32,23 @@ public class MongoDatabase extends Database {
 
     public void createCollection(String name) {
         this.client.getDatabase(this.database).createCollection(name);
+    }
+
+    public <T> Document getDocument(String collectionName, String key, T value) {
+        return this.client.getDatabase(this.database)
+                .getCollection(collectionName)
+                .find(Filters.eq(key, value))
+                .first();
+    }
+
+    public <T> Collection<Document> getDocuments(String collectionName, String key, T value) {
+        Collection<Document> documents = new ArrayList<>();
+        this.client.getDatabase(this.database)
+                .getCollection(collectionName)
+                .find(Filters.eq(key, value)).forEach(document -> {
+            documents.add(document);
+        });
+        return documents;
     }
 
     @Override
