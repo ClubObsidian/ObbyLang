@@ -1,6 +1,7 @@
 package com.clubobsidian.obbylang.manager.database.type.mongo;
 
 import com.clubobsidian.obbylang.manager.database.Database;
+import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
@@ -38,21 +39,38 @@ public class MongoDatabase extends Database {
         this.client.getDatabase(this.database).getCollection(name).drop();
     }
 
+    public BasicDBObject createObject(String key, String value) {
+        return new BasicDBObject(key, value);
+    }
+
     public <T> Document getDocument(String collectionName, String key, T value) {
+        return this.getDocument(collectionName, new BasicDBObject(key, value));
+    }
+
+    public <T> Document getDocument(String collectionName, BasicDBObject obj) {
         return this.client.getDatabase(this.database)
                 .getCollection(collectionName)
-                .find(Filters.eq(key, value))
+                .find(Filters.eq(obj))
                 .first();
     }
 
     public <T> Collection<Document> getDocuments(String collectionName, String key, T value) {
+        return this.getDocuments(collectionName, new BasicDBObject(key, value));
+    }
+
+    public <T> Collection<Document> getDocuments(String collectionName, BasicDBObject obj) {
         Collection<Document> documents = new ArrayList<>();
         this.client.getDatabase(this.database)
                 .getCollection(collectionName)
-                .find(Filters.eq(key, value)).forEach(document -> {
+                .find(Filters.eq(obj))
+                .forEach(document -> {
             documents.add(document);
         });
         return documents;
+    }
+
+    public void createDocument(Document document) {
+
     }
 
     @Override
