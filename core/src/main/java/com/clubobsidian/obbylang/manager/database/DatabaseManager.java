@@ -2,6 +2,7 @@ package com.clubobsidian.obbylang.manager.database;
 
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.database.type.influx.InfluxDatabase;
+import com.clubobsidian.obbylang.manager.database.type.mongo.MongoDatabase;
 import com.clubobsidian.obbylang.manager.database.type.sql.MySQLDatabase;
 
 import java.util.HashMap;
@@ -20,7 +21,7 @@ public class DatabaseManager implements RegisteredManager {
         return instance;
     }
 
-    private Map<String, List<Database>> databases;
+    private final Map<String, List<Database>> databases;
 
     private DatabaseManager() {
         this.databases = new HashMap<>();
@@ -56,6 +57,8 @@ public class DatabaseManager implements RegisteredManager {
             return this.connect(declaringClass, type, sb.toString(), maxPoolSize);
         } else if(databaseType == Database.Type.INFLUXDB) {
             return new InfluxDatabase(ip, port, database, username, password, maxPoolSize);
+        } else if(databaseType == Database.Type.MONGODB) {
+            return new MongoDatabase(ip, port, database, username, password);
         }
         return null;
     }
@@ -76,6 +79,8 @@ public class DatabaseManager implements RegisteredManager {
             poolSize = 10;
         } else if(databaseType == Database.Type.INFLUXDB) {
             poolSize = 10000;
+        } else if(databaseType != Database.Type.UNKNOWN) {
+            poolSize = 1;
         }
         return poolSize > 0 ? this.connect(declaringClass, type, ip, port, database, username, password, poolSize) : null;
     }

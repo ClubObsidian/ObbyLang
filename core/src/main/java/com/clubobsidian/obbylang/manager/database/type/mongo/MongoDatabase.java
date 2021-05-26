@@ -24,7 +24,7 @@ public class MongoDatabase extends Database {
     private final MongoClient client;
     private final String database;
 
-    public MongoDatabase(String ip, int port, String database, String username, String password, int maxPoolSize) {
+    public MongoDatabase(String ip, int port, String database, String username, String password) {
         this.client = this.createClient(ip, port, database, username, password);
         this.database = database;
     }
