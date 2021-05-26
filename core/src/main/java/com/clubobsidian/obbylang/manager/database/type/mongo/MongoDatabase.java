@@ -8,6 +8,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.model.Filters;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bson.Document;
 
 import java.util.ArrayList;
@@ -39,8 +40,28 @@ public class MongoDatabase extends Database {
         this.client.getDatabase(this.database).getCollection(name).drop();
     }
 
-    public BasicDBObject createObject(String key, String value) {
+    public BasicDBObject createObject() {
+        return new BasicDBObject();
+    }
+
+    public <T> BasicDBObject createObject(String key, T value) {
         return new BasicDBObject(key, value);
+    }
+
+    public BasicDBObject createObject(String json) {
+        return BasicDBObject.parse(json);
+    }
+
+    public Document createDocument() {
+        return new Document();
+    }
+
+    public <T> Document createDocument(String key, T value) {
+        return new Document(key, value);
+    }
+
+    public Document createDocument(String json) {
+        return Document.parse(json);
     }
 
     public <T> Document getDocument(String collectionName, String key, T value) {
@@ -55,7 +76,7 @@ public class MongoDatabase extends Database {
     }
 
     public <T> Collection<Document> getDocuments(String collectionName, String key, T value) {
-        return this.getDocuments(collectionName, new BasicDBObject(key, value));
+        return this.getDocuments(collectionName, this.createObject(key, value));
     }
 
     public <T> Collection<Document> getDocuments(String collectionName, BasicDBObject obj) {
@@ -69,8 +90,14 @@ public class MongoDatabase extends Database {
         return documents;
     }
 
-    public void createDocument(Document document) {
+    public <T> boolean createDocument(String collectionName, String key, T value) {
+        return this.createDocument(collectionName, this.createDocument(key, value));
+    }
 
+    public boolean createDocument(String collectionName, Document document) {
+        return this.client.getDatabase(this.database)
+                .getCollection(collectionName)
+                .insertOne(document).wasAcknowledged();
     }
 
     @Override
