@@ -11,10 +11,12 @@ import java.util.Arrays;
 
 public class MongoDatabase extends Database {
 
-    private MongoClient client;
+    private final MongoClient client;
+    private final String database;
 
     public MongoDatabase(String ip, int port, String database, String username, String password, int maxPoolSize) {
         this.client = this.createClient(ip, port, database, username, password);
+        this.database = database;
     }
 
     private MongoClient createClient(String ip, int port, String database, String username, String password) {
@@ -24,8 +26,8 @@ public class MongoDatabase extends Database {
         ).credential(credentials).build());
     }
 
-    public void createDatabase(String name) {
-        //this.client.getDatabase("test").
+    public void createCollection(String name) {
+        this.client.getDatabase(this.database).createCollection(name);
     }
 
     @Override
