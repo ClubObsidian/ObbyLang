@@ -34,6 +34,10 @@ public class MongoDatabase extends Database {
         this.client.getDatabase(this.database).createCollection(name);
     }
 
+    public void deleteCollection(String name) {
+        this.client.getDatabase(this.database).getCollection(name).drop();
+    }
+
     public <T> Document getDocument(String collectionName, String key, T value) {
         return this.client.getDatabase(this.database)
                 .getCollection(collectionName)
