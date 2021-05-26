@@ -8,7 +8,11 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.model.UpdateOptions;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,7 +72,7 @@ public class MongoDatabase extends Database {
         return this.getDocument(collectionName, new BasicDBObject(key, value));
     }
 
-    public <T> Document getDocument(String collectionName, BasicDBObject obj) {
+    public <T> Document getDocument(String collectionName, Bson obj) {
         return this.client.getDatabase(this.database)
                 .getCollection(collectionName)
                 .find(Filters.eq(obj))
@@ -113,6 +117,45 @@ public class MongoDatabase extends Database {
                 .getCollection(collectionName)
                 .insertMany(documents)
                 .wasAcknowledged();
+    }
+
+    public <T> Document updateDocument(String collectionName, Bson filter, Bson update) {
+        return this.updateDocument(collectionName, filter, new Bson[]{update});
+    }
+
+    public <T> Document updateDocument(String collectionName, Bson filter, Bson... update) {
+        return this.updateDocument(collectionName, filter, Arrays.asList(update));
+    }
+
+    public <T> Document updateDocument(String collectionName, Bson filter, Collection<Bson> update) {
+        return this.updateDocument(collectionName, filter, new ArrayList<>(update));
+    }
+
+    public <T> Document updateDocument(String collectionName, Bson filter, List<Bson> update) {
+        FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+        options.returnDocument(ReturnDocument.AFTER);
+        return this.client.getDatabase(this.database)
+                .getCollection(collectionName)
+                .findOneAndUpdate(filter, update, options);
+    }
+
+    public long updateManyDocuments(String collectionName, Bson filter, Bson update) {
+        return this.updateManyDocuments(collectionName, filter, new Bson[]{update});
+    }
+
+    public long updateManyDocuments(String collectionName, Bson filter, Bson... update) {
+        return this.updateManyDocuments(collectionName, filter, Arrays.asList(update);
+    }
+
+    public long updateManyDocuments(String collectionName, Bson filter, Collection<Bson> update) {
+        return this.updateManyDocuments(collectionName, filter, new ArrayList<>(update));
+    }
+
+    public long updateManyDocuments(String collectionName, Bson filter, List<Bson> update) {
+        return this.client.getDatabase(this.database)
+                .getCollection(collectionName)
+                .updateMany(filter, update)
+                .getModifiedCount();
     }
 
     @Override
