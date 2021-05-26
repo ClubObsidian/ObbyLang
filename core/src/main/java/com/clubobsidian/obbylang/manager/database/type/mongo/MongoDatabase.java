@@ -44,6 +44,13 @@ public class MongoDatabase extends Database {
         this.client.getDatabase(this.database).getCollection(name).drop();
     }
 
+    public boolean collectionExists(String name) {
+        return this.client.getDatabase(this.database)
+                .listCollectionNames()
+                .into(new ArrayList<>())
+                .contains(name);
+    }
+
     public BasicDBObject createObject() {
         return new BasicDBObject();
     }
@@ -84,14 +91,10 @@ public class MongoDatabase extends Database {
     }
 
     public <T> Collection<Document> getManyDocuments(String collectionName, BasicDBObject obj) {
-        Collection<Document> documents = new ArrayList<>();
-        this.client.getDatabase(this.database)
+       return this.client.getDatabase(this.database)
                 .getCollection(collectionName)
                 .find(Filters.eq(obj))
-                .forEach(document -> {
-            documents.add(document);
-        });
-        return documents;
+                .into(new ArrayList<>());
     }
 
     public <T> boolean insertDocument(String collectionName, String key, T value) {
