@@ -10,13 +10,13 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
-import com.mongodb.client.model.UpdateOptions;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class MongoDatabase extends Database {
@@ -32,7 +32,7 @@ public class MongoDatabase extends Database {
     private MongoClient createClient(String ip, int port, String database, String username, String password) {
         MongoCredential credentials = MongoCredential.createCredential(username, database, password.toCharArray());
         return MongoClients.create(MongoClientSettings.builder().applyToClusterSettings(builder ->
-                builder.hosts(Arrays.asList(new ServerAddress(ip, port)))
+                builder.hosts(Collections.singletonList(new ServerAddress(ip, port)))
         ).credential(credentials).build());
     }
 
@@ -79,7 +79,7 @@ public class MongoDatabase extends Database {
         return this.getDocument(collectionName, new BasicDBObject(key, value));
     }
 
-    public <T> Document getDocument(String collectionName, Bson obj) {
+    public Document getDocument(String collectionName, Bson obj) {
         return this.client.getDatabase(this.database)
                 .getCollection(collectionName)
                 .find(Filters.eq(obj))
@@ -90,7 +90,7 @@ public class MongoDatabase extends Database {
         return this.getManyDocuments(collectionName, this.createObject(key, value));
     }
 
-    public <T> Collection<Document> getManyDocuments(String collectionName, BasicDBObject obj) {
+    public Collection<Document> getManyDocuments(String collectionName, BasicDBObject obj) {
        return this.client.getDatabase(this.database)
                 .getCollection(collectionName)
                 .find(Filters.eq(obj))
@@ -122,19 +122,19 @@ public class MongoDatabase extends Database {
                 .wasAcknowledged();
     }
 
-    public <T> Document updateDocument(String collectionName, Bson filter, Bson update) {
+    public Document updateDocument(String collectionName, Bson filter, Bson update) {
         return this.updateDocument(collectionName, filter, new Bson[]{update});
     }
 
-    public <T> Document updateDocument(String collectionName, Bson filter, Bson... update) {
+    public Document updateDocument(String collectionName, Bson filter, Bson... update) {
         return this.updateDocument(collectionName, filter, Arrays.asList(update));
     }
 
-    public <T> Document updateDocument(String collectionName, Bson filter, Collection<Bson> update) {
+    public Document updateDocument(String collectionName, Bson filter, Collection<Bson> update) {
         return this.updateDocument(collectionName, filter, new ArrayList<>(update));
     }
 
-    public <T> Document updateDocument(String collectionName, Bson filter, List<Bson> update) {
+    public Document updateDocument(String collectionName, Bson filter, List<Bson> update) {
         FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
         options.returnDocument(ReturnDocument.AFTER);
         return this.client.getDatabase(this.database)
