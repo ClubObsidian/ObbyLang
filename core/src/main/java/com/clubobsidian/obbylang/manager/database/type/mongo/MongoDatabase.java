@@ -144,7 +144,7 @@ public class MongoDatabase extends Database {
     }
 
     public long updateManyDocuments(String collectionName, Bson filter, Bson... update) {
-        return this.updateManyDocuments(collectionName, filter, Arrays.asList(update);
+        return this.updateManyDocuments(collectionName, filter, Arrays.asList(update));
     }
 
     public long updateManyDocuments(String collectionName, Bson filter, Collection<Bson> update) {
@@ -156,6 +156,20 @@ public class MongoDatabase extends Database {
                 .getCollection(collectionName)
                 .updateMany(filter, update)
                 .getModifiedCount();
+    }
+
+    public boolean deleteDocument(String collectionName, Bson filter) {
+        return this.client.getDatabase(this.database)
+                .getCollection(collectionName)
+                .deleteOne(filter)
+                .wasAcknowledged();
+    }
+
+    public long deleteManyDocuments(String collectionName, Bson filter) {
+        return this.client.getDatabase(this.database)
+                .getCollection(collectionName)
+                .deleteMany(filter)
+                .getDeletedCount();
     }
 
     @Override
