@@ -8,12 +8,12 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.model.Filters;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 public class MongoDatabase extends Database {
 
@@ -75,11 +75,11 @@ public class MongoDatabase extends Database {
                 .first();
     }
 
-    public <T> Collection<Document> getDocuments(String collectionName, String key, T value) {
-        return this.getDocuments(collectionName, this.createObject(key, value));
+    public <T> Collection<Document> getManyDocuments(String collectionName, String key, T value) {
+        return this.getManyDocuments(collectionName, this.createObject(key, value));
     }
 
-    public <T> Collection<Document> getDocuments(String collectionName, BasicDBObject obj) {
+    public <T> Collection<Document> getManyDocuments(String collectionName, BasicDBObject obj) {
         Collection<Document> documents = new ArrayList<>();
         this.client.getDatabase(this.database)
                 .getCollection(collectionName)
@@ -90,14 +90,29 @@ public class MongoDatabase extends Database {
         return documents;
     }
 
-    public <T> boolean createDocument(String collectionName, String key, T value) {
-        return this.createDocument(collectionName, this.createDocument(key, value));
+    public <T> boolean insertDocument(String collectionName, String key, T value) {
+        return this.insertDocument(collectionName, this.createDocument(key, value));
     }
 
-    public boolean createDocument(String collectionName, Document document) {
+    public boolean insertDocument(String collectionName, Document document) {
         return this.client.getDatabase(this.database)
                 .getCollection(collectionName)
                 .insertOne(document).wasAcknowledged();
+    }
+
+    public boolean insertManyDocuments(String collectionName, Document... documents) {
+        return this.insertManyDocuments(collectionName, Arrays.asList(documents));
+    }
+
+    public boolean insertManyDocuments(String collectionName, Collection<Document> documents) {
+        return this.insertManyDocuments(collectionName, new ArrayList<>(documents));
+    }
+
+    public boolean insertManyDocuments(String collectionName, List<Document> documents) {
+        return this.client.getDatabase(this.database)
+                .getCollection(collectionName)
+                .insertMany(documents)
+                .wasAcknowledged();
     }
 
     @Override
