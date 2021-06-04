@@ -31,6 +31,10 @@ public class MongoDatabase extends Database {
         this.client.getDatabase(database).getCollection(name).drop();
     }
 
+    public void createCollectionIndex(String database, String name, Bson obj) {
+        this.client.getDatabase(database).getCollection(name).createIndex(obj);
+    }
+
     public boolean collectionExists(String database, String name) {
         return this.client.getDatabase(database)
                 .listCollectionNames()
