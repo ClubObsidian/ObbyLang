@@ -57,8 +57,6 @@ public class DatabaseManager implements RegisteredManager {
             return this.connect(declaringClass, type, sb.toString(), maxPoolSize);
         } else if(databaseType == Database.Type.INFLUXDB) {
             return new InfluxDatabase(ip, port, database, username, password, maxPoolSize);
-        } else if(databaseType == Database.Type.MONGODB) {
-            return new MongoDatabase(ip, port, database, username, password);
         }
         return null;
     }
@@ -68,6 +66,8 @@ public class DatabaseManager implements RegisteredManager {
         Database.Type databaseType = Database.Type.fromString(type);
         if(databaseType == Database.Type.MYSQL) {
             return this.connect(declaringClass, type, connection, 10);
+        } else if(databaseType == Database.Type.MONGODB) {
+            return new MongoDatabase(connection);
         }
         return null;
     }
