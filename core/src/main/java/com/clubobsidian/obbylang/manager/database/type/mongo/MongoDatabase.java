@@ -23,6 +23,10 @@ public class MongoDatabase extends Database {
         this.client = MongoClients.create(connection);
     }
 
+    public void runCommand(String database, String json) {
+        this.client.getDatabase(database).runCommand(BasicDBObject.parse(json));
+    }
+
     public void createCollection(String database, String name) {
         this.client.getDatabase(database).createCollection(name);
     }
