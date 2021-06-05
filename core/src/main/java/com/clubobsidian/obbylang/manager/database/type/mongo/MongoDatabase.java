@@ -14,6 +14,7 @@ import org.bson.conversions.Bson;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class MongoDatabase extends Database {
@@ -50,6 +51,10 @@ public class MongoDatabase extends Database {
 
     public IndexOptions createIndexOptions() {
         return new IndexOptions();
+    }
+
+    public FindOneAndUpdateOptions createFindOneAndUpdateOptions() {
+        return new FindOneAndUpdateOptions();
     }
 
     public void runCommand(String database, String json) {
@@ -130,17 +135,33 @@ public class MongoDatabase extends Database {
         return this.updateDocument(database, collectionName, filter, new Bson[]{update});
     }
 
+    public Document updateDocument(String database, String collectionName, Bson filter,
+                                   Bson update, FindOneAndUpdateOptions options) {
+        return this.updateDocument(database, collectionName, filter, Collections.singletonList(update), options);
+    }
+
     public Document updateDocument(String database, String collectionName, Bson filter, Bson... update) {
         return this.updateDocument(database, collectionName, filter, Arrays.asList(update));
     }
 
-    public Document updateDocument(String database, String collectionName, Bson filter, Collection<Bson> update) {
+    public Document updateDocument(String database, String collectionName, Bson filter,
+                                   Collection<Bson> update) {
         return this.updateDocument(database, collectionName, filter, new ArrayList<>(update));
+    }
+
+    public Document updateDocument(String database, String collectionName, Bson filter,
+                                   Collection<Bson> update, FindOneAndUpdateOptions options) {
+        return this.updateDocument(database, collectionName, filter, new ArrayList<>(update), options);
     }
 
     public Document updateDocument(String database, String collectionName, Bson filter, List<Bson> update) {
         FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
         options.returnDocument(ReturnDocument.AFTER);
+        return this.updateDocument(database, collectionName, filter, update, options);
+    }
+
+    public Document updateDocument(String database, String collectionName,
+                                   Bson filter, List<Bson> update, FindOneAndUpdateOptions options) {
         return this.client.getDatabase(database)
                 .getCollection(collectionName)
                 .findOneAndUpdate(filter, update, options);
