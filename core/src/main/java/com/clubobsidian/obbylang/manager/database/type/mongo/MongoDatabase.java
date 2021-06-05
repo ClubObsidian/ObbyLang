@@ -68,6 +68,10 @@ public class MongoDatabase extends Database {
         this.client.getDatabase(database).getCollection(name).createIndex(obj);
     }
 
+    public void createCollectionIndex(String database, String name, Bson keys, IndexOptions options) {
+        this.client.getDatabase(database).getCollection(name).createIndex(keys, options);
+    }
+
     public boolean collectionExists(String database, String name) {
         return this.client.getDatabase(database)
                 .listCollectionNames()
