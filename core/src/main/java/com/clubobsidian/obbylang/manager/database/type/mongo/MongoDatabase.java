@@ -6,6 +6,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.ReturnDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -21,29 +22,6 @@ public class MongoDatabase extends Database {
 
     public MongoDatabase(String connection) {
         this.client = MongoClients.create(connection);
-    }
-
-    public void runCommand(String database, String json) {
-        this.client.getDatabase(database).runCommand(BasicDBObject.parse(json));
-    }
-
-    public void createCollection(String database, String name) {
-        this.client.getDatabase(database).createCollection(name);
-    }
-
-    public void deleteCollection(String database, String name) {
-        this.client.getDatabase(database).getCollection(name).drop();
-    }
-
-    public void createCollectionIndex(String database, String name, Bson obj) {
-        this.client.getDatabase(database).getCollection(name).createIndex(obj);
-    }
-
-    public boolean collectionExists(String database, String name) {
-        return this.client.getDatabase(database)
-                .listCollectionNames()
-                .into(new ArrayList<>())
-                .contains(name);
     }
 
     public BasicDBObject createObject() {
@@ -68,6 +46,33 @@ public class MongoDatabase extends Database {
 
     public Document createDocument(String json) {
         return Document.parse(json);
+    }
+
+    public IndexOptions createIndexOptions() {
+        return new IndexOptions();
+    }
+
+    public void runCommand(String database, String json) {
+        this.client.getDatabase(database).runCommand(BasicDBObject.parse(json));
+    }
+
+    public void createCollection(String database, String name) {
+        this.client.getDatabase(database).createCollection(name);
+    }
+
+    public void deleteCollection(String database, String name) {
+        this.client.getDatabase(database).getCollection(name).drop();
+    }
+
+    public void createCollectionIndex(String database, String name, Bson obj) {
+        this.client.getDatabase(database).getCollection(name).createIndex(obj);
+    }
+
+    public boolean collectionExists(String database, String name) {
+        return this.client.getDatabase(database)
+                .listCollectionNames()
+                .into(new ArrayList<>())
+                .contains(name);
     }
 
     public <T> Document getDocument(String database, String collectionName, String key, T value) {
