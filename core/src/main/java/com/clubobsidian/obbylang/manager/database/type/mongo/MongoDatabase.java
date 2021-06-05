@@ -91,7 +91,7 @@ public class MongoDatabase extends Database {
     public Document getDocument(String database, String collectionName, Bson obj) {
         return this.client.getDatabase(database)
                 .getCollection(collectionName)
-                .find(Filters.eq(obj))
+                .find(obj)
                 .first();
     }
 
