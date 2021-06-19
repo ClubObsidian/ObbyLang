@@ -22,6 +22,7 @@ import com.clubobsidian.obbylang.pipe.Pipe;
 import com.clubobsidian.obbylang.util.ChatColor;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -31,7 +32,6 @@ import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 import java.io.File;
@@ -71,7 +71,6 @@ public class ScriptManager {
 
     private boolean loaded;
     private Path directory;
-    private ScriptEngineManager engineManager;
     private ScriptEngine engine;
     private Compilable compilableEngine;
     private Map<String, CompiledScript> scripts;
@@ -79,8 +78,7 @@ public class ScriptManager {
     private ScriptManager() {
         ClassLoader cl = ObbyLang.get().getPlugin().getClass().getClassLoader();
         Thread.currentThread().setContextClassLoader(cl);
-        this.engineManager = new ScriptEngineManager(null);
-        this.engine = this.engineManager.getEngineByName(ENGINE_NAME);
+        this.engine = new NashornScriptEngineFactory().getScriptEngine();
         this.compilableEngine = (Compilable) engine;
         this.directory = Paths.get(ObbyLang.get().getPlugin().getDataFolder().getPath(), "scripts");
     }
