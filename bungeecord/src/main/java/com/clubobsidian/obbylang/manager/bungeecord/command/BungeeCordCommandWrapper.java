@@ -1,7 +1,7 @@
 package com.clubobsidian.obbylang.manager.bungeecord.command;
 
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import net.md_5.bungee.api.plugin.Command;
 
 public class BungeeCordCommandWrapper extends CommandWrapper<Command> {

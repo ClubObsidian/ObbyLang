@@ -2,7 +2,7 @@ package com.clubobsidian.obbylang.discord.manager.command;
 
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public class DiscordCommandWrapperManager extends CommandWrapperManager<DiscordCommand> {
 

@@ -1,7 +1,7 @@
 package com.clubobsidian.obbylang.manager.script;
 
 import com.clubobsidian.obbylang.manager.RegisteredManager;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.CompiledScript;
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
 package com.clubobsidian.obbylang.manager.script;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public class ScriptWrapper {
 

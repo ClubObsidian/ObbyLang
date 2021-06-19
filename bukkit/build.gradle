@@ -40,7 +40,7 @@ shadowJar {
 
 
 dependencies {
-    compile project(':core')
+    implementation project(':core')
     compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
     compileOnly 'com.github.ClubObsidian:DynamicGui:4.0.0'
     compileOnly name: 'ProtocolLib-4.4.0'

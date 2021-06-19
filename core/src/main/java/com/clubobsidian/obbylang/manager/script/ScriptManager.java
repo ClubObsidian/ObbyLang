@@ -22,7 +22,7 @@ import com.clubobsidian.obbylang.pipe.Pipe;
 import com.clubobsidian.obbylang.util.ChatColor;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 

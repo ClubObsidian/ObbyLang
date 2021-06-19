@@ -6,7 +6,7 @@ import com.clubobsidian.crouton.wrapper.JobWrapper;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;

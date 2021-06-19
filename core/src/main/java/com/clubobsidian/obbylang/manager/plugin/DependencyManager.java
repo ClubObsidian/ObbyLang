@@ -7,7 +7,7 @@ import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.trident.EventHandler;
 import com.clubobsidian.trident.EventPriority;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.util.HashMap;
 import java.util.Iterator;

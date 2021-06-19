@@ -1,6 +1,6 @@
 package com.clubobsidian.obbylang.manager.command;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public abstract class CommandWrapper<T> {
 
