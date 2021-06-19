@@ -22,6 +22,7 @@ import javassist.bytecode.annotation.MemberValue;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.lang3.ClassUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -109,7 +110,8 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                     }
                     StringBuilder builder = new StringBuilder();
 
-                    CtClass ctClass = ClassPool.getDefault().makeClass(eventPriorityStr + next.getValue() + "obbylanglistener");
+                    CtClass ctClass = ClassPool.getDefault().makeClass("com.clubobsidian.obbylang.manager.listener."
+                            + eventPriorityStr + next.getValue() + "ObbyLangListener");
                     if(ctClass.isFrozen()) {
                         try {
                             Class<?> listenerClass = ctClass.toClass(ObbyLang.class.getClassLoader(), ObbyLang.class.getProtectionDomain());
@@ -135,7 +137,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                                 System.out.println("Generated priority: " + generatedPriority);
                             }
                         } else if(priority instanceof String) {
-                            generatedPriority = "\"" + (String) priority + "\"";
+                            generatedPriority = "\"" + priority + "\"";
                         }
 
                         ctClass.setModifiers(Modifier.PUBLIC);
@@ -165,10 +167,10 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                         attr.addAnnotation(annotation);
                         ctMethod.getMethodInfo().addAttribute(attr);
 
-                        ctClass.addMethod(ctMethod);
-                        Class<?> listenerClass = ctClass.toClass(ObbyLang.class.getClassLoader(), ObbyLang.class.getProtectionDomain());
-                        FakeServerManager.get().registerListener(listenerClass.newInstance());
-                    } catch(CannotCompileException | NotFoundException | InstantiationException | IllegalAccessException e) {
+                        ctClass.addMethod(ctMethod); //Thread.currentThread().getContextClassLoader(), ListenerManager.class.getProtectionDomain()
+                        Class<?> listenerClass = ctClass.toClass(ListenerManager.class);
+                        FakeServerManager.get().registerListener(listenerClass.getDeclaredConstructors()[0].newInstance());
+                    } catch(CannotCompileException | NotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         e.printStackTrace();
                     }
                 }
