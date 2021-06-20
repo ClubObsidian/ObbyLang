@@ -21,12 +21,14 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.events.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.AnnotatedEventManager;
 import net.dv8tion.jda.api.hooks.SubscribeEvent;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -88,7 +90,7 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
 
 
         try {
-            this.jda = new JDABuilder(token)
+            this.jda = JDABuilder.create(token, EnumSet.allOf(GatewayIntent.class))
                     .setEventManager(new AnnotatedEventManager())
                     .build();
         } catch(LoginException e) {
