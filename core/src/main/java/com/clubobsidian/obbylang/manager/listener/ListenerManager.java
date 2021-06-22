@@ -19,8 +19,8 @@ import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.MemberValue;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.lang3.ClassUtils;
+import org.graalvm.polyglot.Value;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -62,7 +62,6 @@ public abstract class ListenerManager<T> implements RegisteredManager {
             }
         }
     }
-
 
     protected Map<String, Map<T, ScriptWrapper[]>> initScripts() {
         Map<String, Map<T, ScriptWrapper[]>> scripts = new HashMap<>();
@@ -147,7 +146,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                         builder.append("com.clubobsidian.obbylang.manager.script.ScriptWrapper[] scripts = com.clubobsidian.obbylang.manager.listener.ListenerManager.get().getEventScripts(\"" + next.getValue() + "\", " + generatedPriority + ");");
                         builder.append("for(int i = 0; i < scripts.length; i++)");
                         builder.append("{");
-                        builder.append("scripts[i].getScript().call(scripts[i].getOwner(), new Object[] {(Object) event});");
+                        builder.append("scripts[i].getScript().executeVoid(new Object[] {(Object) event});");
                         builder.append("}");
                         builder.append("}");
 
@@ -178,20 +177,20 @@ public abstract class ListenerManager<T> implements RegisteredManager {
         }
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String event) {
+    public void register(String declaringClass, Value script, String event) {
         this.register(declaringClass, script, new String[]{event});
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String[] events) {
+    public void register(String declaringClass, Value script, String[] events) {
         this.register(declaringClass, script, events, this.getDefaultPriority());
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String event, String eventPriorityStr) {
+    public void register(String declaringClass, Value script, String event, String eventPriorityStr) {
         this.register(declaringClass, script, new String[]{event}, eventPriorityStr);
     }
 
     @SuppressWarnings("unchecked")
-    public void register(String declaringClass, ScriptObjectMirror script, String[] events, String eventPriorityStr) {
+    public void register(String declaringClass, Value script, String[] events, String eventPriorityStr) {
         if(this.scripts == null) {
             this.scripts = initScripts();
         } else {

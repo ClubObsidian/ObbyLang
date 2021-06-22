@@ -36,7 +36,6 @@ public class ObbyLang {
     }
 
     public void onEnable() {
-        System.setProperty("nashorn.args", "--language=es6");
         File dataFolder = this.plugin.getDataFolder();
         this.plugin.getLogger().info("Datafolder:" + dataFolder.getPath());
         if(!dataFolder.exists()) {

@@ -5,9 +5,9 @@ import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
 public class SubConnectionWrapper {
 
-    private StatefulRedisPubSubConnection<String, String> connection;
-    private RedisPubSubListener<String, String> listener;
-    private String channel;
+    private final StatefulRedisPubSubConnection<String, String> connection;
+    private final RedisPubSubListener<String, String> listener;
+    private final String channel;
 
     public SubConnectionWrapper(StatefulRedisPubSubConnection<String, String> connection, RedisPubSubListener<String, String> listener, String channel) {
         this.connection = connection;

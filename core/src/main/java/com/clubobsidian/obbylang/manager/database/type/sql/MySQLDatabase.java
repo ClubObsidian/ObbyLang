@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class MySQLDatabase extends AbstractSQLDatabase {
 
-    private HikariDataSource source;
+    private final HikariDataSource source;
 
     public MySQLDatabase(String connection, int maxPoolSize) {
         this.source = new HikariDataSource();
@@ -28,7 +28,7 @@ public class MySQLDatabase extends AbstractSQLDatabase {
             for(int i = 0; i < vars.size(); i++) {
                 statement.setObject(i + 1, vars.get(i));
             }
-            Map<String, List<Object>> selected = new HashMap<String, List<Object>>();
+            Map<String, List<Object>> selected = new HashMap<>();
             ResultSet resultSet = statement.executeQuery();
             while(resultSet.next()) {
                 for(int i = 0; i < statement.getMetaData().getColumnCount(); i++) {

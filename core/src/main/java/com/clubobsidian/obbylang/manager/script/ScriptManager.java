@@ -22,10 +22,10 @@ import com.clubobsidian.obbylang.pipe.Pipe;
 import com.clubobsidian.obbylang.util.ChatColor;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
-import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Context;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.graalvm.polyglot.Source;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -71,15 +71,12 @@ public class ScriptManager {
 
     private boolean loaded;
     private Path directory;
-    private ScriptEngine engine;
-    private Compilable compilableEngine;
-    private Map<String, CompiledScript> scripts;
+    private Map<String, Source> sources;
+    private Map<String, Context> scripts;
 
     private ScriptManager() {
         ClassLoader cl = ObbyLang.get().getPlugin().getClass().getClassLoader();
         Thread.currentThread().setContextClassLoader(cl);
-        this.engine = new NashornScriptEngineFactory().getScriptEngine();
-        this.compilableEngine = (Compilable) engine;
         this.directory = Paths.get(ObbyLang.get().getPlugin().getDataFolder().getPath(), "scripts");
     }
 
@@ -122,7 +119,7 @@ public class ScriptManager {
     }
 
     private void loadClassPool() {
-        ClassPool.getDefault().insertClassPath(new ClassClassPath(ScriptObjectMirror.class));
+        ClassPool.getDefault().insertClassPath(new ClassClassPath(Context.class));
         ClassPool.getDefault().insertClassPath(new ClassClassPath(ScriptWrapper.class));
         ClassPool.getDefault().insertClassPath(new ClassClassPath(ScriptWrapper[].class));
         ClassPool.getDefault().insertClassPath(new ClassClassPath(ListenerManager.class));
@@ -133,20 +130,10 @@ public class ScriptManager {
     private void loadGlobalScript() {
         File globalFile = new File(ObbyLang.get().getPlugin().getDataFolder(), "global.js");
         if(globalFile.exists()) {
-
-            try {
-                FileReader reader = new FileReader(globalFile);
-                CompiledScript script = this.compilableEngine.compile(reader);
-                Bindings bindings = this.engine.createBindings();
-                ScriptContext context = new SimpleScriptContext();
-                context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-                context.setAttribute("owner", "global.js", ScriptContext.ENGINE_SCOPE);
-                this.addContext(context);
-                script.eval(context);
-            } catch(FileNotFoundException | ScriptException e) {
-                e.printStackTrace();
-            }
-
+            Source globalSource = this.createSource(globalFile);
+            Context context = this.createContext();
+            context.getBindings("js").putMember("owner", "global.js");
+            context.eval(globalSource);
         }
     }
 
@@ -156,43 +143,39 @@ public class ScriptManager {
         } catch(IOException e) {
             e.printStackTrace();
         }
-
         this.scripts = new ConcurrentHashMap<>();
+        this.sources = new ConcurrentHashMap<>();
         Collection<File> fileCollection = FileUtils.listFiles(this.directory.toFile(), new String[]{"js"}, true);
         File[] files = fileCollection.toArray(new File[fileCollection.size()]);
         Arrays.sort(files);
-
         for(File file : files) {
             try {
                 ObbyLang.get().getPlugin().getLogger().info("Loading " + file.getName());
-
-                FileReader reader = new FileReader(file);
-                CompiledScript script = this.compilableEngine.compile(reader);
-                System.out.println(script.getClass().getName());
-                reader.close();
-                this.scripts.put(file.getName(), script);
+                Context context = this.createContext();
+                Source source = this.createSource(file);
+                String fileName = file.getName();
+                this.scripts.put(fileName, context);
+                this.sources.put(fileName, source);
             } catch(Exception ex) {
                 ex.printStackTrace();
             }
         }
 
-
-        Map<String, CompiledScript> sorted = this.scripts
+        Map<String, Context> sorted = this.scripts
                 .entrySet()
                 .stream()
                 .sorted(Entry.comparingByKey())
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (key, value) -> key, LinkedHashMap::new));
 
-        Iterator<Entry<String, CompiledScript>> it = sorted.entrySet().iterator();
+        Iterator<Entry<String, Context>> it = sorted.entrySet().iterator();
         while(it.hasNext()) {
-            Entry<String, CompiledScript> next = it.next();
+            Entry<String, Context> next = it.next();
             try {
-                Bindings bindings = this.engine.createBindings();
-                ScriptContext context = new SimpleScriptContext();
-                context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-                context.setAttribute("owner", next.getKey(), ScriptContext.ENGINE_SCOPE);
-                this.addContext(context);
-                next.getValue().eval(context);
+                String fileName = next.getKey();
+                Context context = next.getValue();
+                Source source = this.sources.get(fileName);
+                context.getBindings("js").putMember("owner", next.getKey());
+                context.eval(source);
             } catch(Exception ex) {
                 this.unloadScript(next.getKey());
                 ex.printStackTrace();
@@ -204,7 +187,7 @@ public class ScriptManager {
         return this.directory;
     }
 
-    public CompiledScript getScript(String script) {
+    public Context getScript(String script) {
         return this.scripts.get(script);
     }
 
@@ -257,7 +240,7 @@ public class ScriptManager {
     public boolean unloadScript(String className, Pipe pipe) {
         if(!className.endsWith(".js"))
             className += ".js";
-        CompiledScript script = this.scripts.get(className);
+        Context script = this.scripts.get(className);
         if(script == null) {
             return false;
         }
@@ -270,6 +253,7 @@ public class ScriptManager {
         }
 
         this.scripts.remove(className);
+        this.sources.remove(className);
         return true;
     }
 
@@ -288,33 +272,22 @@ public class ScriptManager {
         } else if(this.scripts.containsKey(file.getName())) {
             return false;
         }
-
-
-        FileReader reader = null;
         try {
-            reader = new FileReader(file);
-            CompiledScript script = this.compilableEngine.compile(reader);
-            this.scripts.put(file.getName(), script);
-            Bindings bindings = this.engine.createBindings();
-            ScriptContext context = new SimpleScriptContext();
-            context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-            context.setAttribute("owner", file.getName(), ScriptContext.ENGINE_SCOPE);
-            this.addContext(context);
-            script.eval(context);
+            Context context = this.createContext();
+            Source source = this.createSource(file);
+            String fileName = file.getName();
+            this.scripts.put(fileName, context);
+            this.sources.put(fileName, source);
+            context.getBindings("js").putMember("owner", file.getName());
+            context.eval(source);
         } catch(Exception e) {
             this.unloadScript(file.getName(), pipe);
             e.printStackTrace();
             if(pipe != null) {
                 this.sendStacktrace(e, pipe);
             }
-        } finally {
-            try {
-                reader.close();
-            } catch(IOException e) {
-                e.printStackTrace();
-            }
+            return false;
         }
-
         return true;
     }
 
@@ -338,8 +311,7 @@ public class ScriptManager {
     }
 
     public boolean enableScript(String location, Pipe pipe) {
-        if(!location.contains(".js")) //add jxl3 at the end
-        {
+        if(!location.contains(".js")) {
             location += ".js";
         }
 
@@ -417,13 +389,35 @@ public class ScriptManager {
 
     }
 
-    private void addContext(ScriptContext context) {
+    private Source createSource(File sourceFile) {
+        try {
+            return Source.newBuilder("js", sourceFile).build();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Context createContext() {
+        Context context = Context
+                .newBuilder("js")
+                .option("js.nashorn-compat", "true")
+                .allowExperimentalOptions(true)
+                .allowIO(true)
+                .allowCreateThread(true)
+                .allowAllAccess(true)
+                .build();
+        this.addBindings(context);
+        return context;
+    }
+
+    private void addBindings(Context context) {
         Iterator<Entry<String, Object>> it = AddonManager.get().getAddons().entrySet().iterator();
         while(it.hasNext()) {
             Entry<String, Object> next = it.next();
             String key = next.getKey();
             Object value = next.getValue();
-            context.setAttribute(key, value, ScriptContext.ENGINE_SCOPE);
+            context.getBindings("js").putMember(key, value);
         }
     }
 }

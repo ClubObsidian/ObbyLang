@@ -7,7 +7,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Value;
 
 import javax.script.CompiledScript;
 import java.util.ArrayList;
@@ -38,29 +38,26 @@ public class ProtocolLibManager implements RegisteredManager {
         }
     }
 
-    public PacketAdapter register(String declaringClass, ScriptObjectMirror script, PacketType packetType) {
+    public PacketAdapter register(String declaringClass, Value script, PacketType packetType) {
         return this.register(declaringClass, script, new PacketType[]{packetType});
     }
 
-    public PacketAdapter register(String declaringClass, ScriptObjectMirror script, PacketType[] packetTypes) {
+    public PacketAdapter register(String declaringClass, Value script, PacketType[] packetTypes) {
         this.init(declaringClass);
-        CompiledScript compiledScript = ScriptManager.get().getScript(declaringClass);
-
         boolean isServer = packetTypes[0].isServer();
-
         PacketAdapter adapter = null;
         if(isServer) {
             adapter = new PacketAdapter(BukkitObbyLangPlugin.get(), packetTypes) {
                 @Override
                 public void onPacketSending(PacketEvent event) {
-                    script.call(compiledScript, event);
+                    script.executeVoid(event);
                 }
             };
         } else {
             adapter = new PacketAdapter(BukkitObbyLangPlugin.get(), packetTypes) {
                 @Override
                 public void onPacketReceiving(PacketEvent event) {
-                    script.call(compiledScript, event);
+                    script.executeVoid(event);
                 }
             };
         }

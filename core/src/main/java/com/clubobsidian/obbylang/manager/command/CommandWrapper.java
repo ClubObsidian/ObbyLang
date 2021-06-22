@@ -1,14 +1,15 @@
 package com.clubobsidian.obbylang.manager.command;
 
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+
+import org.graalvm.polyglot.Value;
 
 public abstract class CommandWrapper<T> {
 
-    private Object owner;
-    private String commandName;
-    private ScriptObjectMirror base;
+    private final Object owner;
+    private final String commandName;
+    private final Value base;
 
-    public CommandWrapper(Object owner, String commandName, ScriptObjectMirror base) {
+    public CommandWrapper(Object owner, String commandName, Value base) {
         this.owner = owner;
         this.commandName = commandName;
         this.base = base;
@@ -22,7 +23,7 @@ public abstract class CommandWrapper<T> {
         return this.commandName;
     }
 
-    public ScriptObjectMirror getBase() {
+    public Value getBase() {
         return this.base;
     }
 

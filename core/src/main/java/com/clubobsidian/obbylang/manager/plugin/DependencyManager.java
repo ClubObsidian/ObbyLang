@@ -7,7 +7,7 @@ import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.trident.EventHandler;
 import com.clubobsidian.trident.EventPriority;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Value;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -41,16 +41,16 @@ public abstract class DependencyManager implements RegisteredManager {
         }
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String dependency) {
+    public void register(String declaringClass, Value script, String dependency) {
         this.register(declaringClass, script, new String[]{dependency});
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String[] dependencies) {
+    public void register(String declaringClass, Value script, String[] dependencies) {
         this.init(declaringClass);
         DependencyWrapper wrapper = new DependencyWrapper(script, dependencies);
         boolean hasDependencies = this.checkDependencies(declaringClass, wrapper);
         if(hasDependencies) {
-            script.call(ScriptManager.get().getScript(declaringClass));
+            script.executeVoid();
         } else {
             this.dependencies.get(declaringClass).add(wrapper);
         }
@@ -73,7 +73,7 @@ public abstract class DependencyManager implements RegisteredManager {
                 String declaringClass = next.getKey();
                 boolean hasDependencies = this.checkDependencies(declaringClass, wrapper);
                 if(hasDependencies) {
-                    wrapper.getScript().call(ScriptManager.get().getScript(declaringClass));
+                    wrapper.getScript().executeVoid();
                     listIterator.remove();
                 }
             }

@@ -1,18 +1,18 @@
 package com.clubobsidian.obbylang.manager.plugin;
 
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Value;
 
 public class DependencyWrapper {
 
-    private ScriptObjectMirror script;
-    private String[] dependencies;
+    private final Value script;
+    private final String[] dependencies;
 
-    public DependencyWrapper(ScriptObjectMirror script, String[] dependencies) {
+    public DependencyWrapper(Value script, String[] dependencies) {
         this.script = script;
         this.dependencies = dependencies;
     }
 
-    public ScriptObjectMirror getScript() {
+    public Value getScript() {
         return this.script;
     }
 

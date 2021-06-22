@@ -6,7 +6,7 @@ import com.clubobsidian.crouton.wrapper.JobWrapper;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Value;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
@@ -41,82 +41,62 @@ public class SchedulerManager implements RegisteredManager {
     private void startSyncQueueTask() {
         FakeServerManager.get().scheduleSyncRepeatingTask(() ->
         {
-            Runnable runnable = null;
+            Runnable runnable;
             while((runnable = syncQueue.poll()) != null) {
                 runnable.run();
             }
         }, 1, 1);
     }
 
-    public synchronized void sync(final String declaringClass, final ScriptObjectMirror script) {
-        this.syncQueue.add(() ->
-        {
-            script.call(ScriptManager.get().getScript(declaringClass));
-        });
+    public synchronized void sync(final String declaringClass, final Value script) {
+        this.syncQueue.add(() -> script.executeVoid());
     }
 
-    public JobWrapper syncDelayed(String declaringClass, final ScriptObjectMirror script, Long delay) {
+    public JobWrapper syncDelayed(String declaringClass, final Value script, Long delay) {
         this.init(declaringClass);
-
-        JobWrapper wrapper = this.crouton.asyncDelayed(() ->
-        {
-            this.syncQueue.add(() ->
-            {
-                script.call(ScriptManager.get().getScript(declaringClass));
-            });
+        JobWrapper wrapper = this.crouton.asyncDelayed(() -> {
+            this.syncQueue.add(() -> script.executeVoid());
         }, delay);
-
         return wrapper;
     }
 
 
-    public JobWrapper syncRepeating(String declaringClass, final ScriptObjectMirror script, Long delayStart, Long delayRepeating) {
+    public JobWrapper syncRepeating(String declaringClass, final Value script, Long delayStart, Long delayRepeating) {
         this.init(declaringClass);
 
-        JobWrapper wrapper = this.crouton.asyncRepeating(() ->
-        {
-            this.syncQueue.add(() ->
-            {
-                script.call(ScriptManager.get().getScript(declaringClass));
-            });
+        JobWrapper wrapper = this.crouton.asyncRepeating(() -> {
+            this.syncQueue.add(() -> script.executeVoid());
         }, delayStart, delayRepeating);
 
         this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
         return wrapper;
     }
 
-    public JobWrapper async(final String declaringClass, final ScriptObjectMirror script) {
+    public JobWrapper async(final String declaringClass, final Value script) {
         this.init(declaringClass);
-
-        JobWrapper wrapper = this.crouton.async(() ->
-        {
-            script.call(ScriptManager.get().getScript(declaringClass));
-        });
-
+        JobWrapper wrapper = this.crouton.async(script::executeVoid);
         this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
         return wrapper;
     }
 
-    public JobWrapper asyncRepeating(final String declaringClass, final ScriptObjectMirror script, Long delayStart, Long delayRepeating) {
+    public JobWrapper asyncRepeating(final String declaringClass, final Value script, Long delayStart, Long delayRepeating) {
         this.init(declaringClass);
 
-        JobWrapper wrapper = this.crouton.asyncRepeating(() ->
-        {
-            script.call(ScriptManager.get().getScript(declaringClass));
+        JobWrapper wrapper = this.crouton.asyncRepeating(() -> {
+            script.executeVoid();
         }, delayStart, delayRepeating);
 
         this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
         return wrapper;
     }
 
-    public Future<Object> await(String declaringClass, final ScriptObjectMirror script) {
+    public Future<Object> await(String declaringClass, final Value script) {
         return this.asyncWait(declaringClass, script);
     }
 
-    public Future<Object> asyncWait(final String declaringClass, final ScriptObjectMirror script) {
+    public Future<Object> asyncWait(final String declaringClass, final Value script) {
         this.init(declaringClass);
-
-        FutureJobWrapper wrapper = this.crouton.await(() -> script.call(ScriptManager.get().getScript(declaringClass)));
+        FutureJobWrapper wrapper = this.crouton.await(() -> script.execute());
         this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
         return wrapper.getFuture();
     }

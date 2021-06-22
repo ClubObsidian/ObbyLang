@@ -7,7 +7,7 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.pubsub.RedisPubSubListener;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Value;
 
 import javax.script.CompiledScript;
 import java.util.ArrayList;
@@ -18,12 +18,11 @@ import java.util.logging.Level;
 
 public class RedisClientWrapper {
 
-
-    private String declaringClass;
-    private RedisClient client;
-    private boolean pingBefore;
-    private List<SubConnectionWrapper> registerConnections;
-    private Map<String, StatefulRedisConnection<String, String>> publishConnections;
+    private final String declaringClass;
+    private final RedisClient client;
+    private final boolean pingBefore;
+    private final List<SubConnectionWrapper> registerConnections;
+    private final Map<String, StatefulRedisConnection<String, String>> publishConnections;
 
     public RedisClientWrapper(String declaringClass, String connection, boolean pingBefore) {
         this.declaringClass = declaringClass;
@@ -33,15 +32,14 @@ public class RedisClientWrapper {
         this.publishConnections = new HashMap<>();
     }
 
-    public void register(final ScriptObjectMirror script, final String registeredChannel) {
+    public void register(final Value script, final String registeredChannel) {
         StatefulRedisPubSubConnection<String, String> con = this.client.connectPubSub();
 
         RedisPubSubListener<String, String> listener = new RedisPubSubListener<String, String>() {
             @Override
             public void message(String channel, String message) {
                 if(channel.equalsIgnoreCase(registeredChannel)) {
-                    CompiledScript owner = ScriptManager.get().getScript(declaringClass);
-                    script.call(owner, message);
+                    script.executeVoid(message);
                 }
             }
 

@@ -1,9 +1,9 @@
 package com.clubobsidian.obbylang.manager.script;
 
 import com.clubobsidian.obbylang.manager.RegisteredManager;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 
-import javax.script.CompiledScript;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,22 +20,21 @@ public class DisableManager implements RegisteredManager {
         return instance;
     }
 
-    private Map<String, List<ScriptObjectMirror>> disableFunctions;
+    private Map<String, List<Value>> disableFunctions;
 
     private DisableManager() {
         this.disableFunctions = new HashMap<>();
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script) {
+    public void register(String declaringClass, Value script) {
         this.init(declaringClass);
         this.disableFunctions.get(declaringClass).add(script);
     }
 
     public void unregister(String declaringClass) {
         this.init(declaringClass);
-        CompiledScript owner = ScriptManager.get().getScript(declaringClass);
-        for(ScriptObjectMirror script : this.disableFunctions.get(declaringClass)) {
-            script.call(owner);
+        for(Value script : this.disableFunctions.get(declaringClass)) {
+            script.executeVoid();
         }
         this.disableFunctions.keySet().remove(declaringClass);
     }

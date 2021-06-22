@@ -1,11 +1,11 @@
 package com.clubobsidian.obbylang.discord.manager.command;
 
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Value;
 
 public class DiscordCommandWrapper extends CommandWrapper<DiscordCommand> {
 
-    public DiscordCommandWrapper(Object owner, String commandName, ScriptObjectMirror base) {
+    public DiscordCommandWrapper(Object owner, String commandName, Value base) {
         super(owner, commandName, base);
     }
 
