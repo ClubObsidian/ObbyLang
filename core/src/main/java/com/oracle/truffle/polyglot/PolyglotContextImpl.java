@@ -795,9 +795,10 @@ final class PolyglotContextImpl extends AbstractContextImpl implements com.oracl
             }
         }
 
-        if (deniedLanguages != null) {
+        //Removed
+        /*if (deniedLanguages != null) {
             throw throwDeniedThreadAccess(current, singleThread, deniedLanguages);
-        }
+        }*/
 
         return threadInfo;
     }
