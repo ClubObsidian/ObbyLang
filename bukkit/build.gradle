@@ -36,11 +36,13 @@ shadowJar {
     relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
     relocate 'com.google.common', 'com.clubobsidian.obbylang.guava'
     relocate 'io.leangen', 'com.clubobsidian.obbylang.leangen'
+    relocate 'cloud','com.clubobsidian.obbylang.cloud'
 }
 
 
 dependencies {
     implementation project(':core')
+    implementation 'cloud.commandframework:cloud-paper:1.4.0'
     compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
     compileOnly 'com.github.ClubObsidian:DynamicGui:4.0.0'
     compileOnly name: 'ProtocolLib-4.4.0'
