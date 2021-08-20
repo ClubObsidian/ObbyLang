@@ -11,8 +11,10 @@ processResources {
 }
 
 shadowJar {
-    baseName = 'ObbyLangBukkit'
-    classifier = null
+    archiveBaseName.set('ObbyLangBukkit')
+    archiveClassifier.set('')
+
+    mergeServiceFiles()
 
     relocate 'afu', 'com.clubobsidian.obbylang.afu'
     relocate 'io.netty', 'com.clubobsidian.obbylang.netty'

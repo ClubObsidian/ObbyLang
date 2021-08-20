@@ -4,8 +4,10 @@ plugins {
 }
 
 shadowJar {
-    baseName = 'ObbyLangBungeeCord'
-    classifier = null
+    archiveBaseName.set('ObbyLangBungeeCord')
+    archiveClassifier.set('')
+
+    mergeServiceFiles()
 
     relocate 'afu', 'com.clubobsidian.obbylang.afu'
     relocate 'io.netty', 'com.clubobsidian.obbylang.netty'
