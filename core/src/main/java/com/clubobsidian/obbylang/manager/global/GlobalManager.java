@@ -134,7 +134,7 @@ public class GlobalManager {
 
         @Override
         public Object execute(Value... arguments) {
-            Object[] newArgs = new Value[arguments.length];
+            Object[] newArgs = new Object[arguments.length];
             for (int i = 0; i < newArgs.length; i++) {
                 newArgs[i] = createSharable(arguments[i]);
             }
@@ -151,12 +151,11 @@ public class GlobalManager {
 
         @Override
         public Object newInstance(Value... arguments) {
-            Object[] newArgs = new Value[arguments.length];
+            Object[] newArgs = new Object[arguments.length];
             for (int i = 0; i < newArgs.length; i++) {
                 newArgs[i] = createSharable(arguments[i]);
             }
             return createSharable(v.execute(newArgs));
         }
-
     }
 }
