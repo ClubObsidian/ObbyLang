@@ -3,7 +3,7 @@ main: com.clubobsidian.obbylang.plugin.BukkitObbyLangPlugin
 version: ${pluginVersion}
 author: VirusTotal
 api-version: 1.13
-softdepend: [DynamicGui, ProtocolLib, SellAllSigns, Spark, PlaceholderAPI]
+softdepend: [DynamicGui, ProtocolLib, SellAllSigns, spark, PlaceholderAPI]
 commands:
   obbylang:
     description: "ObbyLang command"
