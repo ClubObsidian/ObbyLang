@@ -402,6 +402,7 @@ public class ScriptManager {
         Context context = Context
                 .newBuilder("js")
                 .option("js.nashorn-compat", "true")
+                .option("js.foreign-object-prototype", "true")
                 .allowExperimentalOptions(true)
                 .allowIO(true)
                 .allowCreateThread(true)
