@@ -2,7 +2,7 @@ package com.clubobsidian.obbylang.manager.command;
 
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Value;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,11 +26,11 @@ public abstract class CommandManager implements RegisteredManager {
         this.commands = new HashMap<>();
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String command) {
+    public void register(String declaringClass, Value script, String command) {
         this.register(declaringClass, script, new String[]{command});
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String... cmds) {
+    public void register(String declaringClass, Value script, String... cmds) {
         for(String command : cmds) {
             command = command.toLowerCase();
 

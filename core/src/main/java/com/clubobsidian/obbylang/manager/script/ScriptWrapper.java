@@ -1,19 +1,20 @@
 package com.clubobsidian.obbylang.manager.script;
 
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+
+import org.graalvm.polyglot.Value;
 
 public class ScriptWrapper {
 
-    private ScriptObjectMirror obj;
-    private Object owner;
+    private final Value script;
+    private final Object owner;
 
-    public ScriptWrapper(ScriptObjectMirror obj, Object owner) {
-        this.obj = obj;
+    public ScriptWrapper(Value script, Object owner) {
+        this.script = script;
         this.owner = owner;
     }
 
-    public ScriptObjectMirror getScript() {
-        return this.obj;
+    public Value getScript() {
+        return this.script;
     }
 
     public Object getOwner() {

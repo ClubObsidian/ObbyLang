@@ -1,11 +1,11 @@
 package com.clubobsidian.obbylang.manager.bukkit.command;
 
 import com.clubobsidian.obbylang.manager.command.SenderWrapper;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.graalvm.polyglot.Value;
 
 import java.util.List;
 
@@ -13,10 +13,10 @@ public class BukkitCommand extends Command implements CommandExecutor {
 
     private final Object owner;
     private final String command;
-    private final ScriptObjectMirror base;
+    private final Value base;
     private TabCompleter tabCompleter;
 
-    public BukkitCommand(Object owner, String command, ScriptObjectMirror base) {
+    public BukkitCommand(Object owner, String command, Value base) {
         super(command);
         this.owner = owner;
         this.command = command;
@@ -27,8 +27,7 @@ public class BukkitCommand extends Command implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(label.equalsIgnoreCase(this.command)) {
             SenderWrapper<?> wrapper = new BukkitSenderWrapper(sender);
-
-            Object ret = this.base.call(this.owner, wrapper, command, label, args);
+            Object ret = this.base.execute(wrapper, command, label, args);
             if(ret != null && ret instanceof Boolean) {
                 return (boolean) ret;
             }

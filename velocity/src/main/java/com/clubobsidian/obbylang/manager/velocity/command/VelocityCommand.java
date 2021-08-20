@@ -3,7 +3,7 @@ package com.clubobsidian.obbylang.manager.velocity.command;
 import com.clubobsidian.obbylang.manager.command.SenderWrapper;
 import com.velocitypowered.api.command.Command;
 import com.velocitypowered.api.command.CommandSource;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Value;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,9 +12,9 @@ public class VelocityCommand implements Command {
 
     private final Object owner;
     private final String command;
-    private final ScriptObjectMirror base;
+    private final Value base;
 
-    public VelocityCommand(Object owner, String command, ScriptObjectMirror base) {
+    public VelocityCommand(Object owner, String command, Value base) {
         this.owner = owner;
         this.command = command;
         this.base = base;
@@ -27,6 +27,6 @@ public class VelocityCommand implements Command {
         properties.put("args", args);
         properties.put("sender", wrapper);
 
-        this.base.call(this.owner, wrapper, this, this.command, args);
+        this.base.executeVoid(wrapper, this, this.command, args);
     }
 }

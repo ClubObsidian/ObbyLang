@@ -3,11 +3,11 @@ package com.clubobsidian.obbylang.manager.bukkit.command;
 import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.util.ReflectionUtil;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.SimpleCommandMap;
+import org.graalvm.polyglot.Value;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -49,7 +49,7 @@ public class BukkitCommandManager extends CommandManager {
         return this.getKnownCommands().get(commandName);
     }
 
-    public BukkitTabCompleter createTabCompleter(String owner, ScriptObjectMirror script) {
+    public BukkitTabCompleter createTabCompleter(String owner, Value script) {
         return new BukkitTabCompleter(owner, script);
     }
 

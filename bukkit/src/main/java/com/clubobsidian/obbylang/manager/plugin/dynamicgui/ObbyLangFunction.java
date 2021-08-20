@@ -2,9 +2,8 @@ package com.clubobsidian.obbylang.manager.plugin.dynamicgui;
 
 import com.clubobsidian.dynamicgui.entity.PlayerWrapper;
 import com.clubobsidian.dynamicgui.function.Function;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
-
-import javax.script.CompiledScript;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 
 public class ObbyLangFunction extends Function {
 
@@ -19,9 +18,8 @@ public class ObbyLangFunction extends Function {
 
     @Override
     public boolean function(PlayerWrapper<?> playerWrapper) {
-        CompiledScript owner = GuiManager.get().getFunctionOwner(this.getName());
-        ScriptObjectMirror script = GuiManager.get().getScriptByFunctionName(this.getName());
-        Object ret = script.call(owner, playerWrapper, this.getData(), this.getOwner());
+        Value script = GuiManager.get().getScriptByFunctionName(this.getName());
+        Object ret = script.execute(playerWrapper, this.getData(), this.getOwner());
         if(ret == null) {
             return true;
         } else if(ret instanceof Boolean) {

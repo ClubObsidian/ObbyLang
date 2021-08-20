@@ -1,7 +1,7 @@
 package com.clubobsidian.obbylang.manager.command;
 
 import com.clubobsidian.obbylang.ObbyLang;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Value;
 
 public abstract class CommandWrapperManager<T> {
 
@@ -14,6 +14,6 @@ public abstract class CommandWrapperManager<T> {
         return instance;
     }
 
-    public abstract CommandWrapper<T> createCommandWrapper(String declaringClass, String command, ScriptObjectMirror script);
+    public abstract CommandWrapper<T> createCommandWrapper(String declaringClass, String command, Value script);
 
 }

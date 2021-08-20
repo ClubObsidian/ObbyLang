@@ -1,12 +1,12 @@
 package com.clubobsidian.obbylang.manager.bukkit.command;
 
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bukkit.command.Command;
+import org.graalvm.polyglot.Value;
 
 public class BukkitCommandWrapper extends CommandWrapper<Command> {
 
-    public BukkitCommandWrapper(Object owner, String commandName, ScriptObjectMirror base) {
+    public BukkitCommandWrapper(Object owner, String commandName, Value base) {
         super(owner, commandName, base);
     }
 
