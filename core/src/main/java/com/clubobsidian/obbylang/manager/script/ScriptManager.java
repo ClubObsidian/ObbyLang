@@ -400,19 +400,17 @@ public class ScriptManager {
     }
 
     private Context createContext() {
-        HostAccess hostAccess = HostAccess.newBuilder().
-                allowPublicAccess(true).
-                allowAllImplementations(true).
-                allowAllClassImplementations(true).
-                allowArrayAccess(true).allowListAccess(true).allowBufferAccess(true).
-                allowIterableAccess(true).allowIteratorAccess(true).allowMapAccess(true).
-                targetTypeMapping(Boolean.class, String.class, null, x -> String.valueOf(x)).
-                targetTypeMapping(Integer.class, String.class, null, x -> String.valueOf(x)).
-                targetTypeMapping(Character.class, String.class, null, x -> String.valueOf(x)).
-                targetTypeMapping(Long.class, String.class, null, x -> String.valueOf(x)).
-                targetTypeMapping(Float.class, String.class, null, x -> String.valueOf(x)).
-                targetTypeMapping(Double.class, String.class, null, x -> String.valueOf(x)).
-                targetTypeMapping(Object.class, String.class, null, x -> String.valueOf(x))
+        HostAccess hostAccess = HostAccess.newBuilder()
+                .allowPublicAccess(true).allowAllImplementations(true).allowAllClassImplementations(true)
+                .allowArrayAccess(true).allowListAccess(true).allowBufferAccess(true)
+                .allowIterableAccess(true).allowIteratorAccess(true).allowMapAccess(true)
+                .targetTypeMapping(Boolean.class, String.class, null, x -> String.valueOf(x))
+                .targetTypeMapping(Integer.class, String.class, null, x -> String.valueOf(x))
+                .targetTypeMapping(Character.class, String.class, null, x -> String.valueOf(x))
+                .targetTypeMapping(Long.class, String.class, null, x -> String.valueOf(x))
+                .targetTypeMapping(Float.class, String.class, null, x -> String.valueOf(x))
+                .targetTypeMapping(Double.class, String.class, null, x -> String.valueOf(x))
+                .targetTypeMapping(Object.class, String.class, null, x -> String.valueOf(x))
                 .build();
         Context context = Context
                 .newBuilder("js")
