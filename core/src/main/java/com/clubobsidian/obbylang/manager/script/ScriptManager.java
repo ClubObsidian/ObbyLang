@@ -413,6 +413,7 @@ public class ScriptManager {
                 .build();
         Context context = Context
                 .newBuilder("js")
+                .option("js.ecmascript-version", "2021")
                 .option("js.nashorn-compat", "true")
                 .option("js.foreign-object-prototype", "true")
                 .allowExperimentalOptions(true)
