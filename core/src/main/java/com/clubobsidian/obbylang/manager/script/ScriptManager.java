@@ -410,7 +410,6 @@ public class ScriptManager {
                 .targetTypeMapping(Long.class, String.class, null, x -> String.valueOf(x))
                 .targetTypeMapping(Float.class, String.class, null, x -> String.valueOf(x))
                 .targetTypeMapping(Double.class, String.class, null, x -> String.valueOf(x))
-                .targetTypeMapping(Object.class, String.class, null, x -> String.valueOf(x))
                 .build();
         Context context = Context
                 .newBuilder("js")
