@@ -2,6 +2,8 @@ plugins {
     id 'java'
 }
 
+def graalVersion = '21.2.0'
+
 dependencies {
     compileOnly 'org.slf4j:slf4j-api:1.7.21'
 
@@ -19,10 +21,10 @@ dependencies {
     compile 'net.kyori:adventure-text-serializer-gson:4.3.0'
     compile 'com.zaxxer:influx4j:2.14'
     compile 'org.mongodb:mongodb-driver-sync:4.2.3'
-    compile 'org.graalvm.sdk:graal-sdk:21.1.0'
-    compile 'org.graalvm.js:js:21.1.0'
-    compile 'org.graalvm.regex:regex:21.1.0'
-    compile 'org.graalvm.truffle:truffle-api:21.1.0'
-    compile 'org.graalvm.sdk:launcher-common:21.1.0'
+    compile 'org.graalvm.sdk:graal-sdk:' + graalVersion
+    compile 'org.graalvm.js:js:' + graalVersion
+    compile 'org.graalvm.regex:regex:' + graalVersion
+    compile 'org.graalvm.truffle:truffle-api:' + graalVersion
+    compile 'org.graalvm.sdk:launcher-common:' + graalVersion
     testCompile 'junit:junit:4.12'
 }

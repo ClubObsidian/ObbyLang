@@ -71,7 +71,7 @@ public class ScriptManager {
     }
 
     private boolean loaded;
-    private Path directory;
+    private final Path directory;
     private Map<String, Source> sources;
     private Map<String, Context> scripts;
 
@@ -79,6 +79,8 @@ public class ScriptManager {
         ClassLoader cl = ObbyLang.get().getPlugin().getClass().getClassLoader();
         Thread.currentThread().setContextClassLoader(cl);
         this.directory = Paths.get(ObbyLang.get().getPlugin().getDataFolder().getPath(), "scripts");
+        System.setProperty("engine.WarnInterpreterOnly", "false");
+        System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
     }
 
     public boolean load() {
@@ -400,10 +402,7 @@ public class ScriptManager {
     }
 
     private Context createContext() {
-        HostAccess hostAccess = HostAccess.newBuilder()
-                .allowPublicAccess(true).allowAllImplementations(true).allowAllClassImplementations(true)
-                .allowArrayAccess(true).allowListAccess(true).allowBufferAccess(true)
-                .allowIterableAccess(true).allowIteratorAccess(true).allowMapAccess(true)
+        HostAccess hostAccess = HostAccess.newBuilder(HostAccess.ALL)
                 .targetTypeMapping(Boolean.class, String.class, null, x -> String.valueOf(x))
                 .targetTypeMapping(Integer.class, String.class, null, x -> String.valueOf(x))
                 .targetTypeMapping(Character.class, String.class, null, x -> String.valueOf(x))
@@ -422,6 +421,9 @@ public class ScriptManager {
                 .allowAllAccess(true)
                 .allowHostClassLookup(className -> true)
                 .allowHostAccess(hostAccess)
+                .allowHostClassLoading(true)
+                .allowNativeAccess(true)
+                .allowCreateProcess(true)
                 .build();
         this.addBindings(context);
         return context;
