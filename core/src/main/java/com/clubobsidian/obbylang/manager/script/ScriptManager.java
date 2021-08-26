@@ -76,9 +76,9 @@ public class ScriptManager {
     private Map<String, CompiledScript> scripts;
 
     private ScriptManager() {
-        ClassLoader cl = ObbyLang.get().getPlugin().getClass().getClassLoader();
+        ClassLoader cl = ObbyLang.get().getJarLoader();
         Thread.currentThread().setContextClassLoader(cl);
-        this.engine = new NashornScriptEngineFactory().getScriptEngine();
+        this.engine = new NashornScriptEngineFactory().getScriptEngine(cl);
         this.compilableEngine = (Compilable) engine;
         this.directory = Paths.get(ObbyLang.get().getPlugin().getDataFolder().getPath(), "scripts");
     }

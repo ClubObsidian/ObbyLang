@@ -20,5 +20,6 @@ dependencies {
     compile 'com.zaxxer:influx4j:2.14'
     compile 'org.mongodb:mongodb-driver-sync:4.2.3'
     compile 'org.openjdk.nashorn:nashorn-core:15.2'
+    compile 'me.lucko:jar-relocator:1.5'
     testCompile 'junit:junit:4.12'
 }

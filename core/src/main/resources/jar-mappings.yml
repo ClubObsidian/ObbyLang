@@ -1,0 +1,2 @@
+relocations:
+  'com/somedomain/somepackage': 'com/someotherdomain/shaded/somepackage'
