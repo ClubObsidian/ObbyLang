@@ -2,13 +2,12 @@ package com.clubobsidian.obbylang.manager.command;
 
 public abstract class SenderWrapper<T> {
 
-    private T sender;
+    private final T sender;
 
     public SenderWrapper(T sender) {
         this.sender = sender;
     }
 
-    //ObbyLang
     public abstract boolean isPlayer();
 
     public abstract boolean isConsole();

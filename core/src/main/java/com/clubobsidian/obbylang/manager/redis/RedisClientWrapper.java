@@ -11,26 +11,25 @@ import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.CompiledScript;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
 public class RedisClientWrapper {
 
 
-    private String declaringClass;
-    private RedisClient client;
-    private boolean pingBefore;
-    private List<SubConnectionWrapper> registerConnections;
-    private Map<String, StatefulRedisConnection<String, String>> publishConnections;
+    private final String declaringClass;
+    private final RedisClient client;
+    private final boolean pingBefore;
+    private final List<SubConnectionWrapper> registerConnections = new CopyOnWriteArrayList<>();
+    private final Map<String, StatefulRedisConnection<String, String>> pubCons = new ConcurrentHashMap<>();
 
     public RedisClientWrapper(String declaringClass, String connection, boolean pingBefore) {
         this.declaringClass = declaringClass;
         this.client = this.createRedisClient(connection);
         this.pingBefore = pingBefore;
-        this.registerConnections = new ArrayList<>();
-        this.publishConnections = new HashMap<>();
     }
 
     public void register(final ScriptObjectMirror script, final String registeredChannel) {
@@ -78,19 +77,19 @@ public class RedisClientWrapper {
     }
 
     public void publishAsync(final String channel, final String message) {
-        if(this.publishConnections.get(channel) == null) {
-            this.publishConnections.put(channel, this.client.connect());
+        if(this.pubCons.get(channel) == null) {
+            this.pubCons.put(channel, this.client.connect());
         }
 
-        this.publishConnections.get(channel).async().publish(channel, message);
+        this.pubCons.get(channel).async().publish(channel, message);
     }
 
     public void publishSync(final String channel, final String message) {
-        if(this.publishConnections.get(channel) == null) {
-            this.publishConnections.put(channel, this.client.connect());
+        if(this.pubCons.get(channel) == null) {
+            this.pubCons.put(channel, this.client.connect());
         }
 
-        this.publishConnections.get(channel).sync().publish(channel, message);
+        this.pubCons.get(channel).sync().publish(channel, message);
     }
 
     protected void unload() {
@@ -99,7 +98,7 @@ public class RedisClientWrapper {
             wrapper.getConnection().async().unsubscribe(wrapper.getChannel());
         }
 
-        for(StatefulRedisConnection<String, String> con : this.publishConnections.values()) {
+        for(StatefulRedisConnection<String, String> con : this.pubCons.values()) {
             con.closeAsync();
         }
 

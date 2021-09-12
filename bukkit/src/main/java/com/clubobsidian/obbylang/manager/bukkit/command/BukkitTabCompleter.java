@@ -25,7 +25,6 @@ public class BukkitTabCompleter implements TabCompleter {
         if(call == null || !(call instanceof List)) {
             return null;
         }
-
         return (List<String>) call;
     }
 }

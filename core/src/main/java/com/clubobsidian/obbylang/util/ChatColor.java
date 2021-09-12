@@ -28,14 +28,14 @@ public enum ChatColor {
 
     public static final char FORMATTING_CODE = '\u00A7';
 
-    private char colorCode;
-    private boolean formatting;
+    private final char colorCode;
+    private final boolean formatting;
 
-    private ChatColor(char colorCode) {
+    ChatColor(char colorCode) {
         this(colorCode, false);
     }
 
-    private ChatColor(char colorCode, boolean formatting) {
+    ChatColor(char colorCode, boolean formatting) {
         this.colorCode = colorCode;
         this.formatting = formatting;
     }

@@ -4,8 +4,8 @@ import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public class DependencyWrapper {
 
-    private ScriptObjectMirror script;
-    private String[] dependencies;
+    private final ScriptObjectMirror script;
+    private final String[] dependencies;
 
     public DependencyWrapper(ScriptObjectMirror script, String[] dependencies) {
         this.script = script;

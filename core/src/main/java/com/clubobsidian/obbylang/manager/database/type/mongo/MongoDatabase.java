@@ -100,7 +100,7 @@ public class MongoDatabase extends Database {
     }
 
     public Collection<Document> getManyDocuments(String database, String collectionName, BasicDBObject obj) {
-       return this.client.getDatabase(database)
+        return this.client.getDatabase(database)
                 .getCollection(collectionName)
                 .find(Filters.eq(obj))
                 .into(new ArrayList<>());

@@ -17,8 +17,8 @@ public abstract class MessageManager<T> {
         return instance;
     }
 
-    private MiniMessage miniMessage;
-    private GsonComponentSerializer serializer;
+    private final MiniMessage miniMessage;
+    private final GsonComponentSerializer serializer;
 
     public MessageManager() {
         this.miniMessage = MiniMessage

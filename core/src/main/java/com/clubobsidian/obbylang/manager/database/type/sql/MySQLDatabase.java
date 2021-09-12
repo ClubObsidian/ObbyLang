@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class MySQLDatabase extends AbstractSQLDatabase {
 
-    private HikariDataSource source;
+    private final HikariDataSource source;
 
     public MySQLDatabase(String connection, int maxPoolSize) {
         this.source = new HikariDataSource();

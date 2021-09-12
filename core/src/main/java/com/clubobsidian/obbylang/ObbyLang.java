@@ -29,11 +29,9 @@ public class ObbyLang {
 
     @Inject
     private ObbyLangPlugin plugin;
-    private EventBus eventBus;
+    private final EventBus eventBus = this.getVersionEventBus();
 
-    private ObbyLang() {
-        this.eventBus = this.getVersionEventBus();
-    }
+    private ObbyLang() { }
 
     public void onEnable() {
         System.setProperty("nashorn.args", "--language=es6");

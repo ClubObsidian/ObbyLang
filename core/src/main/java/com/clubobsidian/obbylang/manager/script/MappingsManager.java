@@ -22,13 +22,10 @@ public class MappingsManager {
         return instance;
     }
 
-    private boolean mappingsLoaded;
-    private final Map<String, String> eventMappings;
+    private boolean mappingsLoaded = false;
+    private final Map<String, String> eventMappings = new ConcurrentHashMap<>();
 
-    private MappingsManager() {
-        this.mappingsLoaded = false;
-        this.eventMappings = new ConcurrentHashMap<>();
-    }
+    private MappingsManager() { }
 
     public Map<String, String> getEventMappings() {
         return this.eventMappings;

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CommandManager implements RegisteredManager {
 
@@ -20,11 +21,9 @@ public abstract class CommandManager implements RegisteredManager {
         return instance;
     }
 
-    private Map<String, List<CommandWrapper<?>>> commands;
+    private final Map<String, List<CommandWrapper<?>>> commands = new ConcurrentHashMap<>();
 
-    public CommandManager() {
-        this.commands = new HashMap<>();
-    }
+    protected CommandManager() { }
 
     public void register(String declaringClass, ScriptObjectMirror script, String command) {
         this.register(declaringClass, script, new String[]{command});

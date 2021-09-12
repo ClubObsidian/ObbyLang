@@ -4,8 +4,8 @@ import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public class ScriptWrapper {
 
-    private ScriptObjectMirror obj;
-    private Object owner;
+    private final ScriptObjectMirror obj;
+    private final Object owner;
 
     public ScriptWrapper(ScriptObjectMirror obj, Object owner) {
         this.obj = obj;

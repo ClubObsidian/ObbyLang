@@ -7,8 +7,8 @@ import com.zaxxer.influx4j.PointFactory;
 
 public class InfluxDatabase extends Database {
 
-    private InfluxDB db;
-    private PointFactory factory;
+    private final InfluxDB db;
+    private final PointFactory factory;
 
     public InfluxDatabase(String ip, int port, String database, String username, String password, int maxPoolSize) {
         this.db = this.createDatabase(ip, port, database, username, password);

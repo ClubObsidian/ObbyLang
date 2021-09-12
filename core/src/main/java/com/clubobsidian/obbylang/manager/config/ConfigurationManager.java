@@ -79,7 +79,6 @@ public class ConfigurationManager {
             URL u = new URL(decodedURL);
             URI uri = new URI(u.getProtocol(), u.getUserInfo(), u.getHost(), u.getPort(), u.getPath(), u.getQuery(), u.getRef());
             u = new URL(uri.toASCIIString());
-
             return Configuration.load(u, saveTo, requestProperties, overwrite);
         } catch(MalformedURLException | UnsupportedEncodingException | URISyntaxException e) {
             e.printStackTrace();

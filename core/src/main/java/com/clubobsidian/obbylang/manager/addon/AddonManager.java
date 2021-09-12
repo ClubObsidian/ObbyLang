@@ -14,11 +14,9 @@ public class AddonManager {
         return instance;
     }
 
-    private Map<String, Object> addonContext;
+    private final Map<String, Object> addonContext = new LinkedHashMap<>();
 
-    private AddonManager() {
-        this.addonContext = new LinkedHashMap<>();
-    }
+    private AddonManager() { }
 
     public boolean registerAddon(String name, Object object) {
         return this.addonContext.put(name, object) != null;

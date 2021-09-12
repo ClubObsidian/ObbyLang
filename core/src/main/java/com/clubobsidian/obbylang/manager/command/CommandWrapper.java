@@ -4,9 +4,9 @@ import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public abstract class CommandWrapper<T> {
 
-    private Object owner;
-    private String commandName;
-    private ScriptObjectMirror base;
+    private final Object owner;
+    private final String commandName;
+    private final ScriptObjectMirror base;
 
     public CommandWrapper(Object owner, String commandName, ScriptObjectMirror base) {
         this.owner = owner;

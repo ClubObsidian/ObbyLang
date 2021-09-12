@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DisableManager implements RegisteredManager {
 
@@ -20,11 +21,9 @@ public class DisableManager implements RegisteredManager {
         return instance;
     }
 
-    private Map<String, List<ScriptObjectMirror>> disableFunctions;
+    private final Map<String, List<ScriptObjectMirror>> disableFunctions = new ConcurrentHashMap<>();
 
-    private DisableManager() {
-        this.disableFunctions = new HashMap<>();
-    }
+    private DisableManager() { }
 
     public void register(String declaringClass, ScriptObjectMirror script) {
         this.init(declaringClass);

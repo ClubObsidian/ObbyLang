@@ -1,7 +1,7 @@
 package com.clubobsidian.obbylang.manager.global;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GlobalManager {
 
@@ -14,11 +14,9 @@ public class GlobalManager {
         return instance;
     }
 
-    private Map<String, Object> globals;
+    private final Map<String, Object> globals = new ConcurrentHashMap<>();
 
-    private GlobalManager() {
-        this.globals = new HashMap<>();
-    }
+    private GlobalManager() { }
 
     public void set(String name, Object passed) {
         this.globals.put(name, passed);

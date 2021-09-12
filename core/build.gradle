@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     compileOnly 'org.slf4j:slf4j-api:1.7.21'
-
     compile 'com.zaxxer:HikariCP:3.3.1'
     compile 'com.github.clubobsidian:wrappy:2.3.1'
     compile 'org.jsoup:jsoup:1.11.3'
@@ -13,7 +12,7 @@ dependencies {
     compile 'com.google.inject:guice:5.0.1'
     compile 'commons-io:commons-io:2.8.0'
     compile 'org.apache.commons:commons-lang3:3.9'
-    compile 'com.github.clubobsidian:trident:2.0.1'
+    compile 'com.github.clubobsidian:trident:3.0.0'
     compile 'com.github.clubobsidian:crouton:0.6.1'
     compile 'net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT'
     compile 'net.kyori:adventure-text-serializer-gson:4.3.0'

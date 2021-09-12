@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class DependencyManager implements RegisteredManager {
@@ -27,10 +28,9 @@ public abstract class DependencyManager implements RegisteredManager {
         return instance;
     }
 
-    private Map<String, Queue<DependencyWrapper>> dependencies;
+    private final Map<String, Queue<DependencyWrapper>> dependencies = new ConcurrentHashMap<>();;
 
-    public DependencyManager() {
-        this.dependencies = new HashMap<>();
+    protected DependencyManager() {
         ObbyLang.get().getEventBus().registerEvents(this);
         this.registerPluginEnableListener();
     }

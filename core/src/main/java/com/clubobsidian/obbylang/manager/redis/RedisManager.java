@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RedisManager implements RegisteredManager {
 
@@ -20,11 +21,9 @@ public class RedisManager implements RegisteredManager {
         return instance;
     }
 
-    private Map<String, List<RedisClientWrapper>> wrappers;
+    private final Map<String, List<RedisClientWrapper>> wrappers = new ConcurrentHashMap<>();
 
-    private RedisManager() {
-        this.wrappers = new HashMap<>();
-    }
+    private RedisManager() { }
 
     public RedisClientWrapper create(String declaringClass, String ip, int port, String password) {
         return this.create(declaringClass, ip, port, password, false);

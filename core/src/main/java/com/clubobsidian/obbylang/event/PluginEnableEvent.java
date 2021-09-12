@@ -4,7 +4,7 @@ import com.clubobsidian.trident.Event;
 
 public class PluginEnableEvent extends Event {
 
-    private Object plugin;
+    private final Object plugin;
 
     public PluginEnableEvent(Object plugin) {
         this.plugin = plugin;

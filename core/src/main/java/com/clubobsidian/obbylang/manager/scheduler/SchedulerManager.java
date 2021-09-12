@@ -27,14 +27,11 @@ public class SchedulerManager implements RegisteredManager {
         return instance;
     }
 
-    private Crouton crouton;
-    private Map<String, ConcurrentLinkedQueue<WeakReference<JobWrapper>>> jobs;
-    private Queue<Runnable> syncQueue;
+    private final Crouton crouton = new Crouton();
+    private final Map<String, ConcurrentLinkedQueue<WeakReference<JobWrapper>>> jobs = new ConcurrentHashMap<>();
+    private final Queue<Runnable> syncQueue = new ConcurrentLinkedQueue<>();
 
     private SchedulerManager() {
-        this.crouton = new Crouton();
-        this.jobs = new ConcurrentHashMap<>();
-        this.syncQueue = new ConcurrentLinkedQueue<>();
         this.startSyncQueueTask();
     }
 

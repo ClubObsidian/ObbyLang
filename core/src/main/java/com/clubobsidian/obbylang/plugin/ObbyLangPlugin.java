@@ -8,16 +8,16 @@ import java.util.logging.Logger;
 
 public interface ObbyLangPlugin {
 
-    public Object getServer();
+    Object getServer();
 
-    public File getDataFolder();
+    File getDataFolder();
 
-    public Logger getLogger();
+    Logger getLogger();
 
-    public Injector getInjector();
+    Injector getInjector();
 
-    public boolean createObbyLangCommand();
+    boolean createObbyLangCommand();
 
-    public ObbyLangPlatform getPlatform();
+    ObbyLangPlatform getPlatform();
 
 }

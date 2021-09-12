@@ -19,8 +19,8 @@ import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.MemberValue;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.lang3.ClassUtils;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
