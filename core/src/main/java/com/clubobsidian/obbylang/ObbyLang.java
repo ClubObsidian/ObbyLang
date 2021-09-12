@@ -8,6 +8,7 @@ import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.trident.EventBus;
 import com.clubobsidian.trident.eventbus.javassist.JavassistEventBus;
+import com.clubobsidian.trident.eventbus.methodhandle.MethodHandleEventBus;
 import com.clubobsidian.trident.eventbus.reflection.ReflectionEventBus;
 import com.google.inject.Inject;
 
@@ -29,7 +30,7 @@ public class ObbyLang {
 
     @Inject
     private ObbyLangPlugin plugin;
-    private final EventBus eventBus = this.getVersionEventBus();
+    private final EventBus eventBus = new MethodHandleEventBus();
 
     private ObbyLang() { }
 
@@ -75,14 +76,5 @@ public class ObbyLang {
 
     public EventBus getEventBus() {
         return this.eventBus;
-    }
-
-    private EventBus getVersionEventBus() {
-        String version = System.getProperty("java.version");
-        if(version.startsWith("1.8")) {
-            return new JavassistEventBus();
-        }
-
-        return new ReflectionEventBus();
     }
 }
