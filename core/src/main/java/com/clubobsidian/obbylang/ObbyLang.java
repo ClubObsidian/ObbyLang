@@ -7,9 +7,7 @@ import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.trident.EventBus;
-import com.clubobsidian.trident.eventbus.javassist.JavassistEventBus;
 import com.clubobsidian.trident.eventbus.methodhandle.MethodHandleEventBus;
-import com.clubobsidian.trident.eventbus.reflection.ReflectionEventBus;
 import com.google.inject.Inject;
 
 import java.io.File;
