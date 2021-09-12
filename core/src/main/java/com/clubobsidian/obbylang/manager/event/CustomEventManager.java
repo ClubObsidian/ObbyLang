@@ -15,7 +15,7 @@ public abstract class CustomEventManager {
     }
 
     public CustomEventManager() {
-        MappingsManager.get().addEventMapping("com.clubobsidian.obbylang.event.ObbyLangCustomEvent", "obbylangcustomevent");
+        MappingsManager.get().addEventMapping("com.clubobsidian.obbylang.velocity.event.ObbyLangCustomEvent", "obbylangcustomevent");
     }
 
     public abstract void fire(Object[] args);

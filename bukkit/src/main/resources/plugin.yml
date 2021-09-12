@@ -1,5 +1,5 @@
 name: ObbyLang
-main: com.clubobsidian.obbylang.plugin.BukkitObbyLangPlugin
+main: com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin
 version: ${pluginVersion}
 author: VirusTotal
 api-version: 1.13

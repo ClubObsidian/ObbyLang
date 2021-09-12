@@ -5,7 +5,7 @@ plugins {
 }
 
 blossom{
-    replaceTokenIn('com/clubobsidian/obbylang/plugin/VelocityObbyLangPlugin.java')
+    replaceTokenIn('com/clubobsidian/obbylang/velocity/plugin/VelocityObbyLangPlugin.java')
     replaceToken('${pluginVersion}', project.version)
 }
 

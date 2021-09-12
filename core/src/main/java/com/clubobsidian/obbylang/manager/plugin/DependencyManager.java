@@ -1,7 +1,7 @@
 package com.clubobsidian.obbylang.manager.plugin;
 
 import com.clubobsidian.obbylang.ObbyLang;
-import com.clubobsidian.obbylang.event.PluginEnableEvent;
+import com.clubobsidian.obbylang.manager.event.PluginEnableEvent;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
@@ -9,7 +9,6 @@ import com.clubobsidian.trident.EventHandler;
 import com.clubobsidian.trident.EventPriority;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
