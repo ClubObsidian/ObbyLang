@@ -3,6 +3,17 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
+processResources {
+    filesMatching('plugin.yml') {
+        expand 'pluginVersion': project.version
+    }
+}
+
+tasks.withType(AbstractArchiveTask) {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
 shadowJar {
     baseName = 'ObbyLangBungeeCord'
     classifier = null
@@ -29,12 +40,6 @@ shadowJar {
     relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
     relocate 'com.google.common', 'com.clubobsidian.obbylang.guava'
     relocate 'io.leangen', 'com.clubobsidian.obbylang.leangen'
-}
-
-processResources {
-    filesMatching('plugin.yml') {
-        expand 'pluginVersion': project.version
-    }
 }
 
 dependencies {

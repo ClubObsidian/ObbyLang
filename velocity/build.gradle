@@ -4,6 +4,16 @@ plugins {
     id "net.kyori.blossom" version "1.3.0"
 }
 
+blossom{
+    replaceTokenIn('com/clubobsidian/obbylang/plugin/VelocityObbyLangPlugin.java')
+    replaceToken('${pluginVersion}', project.version)
+}
+
+tasks.withType(AbstractArchiveTask) {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
 shadowJar {
     baseName = 'ObbyLangVelocity'
     classifier = null
@@ -30,11 +40,6 @@ shadowJar {
     relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
     relocate 'com.google.common', 'com.clubobsidian.obbylang.guava'
     relocate 'io.leangen', 'com.clubobsidian.obbylang.leangen'
-}
-
-blossom{
-    replaceTokenIn('com/clubobsidian/obbylang/plugin/VelocityObbyLangPlugin.java')
-    replaceToken('${pluginVersion}', project.version)
 }
 
 dependencies {

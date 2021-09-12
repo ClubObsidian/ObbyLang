@@ -9,6 +9,11 @@ processResources {
     }
 }
 
+tasks.withType(AbstractArchiveTask) {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
 shadowJar {
     baseName = 'ObbyLangBukkit'
     classifier = null

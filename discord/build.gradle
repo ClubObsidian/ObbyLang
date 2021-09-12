@@ -4,6 +4,11 @@ plugins {
     id 'application'
 }
 
+tasks.withType(AbstractArchiveTask) {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
 mainClassName = "com.clubobsidian.obbylang.discord.Bootstrap"
 
 shadowJar {
