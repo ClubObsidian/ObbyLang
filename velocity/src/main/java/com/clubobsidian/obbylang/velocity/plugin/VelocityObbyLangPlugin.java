@@ -46,7 +46,7 @@ public class VelocityObbyLangPlugin implements ObbyLangPlugin {
 
     @Override
     public boolean createObbyLangCommand() {
-        this.server.getCommandManager().register(new ObbyLangCommand(), "gobbylang", "gol");
+        this.server.getCommandManager().register("gobbylang", new ObbyLangCommand(), "gol");
         return true;
     }
 

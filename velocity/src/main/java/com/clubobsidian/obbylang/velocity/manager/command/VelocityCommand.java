@@ -3,12 +3,13 @@ package com.clubobsidian.obbylang.velocity.manager.command;
 import com.clubobsidian.obbylang.manager.command.SenderWrapper;
 import com.velocitypowered.api.command.Command;
 import com.velocitypowered.api.command.CommandSource;
+import com.velocitypowered.api.command.SimpleCommand;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class VelocityCommand implements Command {
+public class VelocityCommand implements SimpleCommand {
 
     private final Object owner;
     private final String command;
@@ -21,8 +22,9 @@ public class VelocityCommand implements Command {
     }
 
     @Override
-    public void execute(CommandSource sender, String[] args) {
-        SenderWrapper<?> wrapper = new VelocitySenderWrapper(sender);
+    public void execute(Invocation invocation) {
+        String[] args = invocation.arguments();
+        SenderWrapper<?> wrapper = new VelocitySenderWrapper(invocation.source());
         Map<String, Object> properties = new HashMap<>();
         properties.put("args", args);
         properties.put("sender", wrapper);

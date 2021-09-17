@@ -6,7 +6,7 @@ import com.clubobsidian.obbylang.velocity.util.MessageUtil;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.permission.Tristate;
 import com.velocitypowered.api.proxy.Player;
-import net.kyori.text.Component;
+import net.kyori.adventure.text.Component;
 
 public class VelocitySenderWrapper extends SenderWrapper<CommandSource> implements CommandSource {
 

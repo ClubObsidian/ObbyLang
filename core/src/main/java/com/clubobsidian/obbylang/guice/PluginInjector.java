@@ -173,7 +173,6 @@ public class PluginInjector {
                 } catch(CannotCompileException | NotFoundException | InstantiationException | IllegalAccessException e1) {
                     e1.printStackTrace();
                 }
-
             }
         }
     }

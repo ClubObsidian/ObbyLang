@@ -6,14 +6,16 @@ import com.clubobsidian.obbylang.velocity.pipe.SourcePipe;
 import com.clubobsidian.obbylang.velocity.util.MessageUtil;
 import com.velocitypowered.api.command.Command;
 import com.velocitypowered.api.command.CommandSource;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import com.velocitypowered.api.command.SimpleCommand;
 
 
-public class ObbyLangCommand implements Command {
+public class ObbyLangCommand implements SimpleCommand {
 
     @Override
-    public void execute(CommandSource source, String @NonNull [] args) {
+    public void execute(Invocation invocation) {
+        CommandSource source = invocation.source();
         if(source.hasPermission("obbylang.use")) {
+            String[] args = invocation.arguments();
             if(args.length == 2) {
                 Pipe pipe = new SourcePipe(source);
                 if(args[0].equalsIgnoreCase("load")) {
