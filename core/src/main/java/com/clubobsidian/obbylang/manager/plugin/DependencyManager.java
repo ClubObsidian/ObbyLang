@@ -29,7 +29,7 @@ public abstract class DependencyManager implements RegisteredManager {
 
     private final Map<String, Queue<DependencyWrapper>> dependencies = new ConcurrentHashMap<>();;
 
-    protected DependencyManager() {
+    public DependencyManager() {
         ObbyLang.get().getEventBus().registerEvents(this);
         this.registerPluginEnableListener();
     }
