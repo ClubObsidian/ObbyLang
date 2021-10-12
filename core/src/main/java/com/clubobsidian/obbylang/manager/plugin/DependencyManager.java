@@ -27,7 +27,7 @@ public abstract class DependencyManager implements RegisteredManager {
         return instance;
     }
 
-    private final Map<String, Queue<DependencyWrapper>> dependencies = new ConcurrentHashMap<>();;
+    private final Map<String, Queue<DependencyWrapper>> dependencies = new ConcurrentHashMap<>();
 
     public DependencyManager() {
         ObbyLang.get().getEventBus().registerEvents(this);
