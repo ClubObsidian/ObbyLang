@@ -1,6 +1,6 @@
 # ObbyLang
  
-Third generation of ObbyLang with support for a variety of different platforms
+Use Javascript in Minecraft as a scripting language. Fourth generation of ObbyLang with support for a variety of different platforms
 
 ## Platforms
 
@@ -8,3 +8,14 @@ Third generation of ObbyLang with support for a variety of different platforms
 * Bungeecord
 * Discord
 * Velocity
+
+## Building
+
+//TODO
+
+## Contributing
+
+//TODO - Contributor documents
+//TODO - Issue templates
+
+
