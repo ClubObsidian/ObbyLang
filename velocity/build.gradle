@@ -15,9 +15,8 @@ tasks.withType(AbstractArchiveTask) {
 }
 
 shadowJar {
-    baseName = 'ObbyLangVelocity'
-    classifier = null
-
+    archiveBaseName.set('ObbyLangVelocity')
+    archiveClassifier.set('')
     relocate 'afu', 'com.clubobsidian.obbylang.afu'
     relocate 'io.netty', 'com.clubobsidian.obbylang.netty'
     relocate 'javassist', 'com.clubobsidian.obbylang.javassist'

@@ -12,8 +12,8 @@ tasks.withType(AbstractArchiveTask) {
 mainClassName = "com.clubobsidian.obbylang.discord.Bootstrap"
 
 shadowJar {
-    baseName = 'ObbyLangDiscord'
-    classifier = null
+    archiveBaseName.set('ObbyLangDiscord')
+    archiveClassifier.set('')
     relocate 'afu', 'com.clubobsidian.obbylang.afu'
     relocate 'io.netty', 'com.clubobsidian.obbylang.netty'
     relocate 'javassist', 'com.clubobsidian.obbylang.javassist'
