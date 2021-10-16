@@ -22,39 +22,27 @@ import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.velocity.plugin.VelocityObbyLangPlugin;
 import com.velocitypowered.api.command.Command;
-
-import java.lang.reflect.Field;
-import java.util.Map;
+import com.velocitypowered.api.command.CommandMeta;
 
 public class VelocityCommandManager extends CommandManager {
 
-    private Map<String, Command> cm = null;
+    private final com.velocitypowered.api.command.CommandManager cmdManager;
 
-    @SuppressWarnings("unchecked")
-    private final Map<String, Command> getCommandMap() {
-        if(this.cm == null) {
-            try {
-                com.velocitypowered.api.command.CommandManager pluginManager = VelocityObbyLangPlugin
-                        .get()
-                        .getServer()
-                        .getCommandManager();
-                Field f = pluginManager.getClass().getDeclaredField("commands");
-                f.setAccessible(true);
-                this.cm = (Map<String, Command>) f.get(pluginManager);
-            } catch(NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-
-        }
-        return this.cm;
+    public VelocityCommandManager() {
+        this.cmdManager = VelocityObbyLangPlugin
+                .get()
+                .getServer()
+                .getCommandManager();
     }
 
     @Override
     protected boolean registerCommand(CommandWrapper<?> wrapper) {
         if(wrapper.getCommand() instanceof Command) {
             Command cmd = (Command) wrapper.getCommand();
-            this.removeCommand(wrapper);
-            this.getCommandMap().put(wrapper.getCommandName(), cmd);
+            String commandName = wrapper.getCommandName();
+            this.cmdManager.unregister(commandName);
+            CommandMeta meta = this.cmdManager.metaBuilder(commandName).build();
+            this.cmdManager.register(meta, cmd);
             return true;
         }
         return false;
@@ -64,7 +52,8 @@ public class VelocityCommandManager extends CommandManager {
     protected boolean removeCommand(CommandWrapper<?> wrapper) {
         if(wrapper.getCommand() instanceof Command) {
             String commandName = wrapper.getCommandName();
-            this.getCommandMap().remove(commandName);
+            this.cmdManager.unregister(commandName);
+            return true;
         }
         return false;
     }
