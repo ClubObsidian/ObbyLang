@@ -69,48 +69,40 @@ public class SchedulerManager implements RegisteredManager {
 
     public JobWrapper syncDelayed(String declaringClass, final ScriptObjectMirror script, long delay) {
         this.init(declaringClass);
-
         JobWrapper wrapper = this.crouton.asyncDelayed(() -> {
             this.syncQueue.add(() -> {
                 this.callScript(declaringClass, script);
             });
         }, delay);
-
         return wrapper;
     }
 
 
     public JobWrapper syncRepeating(String declaringClass, final ScriptObjectMirror script, long delayStart, long delayRepeating) {
         this.init(declaringClass);
-
         JobWrapper wrapper = this.crouton.asyncRepeating(() -> {
             this.syncQueue.add(() -> {
                 this.callScript(declaringClass, script);
             });
         }, delayStart, delayRepeating);
-
         this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
         return wrapper;
     }
 
     public JobWrapper async(final String declaringClass, final ScriptObjectMirror script) {
         this.init(declaringClass);
-
         JobWrapper wrapper = this.crouton.async(() -> {
             this.callScript(declaringClass, script);
         });
-
         this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
         return wrapper;
     }
 
     public JobWrapper asyncRepeating(final String declaringClass, final ScriptObjectMirror script, long delayStart, long delayRepeating) {
         this.init(declaringClass);
-
         JobWrapper wrapper = this.crouton.asyncRepeating(() -> {
             this.callScript(declaringClass, script);
         }, delayStart, delayRepeating);
-
         this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
         return wrapper;
     }
@@ -143,7 +135,6 @@ public class SchedulerManager implements RegisteredManager {
             if(wrapper != null) {
                 wrapper.stop();
             }
-
             it.remove();
         }
     }
