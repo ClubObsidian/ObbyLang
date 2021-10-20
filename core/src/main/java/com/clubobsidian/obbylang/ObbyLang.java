@@ -18,6 +18,7 @@
 
 package com.clubobsidian.obbylang;
 
+import com.clubobsidian.obbylang.inject.InjectorWrapper;
 import com.clubobsidian.obbylang.manager.addon.AddonManager;
 import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.config.ConfigurationManager;
@@ -49,8 +50,8 @@ public class ObbyLang {
     private final ScriptManager scriptManager;
 
     @Inject
-    private ObbyLang(Injector injector, ObbyLangPlugin plugin) {
-        this.injector = injector;
+    private ObbyLang(InjectorWrapper wrapper, ObbyLangPlugin plugin) {
+        this.injector = wrapper.getInjector();
         this.plugin = plugin;
         this.scriptManager = this.injector.getInstance(ScriptManager.class);
     }
@@ -60,7 +61,6 @@ public class ObbyLang {
     }
 
     public void onEnable() {
-        System.setProperty("nashorn.args", "--language=es6");
         File dataFolder = this.plugin.getDataFolder();
         this.plugin.getLogger().info("Datafolder:" + dataFolder.getPath());
         if(!dataFolder.exists()) {

@@ -88,6 +88,7 @@ public class ScriptManager {
     private ScriptManager(ObbyLangPlugin plugin, AddonManager addonManager) {
         ClassLoader cl = plugin.getClass().getClassLoader();
         Thread.currentThread().setContextClassLoader(cl);
+        System.setProperty("nashorn.args", "--language=es6");
         this.plugin = plugin;
         this.directory = Paths.get(plugin.getDataFolder().getPath(), "scripts");
         this.addonManager = addonManager;

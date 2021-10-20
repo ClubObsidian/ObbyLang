@@ -41,6 +41,7 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.TypeLiteral;
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
@@ -165,16 +166,16 @@ public class PluginInjector {
 
     private class ObbyLangModule implements Module {
 
-        private final Injector injector;
+        private final InjectorWrapper wrapper;
 
         public ObbyLangModule(Injector injector) {
-            this.injector = injector;
+            this.wrapper = new InjectorWrapper(injector);
         }
 
         @Override
         public void configure(Binder binder) {
             binder.bind(ObbyLangPlugin.class).toInstance(plugin);
-            binder.bind(Injector.class).toInstance(this.injector);
+            binder.bind(InjectorWrapper.class).toInstance(this.wrapper);
             binder.bind(ObbyLang.class).asEagerSingleton();
         }
     }
@@ -203,7 +204,7 @@ public class PluginInjector {
             new InjectorBinder<CustomEventManager>().bind(binder, CustomEventManager.class, customEventManager);
             new InjectorBinder<DependencyManager>().bind(binder, DependencyManager.class, dependencyManager);
             new InjectorBinder<ListenerManager>().bind(binder, ListenerManager.class, listenerManager);
-            new InjectorBinder<CommandWrapperManager>().bind(binder, CommandWrapperManager.class, commandWrapperManager);
+            new InjectorBinder<CommandWrapperManager<?>>().bind(binder, new TypeLiteral<>() {}, commandWrapperManager);
             new InjectorBinder<CommandManager>().bind(binder, CommandManager.class, commandManager);
         }
     }
@@ -211,10 +212,14 @@ public class PluginInjector {
     private class InjectorBinder<T> {
         @SuppressWarnings("unchecked")
         public void bind(Binder binder, Class<T> clazz, Class<? extends T> bind) {
+            this.bind(binder, TypeLiteral.get(clazz), bind);
+        }
+        public void bind(Binder binder, TypeLiteral<T> bindTo, Class<? extends T> bind) {
             if(bind != null) {
-                binder.bind(clazz).to(bind).asEagerSingleton();
+                binder.bind(bindTo).to(bind).asEagerSingleton();
             } else {
                 try {
+                    Class<T> clazz = (Class<T>) bindTo.getRawType();
                     ClassPool pool = ClassPool.getDefault();
                     pool.appendClassPath(new ClassClassPath(clazz));
                     CtClass managerClass = pool.get(clazz.getName());

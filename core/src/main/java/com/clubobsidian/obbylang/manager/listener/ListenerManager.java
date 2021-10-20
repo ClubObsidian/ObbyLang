@@ -159,7 +159,6 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                         ctClass.setModifiers(Modifier.PUBLIC);
                         builder.append("public void " + next.getValue() + "(" + next.getKey() + " event)");
                         builder.append("{");
-
                         builder.append("com.clubobsidian.obbylang.manager.script.ScriptWrapper[] scripts = com.clubobsidian.obbylang.manager.listener.ListenerManager.get().getEventScripts(\"" + next.getValue() + "\", " + generatedPriority + ");");
                         builder.append("for(int i = 0; i < scripts.length; i++)");
                         builder.append("{");
