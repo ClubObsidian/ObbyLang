@@ -20,6 +20,7 @@ package com.clubobsidian.obbylang.manager.redis;
 
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
+import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
@@ -37,14 +38,21 @@ import java.util.logging.Level;
 
 public class RedisClientWrapper {
 
-
+    private final ScriptManager scriptManager;
+    private final ObbyLangPlugin plugin;
     private final String declaringClass;
     private final RedisClient client;
     private final boolean pingBefore;
     private final List<SubConnectionWrapper> registerConnections = new CopyOnWriteArrayList<>();
     private final Map<String, StatefulRedisConnection<String, String>> pubCons = new ConcurrentHashMap<>();
 
-    public RedisClientWrapper(String declaringClass, String connection, boolean pingBefore) {
+    public RedisClientWrapper(ScriptManager scriptManager,
+                              ObbyLangPlugin plugin,
+                              String declaringClass,
+                              String connection,
+                              boolean pingBefore) {
+        this.scriptManager = scriptManager;
+        this.plugin = plugin;
         this.declaringClass = declaringClass;
         this.client = this.createRedisClient(connection);
         this.pingBefore = pingBefore;
@@ -53,11 +61,11 @@ public class RedisClientWrapper {
     public void register(final ScriptObjectMirror script, final String registeredChannel) {
         StatefulRedisPubSubConnection<String, String> con = this.client.connectPubSub();
 
-        RedisPubSubListener<String, String> listener = new RedisPubSubListener<String, String>() {
+        RedisPubSubListener<String, String> listener = new RedisPubSubListener<>() {
             @Override
             public void message(String channel, String message) {
                 if(channel.equalsIgnoreCase(registeredChannel)) {
-                    CompiledScript owner = ScriptManager.get().getScript(declaringClass);
+                    CompiledScript owner = scriptManager.getScript(declaringClass);
                     script.call(owner, message);
                 }
             }
@@ -130,10 +138,9 @@ public class RedisClientWrapper {
                 .autoReconnect(true)
                 .pingBeforeActivateConnection(this.pingBefore)
                 .build());
-        client.getResources().eventBus().get().subscribe(event ->
-        {
+        client.getResources().eventBus().get().subscribe(event -> {
             String eventMessage = this.declaringClass + " " + event.getClass().getName();
-            ObbyLang.get().getPlugin().getLogger().log(Level.SEVERE, eventMessage);
+            this.plugin.getLogger().log(Level.SEVERE, eventMessage);
         });
         return client;
     }

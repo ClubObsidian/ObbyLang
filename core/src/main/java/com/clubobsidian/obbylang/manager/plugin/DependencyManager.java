@@ -41,11 +41,13 @@ public abstract class DependencyManager implements RegisteredManager {
     private final Map<String, Queue<DependencyWrapper>> dependencies = new ConcurrentHashMap<>();
     private final ScriptManager scriptManager;
     private final EventBus eventBus;
+    private final FakeServerManager fakeServer;
 
     @Inject
-    protected DependencyManager(EventBus eventBus, ScriptManager scriptManager) {
+    protected DependencyManager(EventBus eventBus, ScriptManager scriptManager, FakeServerManager fakeServer) {
         this.eventBus = eventBus;
         this.scriptManager = scriptManager;
+        this.fakeServer = fakeServer;
         this.eventBus.registerEvents(this);
         this.registerPluginEnableListener();
     }
@@ -104,7 +106,7 @@ public abstract class DependencyManager implements RegisteredManager {
 
     private boolean checkDependencies(String declaringClass, DependencyWrapper wrapper) {
         for(String dependency : wrapper.getDependencies()) {
-            if(FakeServerManager.get().getPlugin(dependency) == null) {
+            if(this.fakeServer.getPlugin(dependency) == null) {
                 return false;
             }
         }

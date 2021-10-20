@@ -29,6 +29,8 @@ import com.clubobsidian.obbylang.manager.listener.ListenerManager;
 import com.clubobsidian.obbylang.manager.message.MessageManager;
 import com.clubobsidian.obbylang.manager.plugin.DependencyManager;
 import com.clubobsidian.obbylang.manager.proxy.ProxyManager;
+import com.clubobsidian.obbylang.manager.redis.RedisManager;
+import com.clubobsidian.obbylang.manager.script.DisableManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
@@ -170,17 +172,19 @@ public class PluginInjector {
             binder.bind(CustomEventManager.class).to(CustomEventManager.class).asEagerSingleton();
             binder.bind(AddonManager.class).to(AddonManager.class).asEagerSingleton();
             binder.bind(ScriptManager.class).to(ScriptManager.class).asEagerSingleton();
+            binder.bind(RedisManager.class).to(RedisManager.class).asEagerSingleton();
+            binder.bind(DisableManager.class).to(DisableManager.class).asEagerSingleton();
         }
     }
 
     private class DependencyModule implements Module {
         @Override
         public void configure(Binder binder) {
+            new InjectorBinder<FakeServerManager>().bind(binder, FakeServerManager.class, fakeServerManager);
             new InjectorBinder<ProxyManager>().bind(binder, ProxyManager.class, proxyManager);
             new InjectorBinder<MessageManager>().bind(binder, MessageManager.class, messageManager);
             new InjectorBinder<CustomEventManager>().bind(binder, CustomEventManager.class, customEventManager);
             new InjectorBinder<DependencyManager>().bind(binder, DependencyManager.class, dependencyManager);
-            new InjectorBinder<FakeServerManager>().bind(binder, FakeServerManager.class, fakeServerManager);
             new InjectorBinder<ListenerManager>().bind(binder, ListenerManager.class, listenerManager);
             new InjectorBinder<CommandWrapperManager>().bind(binder, CommandWrapperManager.class, commandWrapperManager);
             new InjectorBinder<CommandManager>().bind(binder, CommandManager.class, commandManager);

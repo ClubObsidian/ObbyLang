@@ -57,11 +57,14 @@ public abstract class ListenerManager<T> implements RegisteredManager {
     private final Map<T, List<String>> registeredEvents = new ConcurrentHashMap<>();
     private final MappingsManager mappingsManager;
     private final ScriptManager scriptManager;
+    private final FakeServerManager fakeServer;
 
     @Inject
-    protected ListenerManager(MappingsManager mappingsManager, ScriptManager scriptManager) {
+    protected ListenerManager(MappingsManager mappingsManager, ScriptManager scriptManager,
+                              FakeServerManager fakeServer) {
         this.mappingsManager = mappingsManager;
         this.scriptManager = scriptManager;
+        this.fakeServer = fakeServer;
     }
 
     protected void loadEvents(String[] events) {
@@ -130,7 +133,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                     if(ctClass.isFrozen()) {
                         try {
                             Class<?> listenerClass = ctClass.toClass(ObbyLang.class.getClassLoader(), ObbyLang.class.getProtectionDomain());
-                            FakeServerManager.get().registerListener(listenerClass.newInstance());
+                            this.fakeServer.registerListener(listenerClass.newInstance());
                         } catch(CannotCompileException | InstantiationException | IllegalAccessException e) {
                             e.printStackTrace();
                         }
@@ -182,7 +185,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
 
                         ctClass.addMethod(ctMethod); //Thread.currentThread().getContextClassLoader(), ListenerManager.class.getProtectionDomain()
                         Class<?> listenerClass = ctClass.toClass(ListenerManager.class);
-                        FakeServerManager.get().registerListener(listenerClass.getDeclaredConstructors()[0].newInstance());
+                        this.fakeServer.registerListener(listenerClass.getDeclaredConstructors()[0].newInstance());
                     } catch(CannotCompileException | NotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         e.printStackTrace();
                     }

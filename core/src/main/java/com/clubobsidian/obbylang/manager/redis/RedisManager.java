@@ -19,6 +19,8 @@
 package com.clubobsidian.obbylang.manager.redis;
 
 import com.clubobsidian.obbylang.manager.RegisteredManager;
+import com.clubobsidian.obbylang.manager.script.ScriptManager;
+import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.google.inject.Inject;
 
 import java.io.UnsupportedEncodingException;
@@ -32,9 +34,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RedisManager implements RegisteredManager {
 
     private final Map<String, List<RedisClientWrapper>> wrappers = new ConcurrentHashMap<>();
+    private final ObbyLangPlugin plugin;
+    private final ScriptManager scriptManager;
 
     @Inject
-    private RedisManager() {
+    private RedisManager(ObbyLangPlugin plugin, ScriptManager scriptManager) {
+        this.plugin = plugin;
+        this.scriptManager = scriptManager;
     }
 
     public RedisClientWrapper create(String declaringClass, String ip, int port, String password) {
@@ -55,7 +61,11 @@ public class RedisManager implements RegisteredManager {
     }
 
     public RedisClientWrapper create(String declaringClass, String connection, boolean pingBefore) {
-        RedisClientWrapper wrapper = new RedisClientWrapper(declaringClass, connection, pingBefore);
+        RedisClientWrapper wrapper = new RedisClientWrapper(this.scriptManager,
+                this.plugin,
+                declaringClass,
+                connection,
+                pingBefore);
         this.init(declaringClass);
         this.wrappers.get(declaringClass).add(wrapper);
         return wrapper;

@@ -129,7 +129,7 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
         this.consoleThread = new Thread(new ConsoleRunnable());
         this.consoleThread.start();
 
-        this.obbyLang.getInjector().getInstance(AddonManager.class).registerAddon("jda", this.jda);
+        this.obbyLang.getInstance(AddonManager.class).registerAddon("jda", this.jda);
 
         this.getLogger().info("Injecting ObbyLang plugin");
 
@@ -142,8 +142,7 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
                 .setCommandWrapperManager(DiscordCommandWrapperManager.class)
                 .create();
 
-        DiscordCommandManager commandManager = (DiscordCommandManager) this.obbyLang
-                .getInjector().getInstance(CommandManager.class);
+        DiscordCommandManager commandManager = (DiscordCommandManager) this.obbyLang.getInstance(CommandManager.class);
         //Initialize command manager
         this.jda.addEventListener(commandManager);
 

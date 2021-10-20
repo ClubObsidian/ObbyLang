@@ -24,6 +24,7 @@ import com.clubobsidian.crouton.wrapper.JobWrapper;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
+import com.google.inject.Inject;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.lang.ref.WeakReference;
@@ -37,25 +38,22 @@ import java.util.concurrent.Future;
 
 public class SchedulerManager implements RegisteredManager {
 
-    private static SchedulerManager instance;
-
-    public static SchedulerManager get() {
-        if(instance == null) {
-            instance = new SchedulerManager();
-        }
-        return instance;
-    }
-
     private final Crouton crouton = new Crouton();
     private final Map<String, Collection<WeakReference<JobWrapper>>> jobs = new ConcurrentHashMap<>();
     private final Queue<Runnable> syncQueue = new ConcurrentLinkedQueue<>();
 
-    private SchedulerManager() {
+    private final FakeServerManager fakeServer;
+    private final ScriptManager scriptManager;
+
+    @Inject
+    private SchedulerManager(FakeServerManager fakeServer, ScriptManager scriptManager) {
+        this.fakeServer = fakeServer;
+        this.scriptManager = scriptManager;
         this.startSyncQueueTask();
     }
 
     private void startSyncQueueTask() {
-        FakeServerManager.get().scheduleSyncRepeatingTask(() -> {
+        this.fakeServer.scheduleSyncRepeatingTask(() -> {
             Runnable runnable;
             while((runnable = this.syncQueue.poll()) != null) {
                 runnable.run();
@@ -64,7 +62,7 @@ public class SchedulerManager implements RegisteredManager {
     }
 
     public synchronized void sync(final String declaringClass, final ScriptObjectMirror script) {
-        this.syncQueue.add(() -> script.call(ScriptManager.get().getScript(declaringClass)));
+        this.syncQueue.add(() -> this.callScript(declaringClass, script));
     }
 
     public JobWrapper syncDelayed(String declaringClass, final ScriptObjectMirror script, long delay) {
@@ -140,7 +138,7 @@ public class SchedulerManager implements RegisteredManager {
     }
 
     private Object callScript(String declaringClass, ScriptObjectMirror script) {
-        return script.call(ScriptManager.get().getScript(declaringClass));
+        return script.call(this.scriptManager.getScript(declaringClass));
     }
 
     private void init(String declaringClass) {

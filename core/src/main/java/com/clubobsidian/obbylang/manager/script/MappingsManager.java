@@ -19,7 +19,9 @@
 package com.clubobsidian.obbylang.manager.script;
 
 import com.clubobsidian.obbylang.ObbyLang;
+import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.obbylang.util.ClassUtil;
+import com.google.inject.Inject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,8 +35,12 @@ public class MappingsManager {
 
     private boolean mappingsLoaded = false;
     private final Map<String, String> eventMappings = new ConcurrentHashMap<>();
+    private final ObbyLangPlugin plugin;
 
-    private MappingsManager() { }
+    @Inject
+    private MappingsManager(ObbyLangPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     public Map<String, String> getEventMappings() {
         return this.eventMappings;
@@ -43,7 +49,7 @@ public class MappingsManager {
     public boolean addEventMapping(String eventClassPath, String className) {
         if(!ClassUtil.classExists(eventClassPath)) {
             String toLog = "Invalid event class mapping" + eventClassPath;
-            ObbyLang.get().getPlugin().getLogger().log(Level.SEVERE, toLog);
+            this.plugin.getLogger().log(Level.SEVERE, toLog);
             return false;
         }
 
@@ -54,7 +60,7 @@ public class MappingsManager {
     public boolean loadEventMappingsFromFile() {
         if(!this.mappingsLoaded) {
             BufferedReader reader = null;
-            File mappingsFile = new File(ObbyLang.get().getPlugin().getDataFolder().getPath(), "events.csv");
+            File mappingsFile = new File(this.plugin.getDataFolder().getPath(), "events.csv");
             if(!mappingsFile.exists()) {
                 return false;
             }

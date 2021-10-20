@@ -19,6 +19,7 @@
 package com.clubobsidian.obbylang.manager.script;
 
 import com.clubobsidian.obbylang.manager.RegisteredManager;
+import com.google.inject.Inject;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.CompiledScript;
@@ -30,18 +31,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DisableManager implements RegisteredManager {
 
-    private static DisableManager instance;
-
-    public static DisableManager get() {
-        if(instance == null) {
-            instance = new DisableManager();
-        }
-        return instance;
-    }
-
     private final Map<String, List<ScriptObjectMirror>> disableFunctions = new ConcurrentHashMap<>();
 
-    private DisableManager() { }
+    private final ScriptManager scriptManager;
+
+    @Inject
+    private DisableManager(ScriptManager scriptManager) {
+        this.scriptManager = scriptManager;
+    }
 
     public void register(String declaringClass, ScriptObjectMirror script) {
         this.init(declaringClass);
@@ -50,7 +47,7 @@ public class DisableManager implements RegisteredManager {
 
     public void unregister(String declaringClass) {
         this.init(declaringClass);
-        CompiledScript owner = ScriptManager.get().getScript(declaringClass);
+        CompiledScript owner = this.scriptManager.getScript(declaringClass);
         for(ScriptObjectMirror script : this.disableFunctions.get(declaringClass)) {
             script.call(owner);
         }
@@ -62,5 +59,4 @@ public class DisableManager implements RegisteredManager {
             this.disableFunctions.put(declaringClass, new ArrayList<>());
         }
     }
-
 }

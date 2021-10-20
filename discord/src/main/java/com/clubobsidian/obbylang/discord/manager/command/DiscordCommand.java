@@ -25,9 +25,9 @@ import net.dv8tion.jda.api.entities.User;
 
 public class DiscordCommand {
 
-    private Object owner;
-    private String command;
-    private ScriptObjectMirror base;
+    private final Object owner;
+    private final String command;
+    private final ScriptObjectMirror base;
 
     public DiscordCommand(Object owner, String command, ScriptObjectMirror base) {
         this.owner = owner;

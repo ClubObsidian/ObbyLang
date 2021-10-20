@@ -34,6 +34,7 @@ import com.clubobsidian.obbylang.manager.proxy.ProxyManager;
 import com.clubobsidian.obbylang.manager.redis.RedisManager;
 import com.clubobsidian.obbylang.manager.scheduler.SchedulerManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
+import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.obbylang.util.ChatColor;
 import com.google.inject.Inject;
 import javassist.ClassClassPath;
@@ -80,13 +81,15 @@ public class ScriptManager {
     private final Compilable compilableEngine = (Compilable) engine;;
     private final Map<String, CompiledScript> scripts = new ConcurrentHashMap<>();
 
+    private final ObbyLangPlugin plugin;
     private final AddonManager addonManager;
 
     @Inject
-    private ScriptManager(AddonManager addonManager) {
-        ClassLoader cl = ObbyLang.get().getPlugin().getClass().getClassLoader();
+    private ScriptManager(ObbyLangPlugin plugin, AddonManager addonManager) {
+        ClassLoader cl = plugin.getClass().getClassLoader();
         Thread.currentThread().setContextClassLoader(cl);
-        this.directory = Paths.get(ObbyLang.get().getPlugin().getDataFolder().getPath(), "scripts");
+        this.plugin = plugin;
+        this.directory = Paths.get(plugin.getDataFolder().getPath(), "scripts");
         this.addonManager = addonManager;
     }
 
@@ -113,7 +116,7 @@ public class ScriptManager {
     }
 
     private void loadGlobalScript() {
-        File globalFile = new File(ObbyLang.get().getPlugin().getDataFolder(), "global.js");
+        File globalFile = new File(this.plugin.getDataFolder(), "global.js");
         if(globalFile.exists()) {
 
             try {
@@ -145,8 +148,7 @@ public class ScriptManager {
 
         for(File file : files) {
             try {
-                ObbyLang.get().getPlugin().getLogger().info("Loading " + file.getName());
-
+                this.plugin.getLogger().info("Loading " + file.getName());
                 FileReader reader = new FileReader(file);
                 CompiledScript script = this.compilableEngine.compile(reader);
                 System.out.println(script.getClass().getName());
