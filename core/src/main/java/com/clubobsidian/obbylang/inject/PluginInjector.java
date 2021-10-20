@@ -115,10 +115,11 @@ public class PluginInjector {
     }
 
     public <T> PluginInjector addAddon(Class<T>  bind) {
-        return this.addAddon(bind, bind);
+        this.addonModules.add(new SameClassAddonModule<>(bind));
+        return this;
     }
     public <T> PluginInjector addAddon(Class<T> bindFrom, Class<? extends T> bindTo) {
-        this.addonModules.add(new AddonModule(bindFrom, bindTo));
+        this.addonModules.add(new DifferentClassAddonModule<>(bindFrom, bindTo));
         return this;
     }
 
@@ -132,12 +133,26 @@ public class PluginInjector {
         return obbyLangInjector.getInstance(ObbyLang.class);
     }
 
-    private class AddonModule<T> implements Module {
+    private class SameClassAddonModule<T> implements Module {
+
+        private final Class<T> bind;
+
+        public SameClassAddonModule(Class<T> bind) {
+            this.bind = bind;
+        }
+
+        @Override
+        public void configure(Binder binder) {
+            binder.bind(this.bind).asEagerSingleton();
+        }
+    }
+
+    private class DifferentClassAddonModule<T> implements Module {
 
         private final Class<T> bindFrom;
         private final Class<? extends T> bindTo;
 
-        public AddonModule(Class<T> bindFrom, Class<? extends T> bindTo) {
+        public DifferentClassAddonModule(Class<T> bindFrom, Class<? extends T> bindTo) {
             this.bindFrom = bindFrom;
             this.bindTo = bindTo;
         }
@@ -160,7 +175,7 @@ public class PluginInjector {
         public void configure(Binder binder) {
             binder.bind(ObbyLangPlugin.class).toInstance(plugin);
             binder.bind(Injector.class).toInstance(this.injector);
-            binder.bind(ObbyLang.class).to(ObbyLang.class).asEagerSingleton();
+            binder.bind(ObbyLang.class).asEagerSingleton();
         }
     }
 
@@ -169,13 +184,13 @@ public class PluginInjector {
         public void configure(Binder binder) {
             binder.bind(ObbyLangPlugin.class).toInstance(plugin);
             binder.bind(EventBus.class).toInstance(new MethodHandleEventBus());
-            binder.bind(GlobalManager.class).to(GlobalManager.class).asEagerSingleton();
-            binder.bind(MappingsManager.class).to(MappingsManager.class).asEagerSingleton();
-            binder.bind(DatabaseManager.class).to(DatabaseManager.class).asEagerSingleton();
-            binder.bind(AddonManager.class).to(AddonManager.class).asEagerSingleton();
-            binder.bind(ScriptManager.class).to(ScriptManager.class).asEagerSingleton();
-            binder.bind(RedisManager.class).to(RedisManager.class).asEagerSingleton();
-            binder.bind(DisableManager.class).to(DisableManager.class).asEagerSingleton();
+            binder.bind(GlobalManager.class).asEagerSingleton();
+            binder.bind(MappingsManager.class).asEagerSingleton();
+            binder.bind(DatabaseManager.class).asEagerSingleton();
+            binder.bind(AddonManager.class).asEagerSingleton();
+            binder.bind(ScriptManager.class).asEagerSingleton();
+            binder.bind(RedisManager.class).asEagerSingleton();
+            binder.bind(DisableManager.class).asEagerSingleton();
         }
     }
 
