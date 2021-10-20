@@ -172,7 +172,6 @@ public class PluginInjector {
             binder.bind(GlobalManager.class).to(GlobalManager.class).asEagerSingleton();
             binder.bind(MappingsManager.class).to(MappingsManager.class).asEagerSingleton();
             binder.bind(DatabaseManager.class).to(DatabaseManager.class).asEagerSingleton();
-            binder.bind(CustomEventManager.class).to(CustomEventManager.class).asEagerSingleton();
             binder.bind(AddonManager.class).to(AddonManager.class).asEagerSingleton();
             binder.bind(ScriptManager.class).to(ScriptManager.class).asEagerSingleton();
             binder.bind(RedisManager.class).to(RedisManager.class).asEagerSingleton();
