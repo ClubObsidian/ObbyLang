@@ -30,7 +30,10 @@ import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtField;
 import javassist.CtMethod;
+import javassist.CtNewConstructor;
 import javassist.CtNewMethod;
 import javassist.Modifier;
 import javassist.NotFoundException;
@@ -126,10 +129,9 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                     } catch(ClassNotFoundException e1) {
                         e1.printStackTrace();
                     }
-                    StringBuilder builder = new StringBuilder();
 
-                    CtClass ctClass = ClassPool.getDefault().makeClass("com.clubobsidian.obbylang.manager.listener."
-                            + eventPriorityStr + next.getValue() + "ObbyLangListener");
+                    String generatedName = eventPriorityStr + next.getValue() + "ObbyLangListener";
+                    CtClass ctClass = ClassPool.getDefault().makeClass("com.clubobsidian.obbylang.manager.listener." + generatedName);
                     if(ctClass.isFrozen()) {
                         try {
                             Class<?> listenerClass = ctClass.toClass(ObbyLang.class.getClassLoader(), ObbyLang.class.getProtectionDomain());
@@ -156,10 +158,31 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                             generatedPriority = "\"" + priority + "\"";
                         }
 
+                        StringBuilder builder = new StringBuilder();
                         ctClass.setModifiers(Modifier.PUBLIC);
+
+                        CtField field = CtField
+                                .make("com.clubobsidian.obbylang.manager.listener.ListenerManager listenerManager;",
+                                ctClass);
+                        field.setModifiers(Modifier.PRIVATE);
+                        ctClass.addField(field);
+
+                        builder.append("public " + generatedName);
+                        builder.append("(com.clubobsidian.obbylang.manager.listener.ListenerManager listenerManager)");
+                        builder.append("{");
+                        builder.append("this.listenerManager = listenerManager;");
+                        builder.append("}");
+
+                        CtConstructor con = CtNewConstructor.make(builder.toString(), ctClass);
+                        con.setModifiers(Modifier.PUBLIC);
+                        ctClass.addConstructor(con);
+
+                        builder = new StringBuilder();
+
+
                         builder.append("public void " + next.getValue() + "(" + next.getKey() + " event)");
                         builder.append("{");
-                        builder.append("com.clubobsidian.obbylang.manager.script.ScriptWrapper[] scripts = com.clubobsidian.obbylang.manager.listener.ListenerManager.get().getEventScripts(\"" + next.getValue() + "\", " + generatedPriority + ");");
+                        builder.append("com.clubobsidian.obbylang.manager.script.ScriptWrapper[] scripts = this.listenerManager.getEventScripts(\"" + next.getValue() + "\", " + generatedPriority + ");");
                         builder.append("for(int i = 0; i < scripts.length; i++)");
                         builder.append("{");
                         builder.append("scripts[i].getScript().call(scripts[i].getOwner(), new Object[] {(Object) event});");
@@ -173,8 +196,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                         AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
                         Annotation annotation = new Annotation(this.getHandlerClass().getName(), constPool);
 
-                        if(this.getEventPriorityClass() != null) //Annotation attribute
-                        {
+                        if(this.getEventPriorityClass() != null) { //Annotation attribute
                             MemberValue memberValue = ListenerUtil.getMemberValue(priority, constPool);
                             annotation.addMemberValue(this.getPriorityName(), memberValue);
                         }
@@ -184,7 +206,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
 
                         ctClass.addMethod(ctMethod); //Thread.currentThread().getContextClassLoader(), ListenerManager.class.getProtectionDomain()
                         Class<?> listenerClass = ctClass.toClass(ListenerManager.class);
-                        this.fakeServer.registerListener(listenerClass.getDeclaredConstructors()[0].newInstance());
+                        this.fakeServer.registerListener(listenerClass.getDeclaredConstructors()[0].newInstance(this));
                     } catch(CannotCompileException | NotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         e.printStackTrace();
                     }

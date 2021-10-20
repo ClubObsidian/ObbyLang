@@ -77,8 +77,8 @@ public class ScriptManager {
 
     private boolean loaded;
     private final Path directory;
-    private final ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();
-    private final Compilable compilableEngine = (Compilable) engine;;
+    private final ScriptEngine engine;
+    private final Compilable compilableEngine;
     private final Map<String, CompiledScript> scripts = new ConcurrentHashMap<>();
 
     private final ObbyLangPlugin plugin;
@@ -89,6 +89,8 @@ public class ScriptManager {
         ClassLoader cl = plugin.getClass().getClassLoader();
         Thread.currentThread().setContextClassLoader(cl);
         System.setProperty("nashorn.args", "--language=es6");
+        this.engine = new NashornScriptEngineFactory().getScriptEngine();
+        this.compilableEngine = (Compilable) engine;
         this.plugin = plugin;
         this.directory = Paths.get(plugin.getDataFolder().getPath(), "scripts");
         this.addonManager = addonManager;
