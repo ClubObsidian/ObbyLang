@@ -20,6 +20,7 @@ package com.clubobsidian.obbylang.bukkit.manager.command;
 
 import com.clubobsidian.obbylang.manager.command.SenderWrapper;
 import com.clubobsidian.obbylang.manager.message.MessageManager;
+import com.clubobsidian.obbylang.util.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.block.CommandBlock;
 import org.bukkit.command.CommandSender;
@@ -37,6 +38,7 @@ public class BukkitSenderWrapper extends SenderWrapper<CommandSender> implements
     public BukkitSenderWrapper(CommandSender sender) {
         super(sender);
     }
+
 
     @Override
     public Object asCommandBlock() {
@@ -79,7 +81,7 @@ public class BukkitSenderWrapper extends SenderWrapper<CommandSender> implements
 
     @Override
     public void sendMessage(String message) {
-        this.getOriginalSender().sendMessage(MessageManager.get().color(message));
+        this.getOriginalSender().sendMessage(ChatColor.translateAlternateColorCodes(message));
     }
 
     @Override

@@ -20,7 +20,7 @@ package com.clubobsidian.obbylang.bungeecord.plugin;
 
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.ObbyLangPlatform;
-import com.clubobsidian.obbylang.bungeecord.command.ObbyLangCommand;
+import com.clubobsidian.obbylang.bungeecord.command.BungeeCordObbyLangCommand;
 import com.clubobsidian.obbylang.inject.PluginInjector;
 import com.clubobsidian.obbylang.bungeecord.manager.BungeeCordCustomEventManager;
 import com.clubobsidian.obbylang.bungeecord.manager.BungeeCordFakeServerManager;
@@ -30,10 +30,10 @@ import com.clubobsidian.obbylang.bungeecord.manager.BungeeCordProxyManager;
 import com.clubobsidian.obbylang.bungeecord.manager.command.BungeeCordCommandManager;
 import com.clubobsidian.obbylang.bungeecord.manager.command.BungeeCordCommandWrapperManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
-import com.google.inject.Injector;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.api.plugin.PluginManager;
 
 public class BungeeCordObbyLangPlugin extends Plugin implements ObbyLangPlugin, Listener {
 
@@ -43,8 +43,8 @@ public class BungeeCordObbyLangPlugin extends Plugin implements ObbyLangPlugin, 
 
     @Override
     public boolean createObbyLangCommand() {
-        this.getProxy().getPluginManager().registerCommand(this, new ObbyLangCommand("gobbylang"));
-        this.getProxy().getPluginManager().registerCommand(this, new ObbyLangCommand("gol"));
+        PluginManager pm = this.getProxy().getPluginManager();
+        pm.registerCommand(this, this.obbyLang.getInstance(BungeeCordObbyLangCommand.class));
         return true;
     }
 
@@ -77,6 +77,7 @@ public class BungeeCordObbyLangPlugin extends Plugin implements ObbyLangPlugin, 
                 .setListenerManager(BungeeCordListenerManager.class)
                 .setCommandManager(BungeeCordCommandManager.class)
                 .setCommandWrapperManager(BungeeCordCommandWrapperManager.class)
+                .addAddon(BungeeCordObbyLangCommand.class)
                 .create();
 
         this.getLogger().info("About to enable obbylang");

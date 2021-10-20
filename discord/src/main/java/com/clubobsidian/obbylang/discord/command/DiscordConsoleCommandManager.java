@@ -29,21 +29,24 @@ import java.util.logging.Logger;
 
 public class DiscordConsoleCommandManager {
 
-    private Map<String, Command> commands;
-    private Pipe consolePipe;
+    private final Map<String, Command> commands;
+    private final Pipe consolePipe;
 
     public DiscordConsoleCommandManager() {
         this.commands = new ConcurrentHashMap<>();
         this.consolePipe = new LoggerPipe();
     }
 
-    public boolean registerCommand(Command command) {
-        return this.registerCommand(command, false);
+    public boolean register(Command command, String... aliases) {
+        return this.register(command, aliases, false);
     }
 
-    public boolean registerCommand(Command command, boolean force) {
+    public boolean register(Command command, String[] aliases, boolean force) {
         if(force) {
             this.commands.put(command.getName(), command);
+            for(String alias : aliases) {
+                this.commands.put(alias, command);
+            }
             return true;
         }
 

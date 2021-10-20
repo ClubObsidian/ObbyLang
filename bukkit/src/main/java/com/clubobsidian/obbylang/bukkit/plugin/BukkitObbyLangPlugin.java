@@ -20,8 +20,8 @@ package com.clubobsidian.obbylang.bukkit.plugin;
 
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.ObbyLangPlatform;
-import com.clubobsidian.obbylang.bukkit.command.ObbyLangCommand;
-import com.clubobsidian.obbylang.bukkit.command.ObbyLangCommandTabCompleter;
+import com.clubobsidian.obbylang.bukkit.command.BukkitObbyLangCommand;
+import com.clubobsidian.obbylang.bukkit.command.BukkitObbyLangCommandTabCompleter;
 import com.clubobsidian.obbylang.inject.PluginInjector;
 import com.clubobsidian.obbylang.bukkit.manager.BukkitCustomEventManager;
 import com.clubobsidian.obbylang.bukkit.manager.BukkitDependencyManager;
@@ -33,9 +33,9 @@ import com.clubobsidian.obbylang.bukkit.manager.command.BukkitCommandManager;
 import com.clubobsidian.obbylang.bukkit.manager.command.BukkitCommandWrapperManager;
 import com.clubobsidian.obbylang.bukkit.manager.plugin.PluginManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
-import com.google.inject.Injector;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -47,8 +47,9 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
 
     @Override
     public boolean createObbyLangCommand() {
-        this.getCommand("obbylang").setExecutor(new ObbyLangCommand());
-        this.getCommand("obbylang").setTabCompleter(new ObbyLangCommandTabCompleter());
+        PluginCommand cmd = this.getCommand("obbylang");
+        cmd.setExecutor(this.obbyLang.getInstance(BukkitObbyLangCommand.class));
+        cmd.setTabCompleter(this.obbyLang.getInstance(BukkitObbyLangCommandTabCompleter.class));
         return true;
     }
 
@@ -77,7 +78,9 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
                 .setListenerManager(BukkitListenerManager.class)
                 .setCommandManager(BukkitCommandManager.class)
                 .setCommandWrapperManager(BukkitCommandWrapperManager.class)
-                .addAddon(PluginManager.class, PluginManager.class)
+                .addAddon(PluginManager.class)
+                .addAddon(BukkitObbyLangCommand.class)
+                .addAddon(BukkitObbyLangCommandTabCompleter.class)
                 .create();
 
         ClassPool.getDefault().insertClassPath(new ClassClassPath(Listener.class));

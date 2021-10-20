@@ -16,47 +16,52 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.clubobsidian.obbylang.bungeecord.command;
+package com.clubobsidian.obbylang.bukkit.command;
 
+import com.clubobsidian.obbylang.bukkit.pipe.SenderPipe;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
-import com.clubobsidian.obbylang.bungeecord.pipe.SenderPipe;
-import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.plugin.Command;
+import com.google.inject.Inject;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 
-public class ObbyLangCommand extends Command {
+public class BukkitObbyLangCommand implements CommandExecutor {
 
-    public ObbyLangCommand(String name) {
-        super(name);
+    private final ScriptManager scriptManager;
+
+    @Inject
+    private BukkitObbyLangCommand(ScriptManager scriptManager) {
+        this.scriptManager = scriptManager;
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(sender.hasPermission("obbylang.use")) {
             if(args.length == 2) {
                 Pipe pipe = new SenderPipe(sender);
                 if(args[0].equalsIgnoreCase("load")) {
-                    boolean loaded = ScriptManager.get().loadScript(args[1], pipe);
+                    boolean loaded = this.scriptManager.loadScript(args[1], pipe);
                     if(loaded) {
                         sender.sendMessage("Script has been loaded");
                     } else {
                         sender.sendMessage("Script could not be loaded");
                     }
                 } else if(args[0].equalsIgnoreCase("unload")) {
-                    boolean unloaded = ScriptManager.get().unloadScript(args[1], pipe);
+                    boolean unloaded = this.scriptManager.unloadScript(args[1], pipe);
                     if(unloaded) {
                         sender.sendMessage("Script has been unloaded");
                     } else {
                         sender.sendMessage("Script could not be unloaded");
                     }
                 } else if(args[0].equalsIgnoreCase("reload")) {
-                    boolean reload = ScriptManager.get().reloadScript(args[1], pipe);
+                    boolean reload = this.scriptManager.reloadScript(args[1], pipe);
                     if(reload) {
                         sender.sendMessage("Script has been reloaded");
                     } else {
                         sender.sendMessage("Script could not be reloaded");
                         sender.sendMessage("Attemping to load the script");
-                        boolean load = ScriptManager.get().loadScript(args[1], pipe);
+                        boolean load = this.scriptManager.loadScript(args[1], pipe);
                         if(load) {
                             sender.sendMessage("Script has been loaded");
                         } else {
@@ -64,43 +69,43 @@ public class ObbyLangCommand extends Command {
                         }
                     }
                 } else if(args[0].equalsIgnoreCase("enable")) {
-                    boolean enable = ScriptManager.get().enableScript(args[1], pipe);
+                    boolean enable = this.scriptManager.enableScript(args[1], pipe);
                     if(enable) {
                         sender.sendMessage("Script has been enabled");
                     } else {
                         sender.sendMessage("Script can not be enabled");
                     }
                 } else if(args[0].equalsIgnoreCase("disable")) {
-                    boolean disable = ScriptManager.get().disableScript(args[1], pipe);
+                    boolean disable = this.scriptManager.disableScript(args[1], pipe);
                     if(disable) {
                         sender.sendMessage("Script has been disabled");
                     } else {
                         sender.sendMessage("Script can not be disabled");
                     }
                 } else {
-                    this.sendCommandList(sender);
+                    this.sendCommandList(label, sender);
                 }
-                return;
+                return true;
             } else if(args.length == 1) {
                 if(args[0].equalsIgnoreCase("list")) {
-                    sender.sendMessage(ScriptManager.get().getScriptListString());
-                    return;
+                    sender.sendMessage(this.scriptManager.getScriptListString());
+                    return true;
                 }
             }
 
-            this.sendCommandList(sender);
-            return;
+            this.sendCommandList(label, sender);
+            return true;
 
         }
-        return;
+        return false;
     }
 
-    private void sendCommandList(CommandSender sender) {
-        sender.sendMessage("gol load <script>");
-        sender.sendMessage("gol unload <script>");
-        sender.sendMessage("gol reload <script>");
-        sender.sendMessage("gol enable <script>");
-        sender.sendMessage("gol disable <script>");
-        sender.sendMessage("gol list");
+    private void sendCommandList(String label, CommandSender sender) {
+        sender.sendMessage("/" + label + " load <script>");
+        sender.sendMessage("/" + label + " unload <script>");
+        sender.sendMessage("/" + label + " reload <script>");
+        sender.sendMessage("/" + label + " enable <script>");
+        sender.sendMessage("/" + label + " disable <script>");
+        sender.sendMessage("/" + label + " list");
     }
 }

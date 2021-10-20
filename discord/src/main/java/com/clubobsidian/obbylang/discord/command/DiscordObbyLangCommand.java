@@ -20,40 +20,44 @@ package com.clubobsidian.obbylang.discord.command;
 
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
+import com.google.inject.Inject;
 
 import java.util.List;
 
-public class ObbyLangCommand extends Command {
+public class DiscordObbyLangCommand extends Command {
 
-    public ObbyLangCommand(String name) {
-        super(name);
+    private final ScriptManager scriptManager;
+    @Inject
+    private DiscordObbyLangCommand(ScriptManager scriptManager) {
+        super("obbylang");
+        this.scriptManager = scriptManager;
     }
 
     @Override
     public boolean onCommand(Pipe pipe, String[] args) {
         if(args.length == 2) {
             if(args[0].equalsIgnoreCase("load")) {
-                boolean loaded = ScriptManager.get().loadScript(args[1], pipe);
+                boolean loaded = this.scriptManager.loadScript(args[1], pipe);
                 if(loaded) {
                     pipe.out("Script has been loaded");
                 } else {
                     pipe.out("Script could not be loaded");
                 }
             } else if(args[0].equalsIgnoreCase("unload")) {
-                boolean unloaded = ScriptManager.get().unloadScript(args[1], pipe);
+                boolean unloaded = this.scriptManager.unloadScript(args[1], pipe);
                 if(unloaded) {
                     pipe.out("Script has been unloaded");
                 } else {
                     pipe.out("Script could not be unloaded");
                 }
             } else if(args[0].equalsIgnoreCase("reload")) {
-                boolean reload = ScriptManager.get().reloadScript(args[1], pipe);
+                boolean reload = this.scriptManager.reloadScript(args[1], pipe);
                 if(reload) {
                     pipe.out("Script has been reloaded");
                 } else {
                     pipe.out("Script could not be reloaded");
                     pipe.out("Attemping to load the script");
-                    boolean load = ScriptManager.get().loadScript(args[1], pipe);
+                    boolean load = this.scriptManager.loadScript(args[1], pipe);
                     if(load) {
                         pipe.out("Script has been loaded");
                     } else {
@@ -61,14 +65,14 @@ public class ObbyLangCommand extends Command {
                     }
                 }
             } else if(args[0].equalsIgnoreCase("enable")) {
-                boolean enable = ScriptManager.get().enableScript(args[1], pipe);
+                boolean enable = this.scriptManager.enableScript(args[1], pipe);
                 if(enable) {
                     pipe.out("Script has been enabled");
                 } else {
                     pipe.out("Script can not be enabled");
                 }
             } else if(args[0].equalsIgnoreCase("disable")) {
-                boolean disable = ScriptManager.get().disableScript(args[1], pipe);
+                boolean disable = this.scriptManager.disableScript(args[1], pipe);
                 if(disable) {
                     pipe.out("Script has been disabled");
                 } else {
@@ -81,7 +85,7 @@ public class ObbyLangCommand extends Command {
         } else if(args.length == 1) {
             if(args[0].equalsIgnoreCase("list")) {
                 StringBuilder sb = new StringBuilder();
-                List<String> scriptNames = ScriptManager.get().getScriptNamesRaw();
+                List<String> scriptNames = this.scriptManager.getScriptNamesRaw();
                 for(int i = 0; i < scriptNames.size(); i++) {
                     sb.append(scriptNames.get(i).replace(".js", ""));
                     if(i != scriptNames.size() - 1) {

@@ -21,7 +21,7 @@ package com.clubobsidian.obbylang.velocity.plugin;
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
-import com.clubobsidian.obbylang.velocity.command.ObbyLangCommand;
+import com.clubobsidian.obbylang.velocity.command.VelocityObbyLangCommand;
 import com.clubobsidian.obbylang.inject.PluginInjector;
 import com.clubobsidian.obbylang.velocity.manager.VelocityCustomEventManager;
 import com.clubobsidian.obbylang.velocity.manager.VelocityFakeServerManager;
@@ -31,7 +31,6 @@ import com.clubobsidian.obbylang.velocity.manager.VelocityProxyManager;
 import com.clubobsidian.obbylang.velocity.manager.command.VelocityCommandManager;
 import com.clubobsidian.obbylang.velocity.manager.command.VelocityCommandWrapperManager;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
@@ -64,7 +63,9 @@ public class VelocityObbyLangPlugin implements ObbyLangPlugin {
 
     @Override
     public boolean createObbyLangCommand() {
-        this.server.getCommandManager().register("gobbylang", new ObbyLangCommand(), "gol");
+        this.server.getCommandManager().register("gobbylang",
+                this.obbyLang.getInstance(VelocityObbyLangCommand.class),
+                "gol");
         return true;
     }
 
@@ -97,6 +98,7 @@ public class VelocityObbyLangPlugin implements ObbyLangPlugin {
                 .setListenerManager(VelocityListenerManager.class)
                 .setCommandManager(VelocityCommandManager.class)
                 .setCommandWrapperManager(VelocityCommandWrapperManager.class)
+                .addAddon(VelocityObbyLangCommand.class)
                 .create();
 
         this.getLogger().info("About to enable obbylang");

@@ -114,6 +114,9 @@ public class PluginInjector {
         return this;
     }
 
+    public <T> PluginInjector addAddon(Class<T>  bind) {
+        return this.addAddon(bind, bind);
+    }
     public <T> PluginInjector addAddon(Class<T> bindFrom, Class<? extends T> bindTo) {
         this.addonModules.add(new AddonModule(bindFrom, bindTo));
         return this;

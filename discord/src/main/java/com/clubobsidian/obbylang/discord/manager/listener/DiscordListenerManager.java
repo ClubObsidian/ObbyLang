@@ -21,14 +21,17 @@ package com.clubobsidian.obbylang.discord.manager.listener;
 import com.clubobsidian.obbylang.manager.listener.ListenerManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
+import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.google.inject.Inject;
 import net.dv8tion.jda.api.hooks.SubscribeEvent;
 
 public class DiscordListenerManager extends ListenerManager<String> {
 
     @Inject
-    protected DiscordListenerManager(MappingsManager mappingsManager, ScriptManager scriptManager) {
-        super(mappingsManager, scriptManager);
+    protected DiscordListenerManager(MappingsManager mappingsManager,
+                                     ScriptManager scriptManager,
+                                     FakeServerManager fakeServer) {
+        super(mappingsManager, scriptManager, fakeServer);
     }
 
     @Override

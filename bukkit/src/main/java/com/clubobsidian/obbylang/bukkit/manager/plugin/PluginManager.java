@@ -21,6 +21,7 @@ package com.clubobsidian.obbylang.bukkit.manager.plugin;
 import com.clubobsidian.obbylang.manager.addon.AddonManager;
 import com.clubobsidian.obbylang.bukkit.manager.plugin.dynamicgui.GuiManager;
 import com.clubobsidian.obbylang.bukkit.manager.plugin.protocollib.ProtocolLibManager;
+import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.google.inject.Inject;
 import org.bukkit.Bukkit;
 
@@ -30,10 +31,12 @@ public class PluginManager {
     private final boolean protocolLibEnabled = this.resolveProtocolLib();
 
     private final AddonManager addonManager;
+    private final ScriptManager scriptManager;
 
     @Inject
-    private PluginManager(AddonManager addonManager) {
+    private PluginManager(AddonManager addonManager, ScriptManager scriptManager) {
         this.addonManager = addonManager;
+        this.scriptManager = scriptManager;
         this.addPluginContext();
     }
 
@@ -55,10 +58,10 @@ public class PluginManager {
 
     public void addPluginContext() {
         if(this.dynamicGuiEnabled) {
-           this.addonManager.registerAddon("guiManager", GuiManager.get());
+           this.addonManager.registerAddon("guiManager", new GuiManager(this.scriptManager));
         }
         if(this.protocolLibEnabled) {
-            this.addonManager.registerAddon("protocolLib", ProtocolLibManager.get());
+            this.addonManager.registerAddon("protocolLib", new ProtocolLibManager(this.scriptManager));
         }
     }
 }

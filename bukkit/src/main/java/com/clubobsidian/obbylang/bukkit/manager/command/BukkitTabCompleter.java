@@ -18,6 +18,7 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.command;
 
+import com.clubobsidian.obbylang.manager.message.MessageManager;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

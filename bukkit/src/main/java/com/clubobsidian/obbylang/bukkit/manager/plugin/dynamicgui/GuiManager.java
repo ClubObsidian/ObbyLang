@@ -23,11 +23,14 @@ import com.clubobsidian.dynamicgui.builder.FunctionBuilder;
 import com.clubobsidian.dynamicgui.builder.FunctionTokenBuilder;
 import com.clubobsidian.dynamicgui.builder.GuiBuilder;
 import com.clubobsidian.dynamicgui.builder.SlotBuilder;
+import com.clubobsidian.dynamicgui.entity.PlayerWrapper;
 import com.clubobsidian.dynamicgui.entity.bukkit.BukkitPlayerWrapper;
+import com.clubobsidian.dynamicgui.function.Function;
 import com.clubobsidian.dynamicgui.gui.Gui;
 import com.clubobsidian.dynamicgui.manager.dynamicgui.FunctionManager;
 import com.clubobsidian.dynamicgui.parser.function.tree.FunctionTree;
 import com.clubobsidian.dynamicgui.registry.replacer.impl.DynamicGuiReplacerRegistry;
+import com.clubobsidian.dynamicgui.replacer.Replacer;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -41,31 +44,16 @@ import java.util.Map;
 
 public class GuiManager implements RegisteredManager {
 
-    private static GuiManager instance;
+    private final Map<String, List<String>> functionStrings = new HashMap<>();
+    private final Map<String, ScriptObjectMirror> functionScripts = new HashMap<>();
+    private final Map<String, String> functionScriptOwners = new HashMap<>(); //Key(FunctionName) Value(ScriptName)
 
-    private final Map<String, List<String>> functionStrings;
-    private final Map<String, ScriptObjectMirror> functionScripts;
-    private final Map<String, String> functionScriptOwners; //Key(FunctionName) Value(ScriptName)
-
-    private final Map<String, List<String>> replacerStrings;
-    private final Map<String, ScriptObjectMirror> replacerScripts;
-    private final Map<String, String> replacerScriptOwners; //Key(ReplacerName) Value(ScriptName)
-
-    public static GuiManager get() {
-        if(instance == null) {
-            instance = new GuiManager();
-        }
-        return instance;
-    }
-
-    private GuiManager() {
-        this.functionStrings = new HashMap<>();
-        this.functionScripts = new HashMap<>();
-        this.functionScriptOwners = new HashMap<>();
-
-        this.replacerStrings = new HashMap<>();
-        this.replacerScripts = new HashMap<>();
-        this.replacerScriptOwners = new HashMap<>();
+    private final Map<String, List<String>> replacerStrings = new HashMap<>();
+    private final Map<String, ScriptObjectMirror> replacerScripts = new HashMap<>();
+    private final Map<String, String> replacerScriptOwners = new HashMap<>(); //Key(ReplacerName) Value(ScriptName)
+    private final ScriptManager scriptManager;
+    public GuiManager(ScriptManager scriptManager) {
+        this.scriptManager = scriptManager;
     }
 
     private void init(String declaringClass) {
@@ -82,7 +70,20 @@ public class GuiManager implements RegisteredManager {
         this.functionStrings.get(declaringClass).add(functionName);
         this.functionScripts.put(functionName, script);
         this.functionScriptOwners.put(functionName, declaringClass);
-        FunctionManager.get().addFunction(new ObbyLangFunction(functionName));
+        FunctionManager.get().addFunction(new Function(functionName) {
+            @Override
+            public boolean function(PlayerWrapper<?> playerWrapper) {
+                CompiledScript owner = getFunctionOwner(this.getName());
+                ScriptObjectMirror script = getScriptByFunctionName(this.getName());
+                Object ret = script.call(owner, playerWrapper, this.getData(), this.getOwner());
+                if(ret == null) {
+                    return true;
+                } else if(ret instanceof Boolean) {
+                    return (boolean) ret;
+                }
+                return true;
+            }
+        });
     }
 
     public void registerReplacer(String declaringClass, String replacer, ScriptObjectMirror script) {
@@ -90,7 +91,18 @@ public class GuiManager implements RegisteredManager {
         this.replacerStrings.get(declaringClass).add(replacer);
         this.replacerScripts.put(replacer, script);
         this.replacerScriptOwners.put(replacer, declaringClass);
-        DynamicGuiReplacerRegistry.get().addReplacer(new ObbyLangReplacer(replacer));
+        DynamicGuiReplacerRegistry.get().addReplacer(new Replacer(replacer) {
+            @Override
+            public String replacement(String text, PlayerWrapper<?> playerWrapper) {
+                CompiledScript owner = getReplacerOwner(this.getToReplace());
+                ScriptObjectMirror script = getScriptByReplacerName(this.getToReplace());
+                Object ret = script.call(owner, playerWrapper, this.getToReplace());
+                if(ret == null) {
+                    return null;
+                }
+                return (String) ret;
+            }
+        });
     }
 
     public ScriptObjectMirror getScriptByFunctionName(String functionName) {
@@ -99,7 +111,7 @@ public class GuiManager implements RegisteredManager {
 
     public CompiledScript getFunctionOwner(String functionName) {
         String scriptName = this.functionScriptOwners.get(functionName);
-        return ScriptManager.get().getScript(scriptName);
+        return this.scriptManager.getScript(scriptName);
     }
 
     public ScriptObjectMirror getScriptByReplacerName(String replacerName) {
@@ -108,7 +120,7 @@ public class GuiManager implements RegisteredManager {
 
     public CompiledScript getReplacerOwner(String replacerName) {
         String scriptName = this.replacerScriptOwners.get(replacerName);
-        return ScriptManager.get().getScript(scriptName);
+        return this.scriptManager.getScript(scriptName);
     }
 
     public EnchantmentBuilder createEnchantmentBuilder() {
@@ -136,7 +148,7 @@ public class GuiManager implements RegisteredManager {
     }
 
     public void openGui(Gui gui, Player player) {
-        com.clubobsidian.dynamicgui.manager.dynamicgui.GuiManager.get().openGui(new BukkitPlayerWrapper<Player>(player), gui);
+        com.clubobsidian.dynamicgui.manager.dynamicgui.GuiManager.get().openGui(new BukkitPlayerWrapper<>(player), gui);
     }
 
     @Override

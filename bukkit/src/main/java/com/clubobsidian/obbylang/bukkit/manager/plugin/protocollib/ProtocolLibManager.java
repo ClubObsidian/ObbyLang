@@ -35,19 +35,11 @@ import java.util.Map;
 
 public class ProtocolLibManager implements RegisteredManager {
 
-    private static ProtocolLibManager instance;
+    private final Map<String, List<PacketAdapter>> scripts = new HashMap<>();
+    private final ScriptManager scriptManager;
 
-    private final Map<String, List<PacketAdapter>> scripts;
-
-    public static ProtocolLibManager get() {
-        if(instance == null) {
-            instance = new ProtocolLibManager();
-        }
-        return instance;
-    }
-
-    private ProtocolLibManager() {
-        this.scripts = new HashMap<>();
+    public ProtocolLibManager(ScriptManager scriptManager) {
+        this.scriptManager = scriptManager;
     }
 
     private void init(String declaringClass) {
@@ -62,7 +54,7 @@ public class ProtocolLibManager implements RegisteredManager {
 
     public PacketAdapter register(String declaringClass, ScriptObjectMirror script, PacketType[] packetTypes) {
         this.init(declaringClass);
-        CompiledScript compiledScript = ScriptManager.get().getScript(declaringClass);
+        CompiledScript compiledScript = this.scriptManager.getScript(declaringClass);
 
         boolean isServer = packetTypes[0].isServer();
 

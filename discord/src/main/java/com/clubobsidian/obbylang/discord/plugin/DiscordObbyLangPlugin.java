@@ -21,7 +21,7 @@ package com.clubobsidian.obbylang.discord.plugin;
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.clubobsidian.obbylang.discord.command.DiscordConsoleCommandManager;
-import com.clubobsidian.obbylang.discord.command.ObbyLangCommand;
+import com.clubobsidian.obbylang.discord.command.DiscordObbyLangCommand;
 import com.clubobsidian.obbylang.discord.command.StopCommand;
 import com.clubobsidian.obbylang.discord.console.ConsoleRunnable;
 import com.clubobsidian.obbylang.discord.manager.DiscordFakeServerManager;
@@ -34,7 +34,6 @@ import com.clubobsidian.obbylang.manager.addon.AddonManager;
 import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.wrappy.Configuration;
-import com.google.inject.Injector;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.events.ShutdownEvent;
@@ -64,8 +63,7 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
 
     @Override
     public boolean createObbyLangCommand() {
-        this.consoleCommandManager.registerCommand(new ObbyLangCommand("ol"));
-        this.consoleCommandManager.registerCommand(new ObbyLangCommand("obbylang"));
+        this.consoleCommandManager.register(this.obbyLang.getInstance(DiscordObbyLangCommand.class), "ol");
         return true;
     }
 
@@ -121,7 +119,7 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
 
         this.consoleCommandManager = new DiscordConsoleCommandManager();
         //Load extra console commands
-        this.consoleCommandManager.registerCommand(new StopCommand());
+        this.consoleCommandManager.register(new StopCommand());
 
         //Initialize console
         this.isRunning = new AtomicBoolean(true);
@@ -140,6 +138,7 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
                 .setListenerManager(DiscordListenerManager.class)
                 .setCommandManager(DiscordCommandManager.class)
                 .setCommandWrapperManager(DiscordCommandWrapperManager.class)
+                .addAddon(DiscordObbyLangCommand.class)
                 .create();
 
         DiscordCommandManager commandManager = (DiscordCommandManager) this.obbyLang.getInstance(CommandManager.class);

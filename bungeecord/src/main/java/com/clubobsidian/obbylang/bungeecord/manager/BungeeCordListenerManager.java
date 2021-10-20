@@ -19,24 +19,31 @@
 package com.clubobsidian.obbylang.bungeecord.manager;
 
 import com.clubobsidian.obbylang.manager.listener.ListenerManager;
+import com.clubobsidian.obbylang.manager.script.MappingsManager;
+import com.clubobsidian.obbylang.manager.script.ScriptManager;
+import com.clubobsidian.obbylang.manager.server.FakeServerManager;
+import com.google.inject.Inject;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
 public class BungeeCordListenerManager extends ListenerManager<Byte> {
 
-    private final Byte[] priorities;
+    private final Byte[] priorities = new Byte[]{
+            EventPriority.LOWEST,
+            EventPriority.LOW,
+            EventPriority.NORMAL,
+            EventPriority.HIGH,
+            EventPriority.HIGHEST
+    };
 
-    public BungeeCordListenerManager() {
-        this.priorities = new Byte[]
-                {
-                        EventPriority.LOWEST,
-                        EventPriority.LOW,
-                        EventPriority.NORMAL,
-                        EventPriority.HIGH,
-                        EventPriority.HIGHEST
-                };
+    @Inject
+    protected BungeeCordListenerManager(MappingsManager mappingsManager,
+                                        ScriptManager scriptManager,
+                                        FakeServerManager fakeServer) {
+        super(mappingsManager, scriptManager, fakeServer);
     }
+
 
     @Override
     public String getDefaultPriority() {
