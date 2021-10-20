@@ -55,7 +55,7 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
 
     private static DiscordObbyLangPlugin instance;
 
-    private Injector injector;
+    private ObbyLang obbyLang;
     private File dataFolder;
     private JDA jda;
     private DiscordConsoleCommandManager consoleCommandManager;
@@ -75,8 +75,8 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
     }
 
     @Override
-    public Injector getInjector() {
-        return this.injector;
+    public ObbyLang getObbyLang() {
+        return this.obbyLang;
     }
 
     public void onEnable() {
@@ -129,11 +129,11 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
         this.consoleThread = new Thread(new ConsoleRunnable());
         this.consoleThread.start();
 
-        this.injector.getInstance(AddonManager.class).registerAddon("jda", this.jda);
+        this.obbyLang.getInjector().getInstance(AddonManager.class).registerAddon("jda", this.jda);
 
         this.getLogger().info("Injecting ObbyLang plugin");
 
-        this.injector = new PluginInjector()
+        this.obbyLang = new PluginInjector()
                 .injectPlugin(this)
                 .setMessageManager(DiscordMessageManager.class)
                 .setFakeServerManager(DiscordFakeServerManager.class)
@@ -142,17 +142,18 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
                 .setCommandWrapperManager(DiscordCommandWrapperManager.class)
                 .create();
 
-        DiscordCommandManager commandManager = (DiscordCommandManager) this.injector.getInstance(CommandManager.class);
+        DiscordCommandManager commandManager = (DiscordCommandManager) this.obbyLang
+                .getInjector().getInstance(CommandManager.class);
         //Initialize command manager
         this.jda.addEventListener(commandManager);
 
         this.getLogger().info("About to enable ObbyLang");
-        this.injector.getInstance(ObbyLang.class).onEnable();
+        this.obbyLang.onEnable();
         this.getLogger().info("ObbyLangDiscord is now loaded and enabled!");
     }
 
     public void onDisable() {
-        this.injector.getInstance(ObbyLang.class).onDisable();
+        this.obbyLang.onDisable();
     }
 
     public static DiscordObbyLangPlugin get() {

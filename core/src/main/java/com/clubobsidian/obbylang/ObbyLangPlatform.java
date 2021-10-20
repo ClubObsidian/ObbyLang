@@ -18,6 +18,8 @@
 
 package com.clubobsidian.obbylang;
 
+import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
+
 public enum ObbyLangPlatform {
 
     SPIGOT,
@@ -26,7 +28,16 @@ public enum ObbyLangPlatform {
     DISCORD,
     UNKNOWN;
 
-    public static ObbyLangPlatform getCurrent() {
-        return ObbyLang.get().getPlugin().getPlatform();
+    public static class PlatformWrapper {
+
+        private final ObbyLangPlugin plugin;
+
+        public PlatformWrapper(ObbyLangPlugin plugin) {
+            this.plugin = plugin;
+        }
+
+        public ObbyLangPlatform getCurrent() {
+            return this.plugin.getPlatform();
+        }
     }
 }

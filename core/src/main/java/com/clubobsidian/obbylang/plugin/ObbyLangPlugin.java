@@ -18,6 +18,7 @@
 
 package com.clubobsidian.obbylang.plugin;
 
+import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.google.inject.Injector;
 
@@ -32,7 +33,7 @@ public interface ObbyLangPlugin {
 
     Logger getLogger();
 
-    Injector getInjector();
+    ObbyLang getObbyLang();
 
     boolean createObbyLangCommand();
 

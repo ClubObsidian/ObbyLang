@@ -49,7 +49,7 @@ public class VelocityObbyLangPlugin implements ObbyLangPlugin {
 
     public static VelocityObbyLangPlugin instance;
 
-    private Injector injector;
+    private ObbyLang obbyLang;
     private final ProxyServer server;
     private final Logger logger;
 
@@ -79,8 +79,8 @@ public class VelocityObbyLangPlugin implements ObbyLangPlugin {
     }
 
     @Override
-    public Injector getInjector() {
-        return this.injector;
+    public ObbyLang getObbyLang() {
+        return this.obbyLang;
     }
 
     @Subscribe
@@ -88,7 +88,7 @@ public class VelocityObbyLangPlugin implements ObbyLangPlugin {
         instance = this;
 
         this.getLogger().info("Injecting obbylang plugin");
-        this.injector = new PluginInjector()
+        this.obbyLang = new PluginInjector()
                 .injectPlugin(this)
                 .setProxyManager(VelocityProxyManager.class)
                 .setMessageManager(VelocityMessageManager.class)
@@ -100,12 +100,12 @@ public class VelocityObbyLangPlugin implements ObbyLangPlugin {
                 .create();
 
         this.getLogger().info("About to enable obbylang");
-        this.injector.getInstance(ObbyLang.class).onEnable();
+        this.obbyLang.onEnable();
     }
 
     @Subscribe
     public void onDisable(ProxyShutdownEvent event) {
-        this.injector.getInstance(ObbyLang.class).onDisable();
+        this.obbyLang.onDisable();
     }
 
     public static VelocityObbyLangPlugin get() {

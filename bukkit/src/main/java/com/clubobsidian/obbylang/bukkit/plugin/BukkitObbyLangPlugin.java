@@ -43,7 +43,7 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
 
     private static BukkitObbyLangPlugin instance;
 
-    private Injector injector;
+    private ObbyLang obbyLang;
 
     @Override
     public boolean createObbyLangCommand() {
@@ -58,8 +58,8 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
     }
 
     @Override
-    public Injector getInjector() {
-        return this.injector;
+    public ObbyLang getObbyLang() {
+        return this.obbyLang;
     }
 
     @Override
@@ -67,7 +67,7 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
         instance = this;
 
         this.getLogger().info("Injecting obbylang plugin");
-        this.injector = new PluginInjector()
+        this.obbyLang = new PluginInjector()
                 .injectPlugin(this)
                 .setProxyManager(BukkitProxyManager.class)
                 .setMessageManager(BukkitMessageManager.class)
@@ -83,12 +83,12 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
         ClassPool.getDefault().insertClassPath(new ClassClassPath(Listener.class));
         this.getLogger().info("About to enable ObbyLang");
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        this.injector.getInstance(ObbyLang.class).onEnable();
+        this.obbyLang.onEnable();
     }
 
     @Override
     public void onDisable() {
-        this.injector.getInstance(ObbyLang.class).onDisable();
+        this.obbyLang.onDisable();
     }
 
     public static BukkitObbyLangPlugin get() {

@@ -117,13 +117,14 @@ public class PluginInjector {
         return this;
     }
 
-    public Injector create() {
+    public ObbyLang create() {
         Collection<Module> toInject = new ArrayList<>();
         toInject.add(new BuiltinModule());
         toInject.add(new DependencyModule());
         toInject.addAll(this.addonModules);
-        toInject.add(new ObbyLangModule());
-        return Guice.createInjector(toInject);
+        Injector dependencyInjector = Guice.createInjector(toInject);
+        Injector obbyLangInjector = Guice.createInjector(new ObbyLangModule(dependencyInjector));
+        return obbyLangInjector.getInstance(ObbyLang.class);
     }
 
     private class AddonModule<T> implements Module {
@@ -144,8 +145,16 @@ public class PluginInjector {
 
     private class ObbyLangModule implements Module {
 
+        private final Injector injector;
+
+        public ObbyLangModule(Injector injector) {
+            this.injector = injector;
+        }
+
         @Override
         public void configure(Binder binder) {
+            binder.bind(ObbyLangPlugin.class).toInstance(plugin);
+            binder.bind(Injector.class).toInstance(this.injector);
             binder.bind(ObbyLang.class).to(ObbyLang.class).asEagerSingleton();
         }
     }

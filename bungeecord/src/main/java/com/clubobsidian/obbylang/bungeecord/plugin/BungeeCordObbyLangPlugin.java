@@ -39,7 +39,7 @@ public class BungeeCordObbyLangPlugin extends Plugin implements ObbyLangPlugin, 
 
     public static BungeeCordObbyLangPlugin instance;
 
-    private Injector injector;
+    private ObbyLang obbyLang;
 
     @Override
     public boolean createObbyLangCommand() {
@@ -59,8 +59,8 @@ public class BungeeCordObbyLangPlugin extends Plugin implements ObbyLangPlugin, 
     }
 
     @Override
-    public Injector getInjector() {
-        return this.injector;
+    public ObbyLang getObbyLang() {
+        return this.obbyLang;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class BungeeCordObbyLangPlugin extends Plugin implements ObbyLangPlugin, 
         instance = this;
 
         this.getLogger().info("Injecting obbylang plugin");
-        this.injector = new PluginInjector()
+        this.obbyLang = new PluginInjector()
                 .injectPlugin(this)
                 .setProxyManager(BungeeCordProxyManager.class)
                 .setMessageManager(BungeeCordMessageManager.class)
@@ -80,12 +80,12 @@ public class BungeeCordObbyLangPlugin extends Plugin implements ObbyLangPlugin, 
                 .create();
 
         this.getLogger().info("About to enable obbylang");
-        this.injector.getInstance(ObbyLang.class).onEnable();
+        this.obbyLang.onEnable();
     }
 
     @Override
     public void onDisable() {
-        this.injector.getInstance(ObbyLang.class).onDisable();
+        this.obbyLang.onDisable();
     }
 
     public static BungeeCordObbyLangPlugin get() {

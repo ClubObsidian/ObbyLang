@@ -18,6 +18,7 @@
 
 package com.clubobsidian.obbylang;
 
+import com.clubobsidian.obbylang.manager.addon.AddonManager;
 import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.config.ConfigurationManager;
 import com.clubobsidian.obbylang.manager.database.DatabaseManager;
@@ -33,9 +34,8 @@ import com.clubobsidian.obbylang.manager.script.DisableManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
-import com.clubobsidian.trident.EventBus;
-import com.clubobsidian.trident.eventbus.methodhandle.MethodHandleEventBus;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,11 +44,19 @@ import java.nio.file.Files;
 
 public class ObbyLang {
 
+    private final Injector injector;
     private final ObbyLangPlugin plugin;
+    private final ScriptManager scriptManager;
 
     @Inject
-    private ObbyLang(ObbyLangPlugin plugin) {
+    private ObbyLang(Injector injector, ObbyLangPlugin plugin) {
+        this.injector = injector;
         this.plugin = plugin;
+        this.scriptManager = this.injector.getInstance(ScriptManager.class);
+    }
+
+    public <T> T getInstance(Class<? extends T> clazz) {
+        return this.injector.getInstance(clazz);
     }
 
     public void onEnable() {
@@ -72,39 +80,37 @@ public class ObbyLang {
             e.printStackTrace();
         }
 
-        DependencyManager.get();
-        ConfigurationManager.get();
-        MappingsManager.get().loadEventMappingsFromFile();
-        CustomEventManager.get();
+        this.injector.getInstance(MappingsManager.class).loadEventMappingsFromFile();
         this.loadBuiltinManagers();
-        ScriptManager.get().load();
-        this.getPlugin().createObbyLangCommand();
+        scriptManager.load();
+        this.plugin.createObbyLangCommand();
     }
 
     public void onDisable() {
-        for(String script : ScriptManager.get().getScriptNamesRaw()) {
-            ScriptManager.get().unloadScript(script);
+        for(String script : this.scriptManager.getScriptNamesRaw()) {
+            this.scriptManager.unloadScript(script);
         }
     }
 
     private void loadBuiltinManagers() {
-        this.addonManager.registerAddon("disable", DisableManager.get());
-        this.addonManager.registerAddon("scheduler", SchedulerManager.get());
-        this.addonManager.registerAddon("server", ObbyLang.get().getPlugin().getServer());
-        this.addonManager.registerAddon("listener", ListenerManager.get());
-        this.addonManager.registerAddon("log", this.plugin.getLogger());
-        this.addonManager.registerAddon("command", CommandManager.get());
-        this.addonManager.registerAddon("database", DatabaseManager.get());
-        this.addonManager.registerAddon("messageManager", MessageManager.get());
-        this.addonManager.registerAddon("global", GlobalManager.get());
-        this.addonManager.registerAddon("redis", RedisManager.get());
-        this.addonManager.registerAddon("customEvent", CustomEventManager.get());
-        this.addonManager.registerAddon("configuration", ConfigurationManager.get());
-        this.addonManager.registerAddon("proxy", ProxyManager.get());
-        this.addonManager.registerAddon("mappingsManager", MappingsManager.get());
-        this.addonManager.registerAddon("dependencyManager", DependencyManager.get());
-        this.addonManager.registerAddon("scriptManager", ScriptManager.get());
-        this.addonManager.registerAddon("ObbyLangPlugin", ObbyLang.get().getPlugin());
-        this.addonManager.registerAddon("ObbyLangPlatform", ObbyLangPlatform.class);
+        AddonManager addonManager = this.getInstance(AddonManager.class);
+        addonManager.registerAddon("disable", this.getInstance(DisableManager.class));
+        addonManager.registerAddon("scheduler", this.getInstance(SchedulerManager.class));
+        addonManager.registerAddon("server", this.plugin.getServer());
+        addonManager.registerAddon("listener", this.getInstance(ListenerManager.class));
+        addonManager.registerAddon("log", this.plugin.getLogger());
+        addonManager.registerAddon("command", this.getInstance(CommandManager.class));
+        addonManager.registerAddon("database", this.getInstance(DatabaseManager.class));
+        addonManager.registerAddon("messageManager", this.getInstance(MessageManager.class));
+        addonManager.registerAddon("global", this.getInstance(GlobalManager.class));
+        addonManager.registerAddon("redis", this.getInstance(RedisManager.class));
+        addonManager.registerAddon("customEvent", this.getInstance(CustomEventManager.class));
+        addonManager.registerAddon("configuration", this.getInstance(ConfigurationManager.class));
+        addonManager.registerAddon("proxy", this.getInstance(ProxyManager.class));
+        addonManager.registerAddon("mappingsManager", this.getInstance(MappingsManager.class));
+        addonManager.registerAddon("dependencyManager", this.getInstance(DependencyManager.class));
+        addonManager.registerAddon("scriptManager", this.getInstance(ScriptManager.class));
+        addonManager.registerAddon("ObbyLangPlugin", this.plugin);
+        addonManager.registerAddon("ObbyLangPlatform", new ObbyLangPlatform.PlatformWrapper(this.plugin));
     }
 }
