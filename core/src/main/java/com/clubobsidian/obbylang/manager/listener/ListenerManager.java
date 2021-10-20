@@ -25,6 +25,7 @@ import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.script.ScriptWrapper;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.obbylang.util.ListenerUtil;
+import com.google.inject.Inject;
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
@@ -47,24 +48,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class ListenerManager<T> implements RegisteredManager {
 
-    private static ListenerManager<?> instance;
-
-    public static ListenerManager<?> get() {
-        if(instance == null) {
-            instance = ObbyLang.get().getPlugin().getInjector().getInstance(ListenerManager.class);
-        }
-        return instance;
-    }
-
     //T is event priority
     private Map<String, Map<T, ScriptWrapper[]>> scripts; //Will be wrapped in a separate object later for per script reloading
-    private Map<T, List<String>> registeredEvents;
+    private final Map<T, List<String>> registeredEvents = new ConcurrentHashMap<>();
+    private final MappingsManager mappingsManager;
+    private final ScriptManager scriptManager;
 
-    public ListenerManager() {
-        this.registeredEvents = new HashMap<>();
+    @Inject
+    protected ListenerManager(MappingsManager mappingsManager, ScriptManager scriptManager) {
+        this.mappingsManager = mappingsManager;
+        this.scriptManager = scriptManager;
     }
 
     protected void loadEvents(String[] events) {
@@ -84,7 +81,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
 
     protected Map<String, Map<T, ScriptWrapper[]>> initScripts() {
         Map<String, Map<T, ScriptWrapper[]>> scripts = new HashMap<>();
-        Iterator<Entry<String, String>> it = MappingsManager.get().getEventMappings().entrySet().iterator();
+        Iterator<Entry<String, String>> it = this.mappingsManager.getEventMappings().entrySet().iterator();
         while(it.hasNext()) {
             Entry<String, String> next = it.next();
             Map<T, ScriptWrapper[]> scriptMap = new HashMap<>();
@@ -115,7 +112,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
         if(!events.contains(event)) {
             events.add(event);
             //Create listener
-            Map<String, String> mappings = MappingsManager.get().getEventMappings();
+            Map<String, String> mappings = this.mappingsManager.getEventMappings();
             Iterator<Entry<String, String>> it = mappings.entrySet().iterator();
 
             while(it.hasNext()) {
@@ -144,8 +141,6 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                         if(this.getListenerClass() != null) {
                             ctClass.addInterface(ClassPool.getDefault().get(this.getListenerClass().getName()));
                         }
-
-
                         String generatedPriority = null;
                         if(this.getEventPriorityClass() != null) {
                             Class<?> priorityClass = priority.getClass();
@@ -218,7 +213,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
 
         String eventPriorityUpper = eventPriorityStr.toUpperCase();
         Class<?> priorityClass = this.getEventPriorityClass();
-        T eventPriority = null;
+        T eventPriority;
         if(priorityClass != null) {
             eventPriority = (T) ListenerUtil.getStaticDeclaredField(priorityClass, eventPriorityUpper);
         } else {
@@ -236,9 +231,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
             for(int i = 0; i < oldArray.length; i++) {
                 newArray[i] = oldArray[i];
             }
-            newArray[newArray.length - 1] = new ScriptWrapper(script, ScriptManager.get().getScript(declaringClass));
-
-
+            newArray[newArray.length - 1] = new ScriptWrapper(script, this.scriptManager.getScript(declaringClass));
             priorityMap.put(eventPriority, newArray);
         }
     }
@@ -264,7 +257,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
 
                 for(int i = 0; i < oldArray.length; i++) {
                     ScriptWrapper wrapper = oldArray[i];
-                    if(wrapper.getOwner().equals(ScriptManager.get().getScript(declaringClass))) {
+                    if(wrapper.getOwner().equals(this.scriptManager.getScript(declaringClass))) {
                         removalIndexes.add(i);
                     }
                 }

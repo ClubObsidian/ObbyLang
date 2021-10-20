@@ -35,6 +35,7 @@ import com.clubobsidian.obbylang.manager.redis.RedisManager;
 import com.clubobsidian.obbylang.manager.scheduler.SchedulerManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
 import com.clubobsidian.obbylang.util.ChatColor;
+import com.google.inject.Inject;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
 import org.apache.commons.io.FileUtils;
@@ -73,36 +74,26 @@ import java.util.stream.Collectors;
 
 public class ScriptManager {
 
-    public static final String ENGINE_NAME = "nashorn";
-
-    private static ScriptManager instance;
-
-    public static ScriptManager get() {
-        if(instance == null) {
-            instance = new ScriptManager();
-        }
-        return instance;
-    }
-
     private boolean loaded;
-    private Path directory;
-    private ScriptEngine engine;
-    private Compilable compilableEngine;
-    private Map<String, CompiledScript> scripts;
+    private final Path directory;
+    private final ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();
+    private final Compilable compilableEngine = (Compilable) engine;;
+    private final Map<String, CompiledScript> scripts = new ConcurrentHashMap<>();
 
-    private ScriptManager() {
+    private final AddonManager addonManager;
+
+    @Inject
+    private ScriptManager(AddonManager addonManager) {
         ClassLoader cl = ObbyLang.get().getPlugin().getClass().getClassLoader();
         Thread.currentThread().setContextClassLoader(cl);
-        this.engine = new NashornScriptEngineFactory().getScriptEngine();
-        this.compilableEngine = (Compilable) engine;
         this.directory = Paths.get(ObbyLang.get().getPlugin().getDataFolder().getPath(), "scripts");
+        this.addonManager = addonManager;
     }
 
     public boolean load() {
         if(!this.loaded) {
             //load for each different event,pass into script eval below
             //use javassist to create classes with listeners
-            this.loadBuiltinManagers();
             this.loadClassPool();
             this.loadGlobalScript();
             this.loadScripts();
@@ -110,27 +101,6 @@ public class ScriptManager {
             return true;
         }
         return false;
-    }
-
-    private void loadBuiltinManagers() {
-        AddonManager.get().registerAddon("disable", DisableManager.get());
-        AddonManager.get().registerAddon("scheduler", SchedulerManager.get());
-        AddonManager.get().registerAddon("server", ObbyLang.get().getPlugin().getServer());
-        AddonManager.get().registerAddon("listener", ListenerManager.get());
-        AddonManager.get().registerAddon("log", ObbyLang.get().getPlugin().getLogger());
-        AddonManager.get().registerAddon("command", CommandManager.get());
-        AddonManager.get().registerAddon("database", DatabaseManager.get());
-        AddonManager.get().registerAddon("messageManager", MessageManager.get());
-        AddonManager.get().registerAddon("global", GlobalManager.get());
-        AddonManager.get().registerAddon("redis", RedisManager.get());
-        AddonManager.get().registerAddon("customEvent", CustomEventManager.get());
-        AddonManager.get().registerAddon("configuration", ConfigurationManager.get());
-        AddonManager.get().registerAddon("proxy", ProxyManager.get());
-        AddonManager.get().registerAddon("mappingsManager", MappingsManager.get());
-        AddonManager.get().registerAddon("dependencyManager", DependencyManager.get());
-        AddonManager.get().registerAddon("scriptManager", this);
-        AddonManager.get().registerAddon("ObbyLangPlugin", ObbyLang.get().getPlugin());
-        AddonManager.get().registerAddon("ObbyLangPlatform", ObbyLangPlatform.class);
     }
 
     private void loadClassPool() {
@@ -169,7 +139,6 @@ public class ScriptManager {
             e.printStackTrace();
         }
 
-        this.scripts = new ConcurrentHashMap<>();
         Collection<File> fileCollection = FileUtils.listFiles(this.directory.toFile(), new String[]{"js"}, true);
         File[] files = fileCollection.toArray(new File[fileCollection.size()]);
         Arrays.sort(files);
@@ -274,7 +243,7 @@ public class ScriptManager {
             return false;
         }
 
-        for(Object addon : AddonManager.get().getAddons().values()) {
+        for(Object addon : this.addonManager.getAddons().values()) {
             if(addon instanceof RegisteredManager) {
                 RegisteredManager manager = (RegisteredManager) addon;
                 manager.unregister(className);
@@ -430,7 +399,7 @@ public class ScriptManager {
     }
 
     private void addContext(ScriptContext context) {
-        Iterator<Entry<String, Object>> it = AddonManager.get().getAddons().entrySet().iterator();
+        Iterator<Entry<String, Object>> it = this.addonManager.getAddons().entrySet().iterator();
         while(it.hasNext()) {
             Entry<String, Object> next = it.next();
             String key = next.getKey();

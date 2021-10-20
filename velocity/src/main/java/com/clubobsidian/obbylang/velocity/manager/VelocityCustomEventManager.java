@@ -19,11 +19,18 @@
 package com.clubobsidian.obbylang.velocity.manager;
 
 
+import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.velocity.event.ObbyLangCustomEvent;
 import com.clubobsidian.obbylang.manager.event.CustomEventManager;
 import com.clubobsidian.obbylang.velocity.plugin.VelocityObbyLangPlugin;
+import com.google.inject.Inject;
 
 public class VelocityCustomEventManager extends CustomEventManager {
+
+    @Inject
+    protected VelocityCustomEventManager(MappingsManager mappingsManager) {
+        super(mappingsManager);
+    }
 
     @Override
     public void fire(Object[] args) {

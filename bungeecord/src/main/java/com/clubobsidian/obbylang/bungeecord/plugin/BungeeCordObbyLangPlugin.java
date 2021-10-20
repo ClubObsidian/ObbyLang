@@ -21,7 +21,7 @@ package com.clubobsidian.obbylang.bungeecord.plugin;
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.clubobsidian.obbylang.bungeecord.command.ObbyLangCommand;
-import com.clubobsidian.obbylang.guice.PluginInjector;
+import com.clubobsidian.obbylang.inject.PluginInjector;
 import com.clubobsidian.obbylang.bungeecord.manager.BungeeCordCustomEventManager;
 import com.clubobsidian.obbylang.bungeecord.manager.BungeeCordFakeServerManager;
 import com.clubobsidian.obbylang.bungeecord.manager.BungeeCordListenerManager;
@@ -70,23 +70,22 @@ public class BungeeCordObbyLangPlugin extends Plugin implements ObbyLangPlugin, 
         this.getLogger().info("Injecting obbylang plugin");
         this.injector = new PluginInjector()
                 .injectPlugin(this)
-                .setProxyManager(new BungeeCordProxyManager())
-                .setMessageManager(new BungeeCordMessageManager())
-                .setCustomEventManager(new BungeeCordCustomEventManager())
-                .setFakeServerManager(new BungeeCordFakeServerManager())
-                .setListenerManager(new BungeeCordListenerManager())
-                .setCommandManager(new BungeeCordCommandManager())
-                .setCommandWrapperManager(new BungeeCordCommandWrapperManager())
+                .setProxyManager(BungeeCordProxyManager.class)
+                .setMessageManager(BungeeCordMessageManager.class)
+                .setCustomEventManager(BungeeCordCustomEventManager.class)
+                .setFakeServerManager(BungeeCordFakeServerManager.class)
+                .setListenerManager(BungeeCordListenerManager.class)
+                .setCommandManager(BungeeCordCommandManager.class)
+                .setCommandWrapperManager(BungeeCordCommandWrapperManager.class)
                 .create();
 
-
         this.getLogger().info("About to enable obbylang");
-        ObbyLang.get().onEnable();
+        this.injector.getInstance(ObbyLang.class).onEnable();
     }
 
     @Override
     public void onDisable() {
-        ObbyLang.get().onDisable();
+        this.injector.getInstance(ObbyLang.class).onDisable();
     }
 
     public static BungeeCordObbyLangPlugin get() {

@@ -21,8 +21,15 @@ package com.clubobsidian.obbylang.discord.manager;
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.discord.plugin.DiscordObbyLangPlugin;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
+import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 
 public class DiscordFakeServerManager extends FakeServerManager {
+
+    private final ObbyLangPlugin plugin;
+
+    protected DiscordFakeServerManager(ObbyLangPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
     public Object getPlugin(String plugin) {
@@ -31,7 +38,7 @@ public class DiscordFakeServerManager extends FakeServerManager {
 
     @Override
     public boolean registerListener(Object obj) {
-        DiscordObbyLangPlugin plugin = (DiscordObbyLangPlugin) ObbyLang.get().getPlugin();
+        DiscordObbyLangPlugin plugin = (DiscordObbyLangPlugin) this.plugin;
         plugin.getJDA().addEventListener(obj);
         return true;
     }

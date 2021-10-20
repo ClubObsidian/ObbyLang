@@ -20,6 +20,7 @@ package com.clubobsidian.obbylang.manager.message;
 
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.util.ChatColor;
+import com.google.inject.Inject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -28,17 +29,11 @@ public abstract class MessageManager<T> {
 
     private static MessageManager<?> instance;
 
-    public static MessageManager<?> get() {
-        if(instance == null) {
-            instance = ObbyLang.get().getPlugin().getInjector().getInstance(MessageManager.class);
-        }
-        return instance;
-    }
-
     private final MiniMessage miniMessage;
     private final GsonComponentSerializer serializer;
 
-    public MessageManager() {
+    @Inject
+    protected MessageManager() {
         this.miniMessage = MiniMessage
                 .builder()
                 .markdown()

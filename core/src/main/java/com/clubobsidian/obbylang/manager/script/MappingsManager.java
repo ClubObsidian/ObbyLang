@@ -31,15 +31,6 @@ import java.util.logging.Level;
 
 public class MappingsManager {
 
-    private static MappingsManager instance;
-
-    public static MappingsManager get() {
-        if(instance == null) {
-            instance = new MappingsManager();
-        }
-        return instance;
-    }
-
     private boolean mappingsLoaded = false;
     private final Map<String, String> eventMappings = new ConcurrentHashMap<>();
 
@@ -64,13 +55,13 @@ public class MappingsManager {
         if(!this.mappingsLoaded) {
             BufferedReader reader = null;
             File mappingsFile = new File(ObbyLang.get().getPlugin().getDataFolder().getPath(), "events.csv");
-            if(!mappingsFile.exists())
+            if(!mappingsFile.exists()) {
                 return false;
+            }
 
             try {
-
                 reader = new BufferedReader(new FileReader(mappingsFile));
-                String line = null;
+                String line;
                 while((line = reader.readLine()) != null) {
                     String[] split = line.split(",");
                     this.eventMappings.put(split[0], split[1]);

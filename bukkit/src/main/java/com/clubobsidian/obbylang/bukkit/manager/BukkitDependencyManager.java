@@ -21,12 +21,18 @@ package com.clubobsidian.obbylang.bukkit.manager;
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.manager.plugin.DependencyManager;
 import com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin;
+import com.clubobsidian.obbylang.manager.script.ScriptManager;
+import com.clubobsidian.trident.EventBus;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
 
 public class BukkitDependencyManager extends DependencyManager implements Listener {
+
+    protected BukkitDependencyManager(EventBus eventBus, ScriptManager scriptManager) {
+        super(eventBus, scriptManager);
+    }
 
     @Override
     public void registerPluginEnableListener() {
@@ -35,6 +41,6 @@ public class BukkitDependencyManager extends DependencyManager implements Listen
 
     @EventHandler
     public void onPluginEnableBukkit(PluginEnableEvent event) {
-        ObbyLang.get().getEventBus().callEvent(new com.clubobsidian.obbylang.manager.event.PluginEnableEvent(event.getPlugin()));
+        this.getEventBus().callEvent(new com.clubobsidian.obbylang.manager.event.PluginEnableEvent(event.getPlugin()));
     }
 }

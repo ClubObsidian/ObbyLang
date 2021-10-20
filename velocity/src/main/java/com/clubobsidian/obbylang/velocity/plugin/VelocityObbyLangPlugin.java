@@ -22,7 +22,7 @@ import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.obbylang.velocity.command.ObbyLangCommand;
-import com.clubobsidian.obbylang.guice.PluginInjector;
+import com.clubobsidian.obbylang.inject.PluginInjector;
 import com.clubobsidian.obbylang.velocity.manager.VelocityCustomEventManager;
 import com.clubobsidian.obbylang.velocity.manager.VelocityFakeServerManager;
 import com.clubobsidian.obbylang.velocity.manager.VelocityListenerManager;
@@ -90,23 +90,22 @@ public class VelocityObbyLangPlugin implements ObbyLangPlugin {
         this.getLogger().info("Injecting obbylang plugin");
         this.injector = new PluginInjector()
                 .injectPlugin(this)
-                .setProxyManager(new VelocityProxyManager())
-                .setMessageManager(new VelocityMessageManager())
-                .setCustomEventManager(new VelocityCustomEventManager())
-                .setFakeServerManager(new VelocityFakeServerManager())
-                .setListenerManager(new VelocityListenerManager())
-                .setCommandManager(new VelocityCommandManager())
-                .setCommandWrapperManager(new VelocityCommandWrapperManager())
+                .setProxyManager(VelocityProxyManager.class)
+                .setMessageManager(VelocityMessageManager.class)
+                .setCustomEventManager(VelocityCustomEventManager.class)
+                .setFakeServerManager(VelocityFakeServerManager.class)
+                .setListenerManager(VelocityListenerManager.class)
+                .setCommandManager(VelocityCommandManager.class)
+                .setCommandWrapperManager(VelocityCommandWrapperManager.class)
                 .create();
 
-
         this.getLogger().info("About to enable obbylang");
-        ObbyLang.get().onEnable();
+        this.injector.getInstance(ObbyLang.class).onEnable();
     }
 
     @Subscribe
     public void onDisable(ProxyShutdownEvent event) {
-        ObbyLang.get().onDisable();
+        this.injector.getInstance(ObbyLang.class).onDisable();
     }
 
     public static VelocityObbyLangPlugin get() {

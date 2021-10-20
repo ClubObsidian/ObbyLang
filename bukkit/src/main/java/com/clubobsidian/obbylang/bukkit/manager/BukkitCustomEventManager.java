@@ -20,9 +20,16 @@ package com.clubobsidian.obbylang.bukkit.manager;
 
 import com.clubobsidian.obbylang.bukkit.event.ObbyLangCustomEvent;
 import com.clubobsidian.obbylang.manager.event.CustomEventManager;
+import com.clubobsidian.obbylang.manager.script.MappingsManager;
+import com.google.inject.Inject;
 import org.bukkit.Bukkit;
 
 public class BukkitCustomEventManager extends CustomEventManager {
+
+    @Inject
+    protected BukkitCustomEventManager(MappingsManager mappingsManager) {
+        super(mappingsManager);
+    }
 
     @Override
     public void fire(Object[] args) {

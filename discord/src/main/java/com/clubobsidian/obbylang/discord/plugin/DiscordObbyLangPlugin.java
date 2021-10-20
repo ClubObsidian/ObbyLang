@@ -29,8 +29,9 @@ import com.clubobsidian.obbylang.discord.manager.DiscordMessageManager;
 import com.clubobsidian.obbylang.discord.manager.command.DiscordCommandManager;
 import com.clubobsidian.obbylang.discord.manager.command.DiscordCommandWrapperManager;
 import com.clubobsidian.obbylang.discord.manager.listener.DiscordListenerManager;
-import com.clubobsidian.obbylang.guice.PluginInjector;
+import com.clubobsidian.obbylang.inject.PluginInjector;
 import com.clubobsidian.obbylang.manager.addon.AddonManager;
+import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.wrappy.Configuration;
 import com.google.inject.Injector;
@@ -128,31 +129,30 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
         this.consoleThread = new Thread(new ConsoleRunnable());
         this.consoleThread.start();
 
-        AddonManager.get().registerAddon("jda", this.jda);
+        this.injector.getInstance(AddonManager.class).registerAddon("jda", this.jda);
 
         this.getLogger().info("Injecting ObbyLang plugin");
-        DiscordCommandManager commandManager = new DiscordCommandManager();
 
         this.injector = new PluginInjector()
                 .injectPlugin(this)
-                .setMessageManager(new DiscordMessageManager())
-                .setFakeServerManager(new DiscordFakeServerManager())
-                .setListenerManager(new DiscordListenerManager())
-                .setCommandManager(commandManager)
-                .setCommandWrapperManager(new DiscordCommandWrapperManager())
+                .setMessageManager(DiscordMessageManager.class)
+                .setFakeServerManager(DiscordFakeServerManager.class)
+                .setListenerManager(DiscordListenerManager.class)
+                .setCommandManager(DiscordCommandManager.class)
+                .setCommandWrapperManager(DiscordCommandWrapperManager.class)
                 .create();
 
+        DiscordCommandManager commandManager = (DiscordCommandManager) this.injector.getInstance(CommandManager.class);
         //Initialize command manager
         this.jda.addEventListener(commandManager);
 
         this.getLogger().info("About to enable ObbyLang");
-        ObbyLang.get().onEnable();
-
+        this.injector.getInstance(ObbyLang.class).onEnable();
         this.getLogger().info("ObbyLangDiscord is now loaded and enabled!");
     }
 
     public void onDisable() {
-        ObbyLang.get().onDisable();
+        this.injector.getInstance(ObbyLang.class).onDisable();
     }
 
     public static DiscordObbyLangPlugin get() {

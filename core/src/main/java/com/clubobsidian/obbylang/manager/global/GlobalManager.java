@@ -18,23 +18,19 @@
 
 package com.clubobsidian.obbylang.manager.global;
 
+import com.google.inject.Inject;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GlobalManager {
 
-    private static GlobalManager instance;
-
-    public static GlobalManager get() {
-        if(instance == null) {
-            instance = new GlobalManager();
-        }
-        return instance;
-    }
-
     private final Map<String, Object> globals = new ConcurrentHashMap<>();
 
-    private GlobalManager() { }
+    @Inject
+    protected GlobalManager() {
+
+    }
 
     public void set(String name, Object passed) {
         this.globals.put(name, passed);

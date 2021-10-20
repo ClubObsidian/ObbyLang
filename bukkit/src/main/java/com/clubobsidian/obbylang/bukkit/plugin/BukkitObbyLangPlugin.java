@@ -22,7 +22,7 @@ import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.clubobsidian.obbylang.bukkit.command.ObbyLangCommand;
 import com.clubobsidian.obbylang.bukkit.command.ObbyLangCommandTabCompleter;
-import com.clubobsidian.obbylang.guice.PluginInjector;
+import com.clubobsidian.obbylang.inject.PluginInjector;
 import com.clubobsidian.obbylang.bukkit.manager.BukkitCustomEventManager;
 import com.clubobsidian.obbylang.bukkit.manager.BukkitDependencyManager;
 import com.clubobsidian.obbylang.bukkit.manager.BukkitFakeServerManager;
@@ -69,27 +69,26 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
         this.getLogger().info("Injecting obbylang plugin");
         this.injector = new PluginInjector()
                 .injectPlugin(this)
-                .setProxyManager(new BukkitProxyManager())
-                .setMessageManager(new BukkitMessageManager())
-                .setCustomEventManager(new BukkitCustomEventManager())
-                .setDependencyManager(new BukkitDependencyManager())
-                .setFakeServerManager(new BukkitFakeServerManager())
-                .setListenerManager(new BukkitListenerManager())
-                .setCommandManager(new BukkitCommandManager())
-                .setCommandWrapperManager(new BukkitCommandWrapperManager())
+                .setProxyManager(BukkitProxyManager.class)
+                .setMessageManager(BukkitMessageManager.class)
+                .setCustomEventManager(BukkitCustomEventManager.class)
+                .setDependencyManager(BukkitDependencyManager.class)
+                .setFakeServerManager(BukkitFakeServerManager.class)
+                .setListenerManager(BukkitListenerManager.class)
+                .setCommandManager(BukkitCommandManager.class)
+                .setCommandWrapperManager(BukkitCommandWrapperManager.class)
+                .addAddon(PluginManager.class, PluginManager.class)
                 .create();
 
-        PluginManager.get(); //Initialize plugin manager
-
         ClassPool.getDefault().insertClassPath(new ClassClassPath(Listener.class));
-        this.getLogger().info("About to enable obbylang");
+        this.getLogger().info("About to enable ObbyLang");
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        ObbyLang.get().onEnable();
+        this.injector.getInstance(ObbyLang.class).onEnable();
     }
 
     @Override
     public void onDisable() {
-        ObbyLang.get().onDisable();
+        this.injector.getInstance(ObbyLang.class).onDisable();
     }
 
     public static BukkitObbyLangPlugin get() {

@@ -18,30 +18,24 @@
 
 package com.clubobsidian.obbylang.manager.command;
 
-import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
+import com.google.inject.Inject;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CommandManager implements RegisteredManager {
 
-    private static CommandManager instance;
-
-    public static CommandManager get() {
-        if(instance == null) {
-            instance = ObbyLang.get().getPlugin().getInjector().getInstance(CommandManager.class);
-        }
-        return instance;
-    }
-
     private final Map<String, List<CommandWrapper<?>>> commands = new ConcurrentHashMap<>();
+    private final CommandWrapperManager<?> wrapperManager;
 
-    protected CommandManager() { }
+    @Inject
+    protected CommandManager(CommandWrapperManager<?> wrapperManager) {
+        this.wrapperManager = wrapperManager;
+    }
 
     public void register(String declaringClass, ScriptObjectMirror script, String command) {
         this.register(declaringClass, script, new String[]{command});
@@ -57,7 +51,7 @@ public abstract class CommandManager implements RegisteredManager {
                 this.commands.put(declaringClass, commands);
             }
 
-            CommandWrapper<?> wrapper = CommandWrapperManager.get().createCommandWrapper(declaringClass, command, script);
+            CommandWrapper<?> wrapper = this.wrapperManager.createCommandWrapper(declaringClass, command, script);
             commands.add(wrapper);
             this.removeCommand(wrapper);
             this.registerCommand(wrapper);

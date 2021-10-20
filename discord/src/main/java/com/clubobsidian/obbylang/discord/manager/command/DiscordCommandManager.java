@@ -20,6 +20,8 @@ package com.clubobsidian.obbylang.discord.manager.command;
 
 import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
+import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
+import com.google.inject.Inject;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -32,10 +34,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DiscordCommandManager extends CommandManager {
 
-    private Map<String, DiscordCommand> registeredCommands;
+    private Map<String, DiscordCommand> registeredCommands = new ConcurrentHashMap<>();
 
-    public DiscordCommandManager() {
-        this.registeredCommands = new ConcurrentHashMap<>();
+    @Inject
+    protected DiscordCommandManager(CommandWrapperManager<?> wrapperManager) {
+        super(wrapperManager);
     }
 
     @Override

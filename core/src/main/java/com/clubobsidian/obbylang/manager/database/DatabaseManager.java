@@ -22,27 +22,21 @@ import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.database.type.influx.InfluxDatabase;
 import com.clubobsidian.obbylang.manager.database.type.mongo.MongoDatabase;
 import com.clubobsidian.obbylang.manager.database.type.sql.MySQLDatabase;
+import com.google.inject.Inject;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class DatabaseManager implements RegisteredManager {
 
-    private static DatabaseManager instance;
+    private final Map<String, List<Database>> databases = new ConcurrentHashMap<>();
 
-    public static DatabaseManager get() {
-        if(instance == null) {
-            instance = new DatabaseManager();
-        }
-        return instance;
-    }
-
-    private final Map<String, List<Database>> databases;
-
+    @Inject
     private DatabaseManager() {
-        this.databases = new HashMap<>();
+
     }
 
     public Database connect(String declaringClass, String type, String connection, int maxPoolSize) {

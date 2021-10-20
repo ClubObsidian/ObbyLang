@@ -21,6 +21,8 @@ package com.clubobsidian.obbylang.bukkit.manager.command;
 import com.clubobsidian.obbylang.bukkit.util.ReflectionUtil;
 import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
+import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
+import com.google.inject.Inject;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -36,6 +38,11 @@ import java.util.Map;
 public class BukkitCommandManager extends CommandManager {
 
     private CommandMap cm = null;
+
+    @Inject
+    protected BukkitCommandManager(CommandWrapperManager<?> wrapperManager) {
+        super(wrapperManager);
+    }
 
     @SuppressWarnings("unchecked")
     private Map<String, Command> getKnownCommands() {

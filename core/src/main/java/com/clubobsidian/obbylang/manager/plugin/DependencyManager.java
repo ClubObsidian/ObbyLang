@@ -23,8 +23,10 @@ import com.clubobsidian.obbylang.manager.event.PluginEnableEvent;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
+import com.clubobsidian.trident.EventBus;
 import com.clubobsidian.trident.EventHandler;
 import com.clubobsidian.trident.EventPriority;
+import com.google.inject.Inject;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.util.Iterator;
@@ -36,19 +38,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class DependencyManager implements RegisteredManager {
 
-    private static DependencyManager instance;
-
-    public static DependencyManager get() {
-        if(instance == null) {
-            instance = ObbyLang.get().getPlugin().getInjector().getInstance(DependencyManager.class);
-        }
-        return instance;
-    }
-
     private final Map<String, Queue<DependencyWrapper>> dependencies = new ConcurrentHashMap<>();
+    private final ScriptManager scriptManager;
+    private final EventBus eventBus;
 
-    public DependencyManager() {
-        ObbyLang.get().getEventBus().registerEvents(this);
+    @Inject
+    protected DependencyManager(EventBus eventBus, ScriptManager scriptManager) {
+        this.eventBus = eventBus;
+        this.scriptManager = scriptManager;
+        this.eventBus.registerEvents(this);
         this.registerPluginEnableListener();
     }
 
@@ -56,6 +54,10 @@ public abstract class DependencyManager implements RegisteredManager {
         if(this.dependencies.get(declaringClass) == null) {
             this.dependencies.put(declaringClass, new ConcurrentLinkedQueue<>());
         }
+    }
+
+    protected EventBus getEventBus() {
+        return this.eventBus;
     }
 
     public void register(String declaringClass, ScriptObjectMirror script, String dependency) {
@@ -67,7 +69,7 @@ public abstract class DependencyManager implements RegisteredManager {
         DependencyWrapper wrapper = new DependencyWrapper(script, dependencies);
         boolean hasDependencies = this.checkDependencies(declaringClass, wrapper);
         if(hasDependencies) {
-            script.call(ScriptManager.get().getScript(declaringClass));
+            script.call(this.scriptManager.getScript(declaringClass));
         } else {
             this.dependencies.get(declaringClass).add(wrapper);
         }
@@ -90,7 +92,7 @@ public abstract class DependencyManager implements RegisteredManager {
                 String declaringClass = next.getKey();
                 boolean hasDependencies = this.checkDependencies(declaringClass, wrapper);
                 if(hasDependencies) {
-                    wrapper.getScript().call(ScriptManager.get().getScript(declaringClass));
+                    wrapper.getScript().call(this.scriptManager.getScript(declaringClass));
                     listIterator.remove();
                 }
             }

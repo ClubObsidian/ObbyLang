@@ -18,8 +18,9 @@
 
 package com.clubobsidian.obbylang.manager.config;
 
-import com.clubobsidian.obbylang.ObbyLang;
+import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.wrappy.Configuration;
+import com.google.inject.Inject;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -38,31 +39,23 @@ import java.util.Map;
 
 public class ConfigurationManager {
 
-    private static ConfigurationManager instance;
+    private final Path directory;
+    private final File tempConfigFolder;
 
-    public static ConfigurationManager get() {
-        if(instance == null) {
-            instance = new ConfigurationManager();
-        }
-        return instance;
-    }
-
-
-    private Path directory;
-    private File tempConfigFolder;
-
-    protected ConfigurationManager() {
+    @Inject
+    protected ConfigurationManager(ObbyLangPlugin plugin) {
+        this.directory = Paths.get(plugin.getDataFolder().getPath(), "config");
+        this.tempConfigFolder = new File(plugin.getDataFolder(), "tempconfig");
         this.init();
     }
 
     private void init() {
-        this.directory = Paths.get(ObbyLang.get().getPlugin().getDataFolder().getPath(), "config");
         try {
             Files.createDirectories(this.directory);
         } catch(IOException e) {
             e.printStackTrace();
         }
-        this.tempConfigFolder = new File(ObbyLang.get().getPlugin().getDataFolder().getPath(), "tempconfig");
+
         if(this.tempConfigFolder.exists()) {
             try {
                 FileUtils.deleteDirectory(tempConfigFolder);

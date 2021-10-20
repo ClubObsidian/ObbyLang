@@ -18,23 +18,18 @@
 
 package com.clubobsidian.obbylang.manager.addon;
 
+import com.google.inject.Inject;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class AddonManager {
 
-    private static AddonManager instance;
-
-    public static AddonManager get() {
-        if(instance == null) {
-            instance = new AddonManager();
-        }
-        return instance;
-    }
-
     private final Map<String, Object> addonContext = new LinkedHashMap<>();
 
-    private AddonManager() { }
+    @Inject
+    protected AddonManager() {
+    }
 
     public boolean registerAddon(String name, Object object) {
         return this.addonContext.put(name, object) != null;

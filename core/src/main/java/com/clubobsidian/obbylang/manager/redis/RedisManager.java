@@ -19,6 +19,7 @@
 package com.clubobsidian.obbylang.manager.redis;
 
 import com.clubobsidian.obbylang.manager.RegisteredManager;
+import com.google.inject.Inject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -30,18 +31,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RedisManager implements RegisteredManager {
 
-    private static RedisManager instance;
-
-    public static RedisManager get() {
-        if(instance == null) {
-            instance = new RedisManager();
-        }
-        return instance;
-    }
-
     private final Map<String, List<RedisClientWrapper>> wrappers = new ConcurrentHashMap<>();
 
-    private RedisManager() { }
+    @Inject
+    private RedisManager() {
+    }
 
     public RedisClientWrapper create(String declaringClass, String ip, int port, String password) {
         return this.create(declaringClass, ip, port, password, false);

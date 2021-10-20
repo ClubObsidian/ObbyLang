@@ -19,10 +19,18 @@
 package com.clubobsidian.obbylang.velocity.manager;
 
 import com.clubobsidian.obbylang.manager.listener.ListenerManager;
+import com.clubobsidian.obbylang.manager.script.MappingsManager;
+import com.clubobsidian.obbylang.manager.script.ScriptManager;
+import com.google.inject.Inject;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 
 public class VelocityListenerManager extends ListenerManager<PostOrder> {
+
+    @Inject
+    protected VelocityListenerManager(MappingsManager mappingsManager, ScriptManager scriptManager) {
+        super(mappingsManager, scriptManager);
+    }
 
     @Override
     public String getDefaultPriority() {

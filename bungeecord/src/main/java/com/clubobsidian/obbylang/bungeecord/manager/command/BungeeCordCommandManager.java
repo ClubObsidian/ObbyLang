@@ -20,6 +20,8 @@ package com.clubobsidian.obbylang.bungeecord.manager.command;
 
 import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
+import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
+import com.google.inject.Inject;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.PluginManager;
@@ -30,6 +32,11 @@ import java.util.Map;
 public class BungeeCordCommandManager extends CommandManager {
 
     private Map<String, Command> cm = null;
+
+    @Inject
+    protected BungeeCordCommandManager(CommandWrapperManager<?> wrapperManager) {
+        super(wrapperManager);
+    }
 
     @SuppressWarnings("unchecked")
     private final Map<String, Command> getCommandMap() {
