@@ -42,20 +42,21 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
-import javassist.CannotCompileException;
-import javassist.ClassClassPath;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.CtNewMethod;
-import javassist.NotFoundException;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
+import net.bytebuddy.implementation.FixedValue;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.attribute.AnnotationRetention;
+import net.bytebuddy.matcher.ElementMatchers;
 
-import java.lang.reflect.Modifier;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 
 public class PluginInjector {
 
+    private ClassLoader loader;
     private ObbyLangPlugin plugin;
     private Class<? extends ProxyManager<?>> proxyManager;
     private Class<? extends MessageManager<?>> messageManager;
@@ -68,8 +69,9 @@ public class PluginInjector {
     private final Collection<Module> addonModules = new ArrayList<>();
 
     public PluginInjector injectPlugin(ObbyLangPlugin plugin) {
-        /*Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
-        PluginModule pluginModule = new PluginModule(plugin);
+        this.loader = plugin.getClass().getClassLoader();
+        Thread.currentThread().setContextClassLoader(this.loader);
+        /*PluginModule pluginModule = new PluginModule(plugin);
         Guice.createInjector(pluginModule);*/
         this.plugin = plugin;
         return this;
@@ -218,30 +220,15 @@ public class PluginInjector {
             if(bind != null) {
                 binder.bind(bindTo).to(bind).asEagerSingleton();
             } else {
-                try {
-                    Class<T> clazz = (Class<T>) bindTo.getRawType();
-                    ClassPool pool = ClassPool.getDefault();
-                    pool.appendClassPath(new ClassClassPath(clazz));
-                    CtClass managerClass = pool.get(clazz.getName());
-                    CtClass newManagerCtClass = pool.makeClass("Template" + clazz.getName());
-                    newManagerCtClass.setSuperclass(managerClass);
-                    newManagerCtClass.setModifiers(Modifier.PUBLIC);
-                    for(CtMethod m : newManagerCtClass.getMethods()) {
-                        if((m.getModifiers() & Modifier.ABSTRACT) != 0) {
-                            CtClass returnType = m.getReturnType();
-                            String name = m.getName();
-                            CtClass[] parameters = m.getParameterTypes();
-                            CtClass[] exceptions = m.getExceptionTypes();
-                            String body = null;
-                            CtMethod newMethod = CtNewMethod.make(returnType, name, parameters, exceptions, body, newManagerCtClass);
-                            newManagerCtClass.addMethod(newMethod);
-                        }
-                    }
-                    Class<? extends T> newManagerClass = (Class<? extends T>) newManagerCtClass.toClass();
-                    binder.bind(clazz).to(newManagerClass).asEagerSingleton();
-                } catch(CannotCompileException | NotFoundException e1) {
-                    e1.printStackTrace();
-                }
+                Class<T> clazz = (Class<T>) bindTo.getRawType();
+                Class<? extends T> newManagerClazz = new ByteBuddy()
+                        .subclass(clazz, ConstructorStrategy.Default.IMITATE_SUPER_CLASS.withInheritedAnnotations())
+                        .method(ElementMatchers.isAbstract())
+                        .intercept(MethodDelegation.to(ProxyInterceptor.class))
+                        .make()
+                        .load(loader)
+                        .getLoaded();
+                binder.bind(bindTo).to(newManagerClazz).asEagerSingleton();
             }
         }
     }

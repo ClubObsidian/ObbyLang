@@ -18,7 +18,6 @@
 
 package com.clubobsidian.obbylang.manager.plugin;
 
-import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.manager.event.PluginEnableEvent;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
@@ -83,7 +82,7 @@ public abstract class DependencyManager implements RegisteredManager {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPluginEnable(PluginEnableEvent e) {
+    public void onPluginEnable(PluginEnableEvent event) {
         Iterator<Entry<String, Queue<DependencyWrapper>>> it = this.dependencies.entrySet().iterator();
         while(it.hasNext()) {
             Entry<String, Queue<DependencyWrapper>> next = it.next();
