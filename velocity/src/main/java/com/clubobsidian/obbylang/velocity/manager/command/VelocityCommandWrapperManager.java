@@ -26,7 +26,7 @@ import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 public class VelocityCommandWrapperManager extends CommandWrapperManager<Command, String> {
 
     @Override
-    public CommandWrapper<Command, String> createCommandWrapper(String declaringClass, String command, ScriptObjectMirror script) {
+    public CommandWrapper<Command> createCommandWrapper(String declaringClass, String command, ScriptObjectMirror script) {
         return new VelocityCommandWrapper(script, command, script);
     }
 }
