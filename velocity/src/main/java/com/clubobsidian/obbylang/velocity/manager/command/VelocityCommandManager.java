@@ -31,7 +31,7 @@ public class VelocityCommandManager extends CommandManager {
     private final com.velocitypowered.api.command.CommandManager cmdManager;
 
     @Inject
-    protected VelocityCommandManager(CommandWrapperManager<?> wrapperManager) {
+    protected VelocityCommandManager(CommandWrapperManager<?, ?> wrapperManager) {
         super(wrapperManager);
         this.cmdManager = VelocityObbyLangPlugin
                 .get()
@@ -40,7 +40,7 @@ public class VelocityCommandManager extends CommandManager {
     }
 
     @Override
-    protected boolean registerCommand(CommandWrapper<?> wrapper) {
+    protected boolean registerCommand(CommandWrapper<?, ?> wrapper) {
         if(wrapper.getCommand() instanceof Command) {
             Command cmd = (Command) wrapper.getCommand();
             String commandName = wrapper.getCommandName();
@@ -53,7 +53,7 @@ public class VelocityCommandManager extends CommandManager {
     }
 
     @Override
-    protected boolean removeCommand(CommandWrapper<?> wrapper) {
+    protected boolean removeCommand(CommandWrapper<?, ?> wrapper) {
         if(wrapper.getCommand() instanceof Command) {
             String commandName = wrapper.getCommandName();
             this.cmdManager.unregister(commandName);

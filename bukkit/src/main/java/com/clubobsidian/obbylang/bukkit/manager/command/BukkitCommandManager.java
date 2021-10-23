@@ -42,7 +42,7 @@ public class BukkitCommandManager extends CommandManager {
     private final MessageManager messageManager;
 
     @Inject
-    protected BukkitCommandManager(CommandWrapperManager<?> wrapperManager, MessageManager messageManager) {
+    protected BukkitCommandManager(CommandWrapperManager<?, ?> wrapperManager, MessageManager messageManager) {
         super(wrapperManager);
         this.messageManager = messageManager;
     }
@@ -82,7 +82,7 @@ public class BukkitCommandManager extends CommandManager {
     }
 
     @Override
-    protected boolean registerCommand(CommandWrapper<?> wrapper) {
+    protected boolean registerCommand(CommandWrapper<?, ?> wrapper) {
         if(wrapper.getCommand() instanceof Command) {
             Command cmd = (Command) wrapper.getCommand();
             this.removeCommand(wrapper);
@@ -98,7 +98,7 @@ public class BukkitCommandManager extends CommandManager {
     }
 
     @Override
-    protected boolean removeCommand(CommandWrapper<?> wrapper) {
+    protected boolean removeCommand(CommandWrapper<?, ?> wrapper) {
         if(wrapper.getCommand() instanceof Command) {
             String commandName = wrapper.getCommandName();
             this.getKnownCommands().keySet().remove(commandName);

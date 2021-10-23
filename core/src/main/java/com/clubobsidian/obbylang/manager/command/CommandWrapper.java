@@ -20,15 +20,15 @@ package com.clubobsidian.obbylang.manager.command;
 
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-public abstract class CommandWrapper<T> {
+public abstract class CommandWrapper<T, C> {
 
     private final Object owner;
     private final String commandName;
     private final ScriptObjectMirror base;
 
-    public CommandWrapper(Object owner, String commandName, ScriptObjectMirror base) {
+    public CommandWrapper(Object owner, C commandOrName, ScriptObjectMirror base) {
         this.owner = owner;
-        this.commandName = commandName;
+        this.commandName = this.getCommandName(commandOrName);
         this.base = base;
     }
 
@@ -45,4 +45,5 @@ public abstract class CommandWrapper<T> {
     }
 
     public abstract T getCommand();
+    protected abstract String getCommandName(C command);
 }

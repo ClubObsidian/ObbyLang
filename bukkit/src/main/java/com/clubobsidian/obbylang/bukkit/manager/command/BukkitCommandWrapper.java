@@ -23,7 +23,7 @@ import com.clubobsidian.obbylang.manager.message.MessageManager;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bukkit.command.Command;
 
-public class BukkitCommandWrapper extends CommandWrapper<Command> {
+public class BukkitCommandWrapper extends CommandWrapper<Command, String> {
 
     public BukkitCommandWrapper(Object owner, String commandName, ScriptObjectMirror base) {
         super(owner, commandName, base);
@@ -32,5 +32,10 @@ public class BukkitCommandWrapper extends CommandWrapper<Command> {
     @Override
     public Command getCommand() {
         return new BukkitCommand(this.getOwner(), this.getCommandName(), this.getBase());
+    }
+
+    @Override
+    protected String getCommandName(String commandName) {
+        return commandName;
     }
 }

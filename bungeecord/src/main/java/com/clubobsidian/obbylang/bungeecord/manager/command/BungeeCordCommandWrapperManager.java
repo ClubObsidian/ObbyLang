@@ -23,10 +23,10 @@ import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import net.md_5.bungee.api.plugin.Command;
 
-public class BungeeCordCommandWrapperManager extends CommandWrapperManager<Command> {
+public class BungeeCordCommandWrapperManager extends CommandWrapperManager<Command, String> {
 
     @Override
-    public CommandWrapper<Command> createCommandWrapper(String declaringClass, String command, ScriptObjectMirror script) {
+    public CommandWrapper<Command, String> createCommandWrapper(String declaringClass, String command, ScriptObjectMirror script) {
         return new BungeeCordCommandWrapper(script, command, script);
     }
 }

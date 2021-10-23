@@ -29,12 +29,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CommandManager implements RegisteredManager {
 
-    private final Map<String, List<CommandWrapper<?>>> commands = new ConcurrentHashMap<>();
-    private final CommandWrapperManager<?> wrapperManager;
+    private final Map<String, List<CommandWrapper<?, ?>>> commands = new ConcurrentHashMap<>();
+    private final CommandWrapperManager<Object, Object> wrapperManager;
 
     @Inject
-    protected CommandManager(CommandWrapperManager<?> wrapperManager) {
-        this.wrapperManager = wrapperManager;
+    protected CommandManager(CommandWrapperManager<?, ?> wrapperManager) {
+        this.wrapperManager = (CommandWrapperManager<Object, Object>) wrapperManager;
     }
 
     public void register(String declaringClass, ScriptObjectMirror script, String command) {
@@ -45,13 +45,12 @@ public abstract class CommandManager implements RegisteredManager {
         for(String command : cmds) {
             command = command.toLowerCase();
 
-            List<CommandWrapper<?>> commands = this.commands.get(declaringClass);
+            List<CommandWrapper<?, ?>> commands = this.commands.get(declaringClass);
             if(commands == null) {
                 commands = new ArrayList<>();
                 this.commands.put(declaringClass, commands);
             }
-
-            CommandWrapper<?> wrapper = this.wrapperManager.createCommandWrapper(declaringClass, command, script);
+            CommandWrapper<?, ?> wrapper = this.wrapperManager.createCommandWrapper(declaringClass, command, script);
             commands.add(wrapper);
             this.removeCommand(wrapper);
             this.registerCommand(wrapper);
@@ -59,21 +58,21 @@ public abstract class CommandManager implements RegisteredManager {
     }
 
     public void unregister(String declaringClass) {
-        List<CommandWrapper<?>> commands = this.commands.get(declaringClass);
+        List<CommandWrapper<?, ?>> commands = this.commands.get(declaringClass);
         if(commands != null) {
-            for(CommandWrapper<?> wrapper : commands) {
+            for(CommandWrapper<?, ?> wrapper : commands) {
                 this.removeCommand(wrapper);
             }
         }
         this.commands.keySet().remove(declaringClass);
     }
 
-    protected Map<String, List<CommandWrapper<?>>> getCommands() {
+    protected Map<String, List<CommandWrapper<?, ?>>> getCommands() {
         return this.commands;
     }
 
-    protected abstract boolean registerCommand(CommandWrapper<?> wrapper);
+    protected abstract boolean registerCommand(CommandWrapper<?, ?> wrapper);
 
-    protected abstract boolean removeCommand(CommandWrapper<?> wrapper);
+    protected abstract boolean removeCommand(CommandWrapper<?, ?> wrapper);
 
 }

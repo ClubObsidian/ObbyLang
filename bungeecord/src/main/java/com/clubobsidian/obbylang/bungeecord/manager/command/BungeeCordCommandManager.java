@@ -34,7 +34,7 @@ public class BungeeCordCommandManager extends CommandManager {
     private Map<String, Command> cm = null;
 
     @Inject
-    protected BungeeCordCommandManager(CommandWrapperManager<?> wrapperManager) {
+    protected BungeeCordCommandManager(CommandWrapperManager<?, ?> wrapperManager) {
         super(wrapperManager);
     }
 
@@ -55,7 +55,7 @@ public class BungeeCordCommandManager extends CommandManager {
     }
 
     @Override
-    protected boolean registerCommand(CommandWrapper<?> wrapper) {
+    protected boolean registerCommand(CommandWrapper<?, ?> wrapper) {
         if(wrapper.getCommand() instanceof Command) {
             Command cmd = (Command) wrapper.getCommand();
             this.removeCommand(wrapper);
@@ -66,7 +66,7 @@ public class BungeeCordCommandManager extends CommandManager {
     }
 
     @Override
-    protected boolean removeCommand(CommandWrapper<?> wrapper) {
+    protected boolean removeCommand(CommandWrapper<?, ?> wrapper) {
         if(wrapper.getCommand() instanceof Command) {
             String commandName = wrapper.getCommandName();
             this.getCommandMap().remove(commandName);

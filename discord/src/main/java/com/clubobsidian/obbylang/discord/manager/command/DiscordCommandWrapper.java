@@ -19,16 +19,31 @@
 package com.clubobsidian.obbylang.discord.manager.command;
 
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-public class DiscordCommandWrapper extends CommandWrapper<DiscordCommand> {
+public class DiscordCommandWrapper extends CommandWrapper<DiscordCommand, Object> {
 
-    public DiscordCommandWrapper(Object owner, String commandName, ScriptObjectMirror base) {
-        super(owner, commandName, base);
+
+    public DiscordCommandWrapper(Object owner, Object command, ScriptObjectMirror base) {
+        super(owner, command, base);
     }
 
     @Override
     public DiscordCommand getCommand() {
         return new DiscordCommand(this.getOwner(), this.getCommandName(), this.getBase());
+    }
+
+    @Override
+    protected String getCommandName(Object command) {
+        if(command != null) {
+            if(command instanceof String) {
+                return (String) command;
+            } else if(command instanceof CommandData) {
+                CommandData data = (CommandData) command;
+                return data.getName();
+            }
+        }
+        return null;
     }
 }
