@@ -25,7 +25,7 @@ import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 public class DiscordCommandWrapperManager extends CommandWrapperManager<DiscordCommand, Object> {
 
     @Override
-    public CommandWrapper<DiscordCommand> createCommandWrapper(String declaringClass, Object command, ScriptObjectMirror script) {
+    public CommandWrapper<DiscordCommand, Object> createCommandWrapper(String declaringClass, Object command, ScriptObjectMirror script) {
         return new DiscordCommandWrapper(script, command, script);
     }
 }

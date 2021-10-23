@@ -22,7 +22,7 @@ import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.velocitypowered.api.command.Command;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-public class VelocityCommandWrapper extends CommandWrapper<Command> {
+public class VelocityCommandWrapper extends CommandWrapper<Command, String> {
 
     public VelocityCommandWrapper(Object owner, String commandName, ScriptObjectMirror base) {
         super(owner, commandName, base);
@@ -31,5 +31,10 @@ public class VelocityCommandWrapper extends CommandWrapper<Command> {
     @Override
     public Command getCommand() {
         return new VelocityCommand(this.getOwner(), this.getCommandName(), this.getBase());
+    }
+
+    @Override
+    protected String getCommandName(String command) {
+        return command;
     }
 }
