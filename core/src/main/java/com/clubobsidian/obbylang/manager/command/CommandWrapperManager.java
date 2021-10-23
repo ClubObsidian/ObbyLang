@@ -20,8 +20,8 @@ package com.clubobsidian.obbylang.manager.command;
 
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-public abstract class CommandWrapperManager<T,C> {
+public abstract class CommandWrapperManager<T> {
 
-    public abstract CommandWrapper<T,C> createCommandWrapper(String declaringClass, C command, ScriptObjectMirror script);
+    public abstract CommandWrapper<T> createCommandWrapper(String declaringClass, String command, ScriptObjectMirror script);
 
 }

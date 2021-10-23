@@ -65,7 +65,7 @@ public class PluginInjector {
     private Class<? extends FakeServerManager> fakeServerManager;
     private Class<? extends ListenerManager<?>> listenerManager;
     private Class<? extends CommandManager> commandManager;
-    private Class<? extends CommandWrapperManager<?, ?>> commandWrapperManager;
+    private Class<? extends CommandWrapperManager<?>> commandWrapperManager;
     private final Collection<Module> addonModules = new ArrayList<>();
 
     public PluginInjector injectPlugin(ObbyLangPlugin plugin) {
@@ -112,7 +112,7 @@ public class PluginInjector {
         return this;
     }
 
-    public PluginInjector setCommandWrapperManager(Class<? extends CommandWrapperManager<?, ?>> commandWrapperManager) {
+    public PluginInjector setCommandWrapperManager(Class<? extends CommandWrapperManager<?>> commandWrapperManager) {
         this.commandWrapperManager = commandWrapperManager;
         return this;
     }
@@ -206,7 +206,7 @@ public class PluginInjector {
             new InjectorBinder<CustomEventManager>().bind(binder, CustomEventManager.class, customEventManager);
             new InjectorBinder<DependencyManager>().bind(binder, DependencyManager.class, dependencyManager);
             new InjectorBinder<ListenerManager>().bind(binder, ListenerManager.class, listenerManager);
-            new InjectorBinder<CommandWrapperManager<?, ?>>().bind(binder, new TypeLiteral<>() {}, commandWrapperManager);
+            new InjectorBinder<CommandWrapperManager<?>>().bind(binder, new TypeLiteral<>() {}, commandWrapperManager);
             new InjectorBinder<CommandManager>().bind(binder, CommandManager.class, commandManager);
         }
     }

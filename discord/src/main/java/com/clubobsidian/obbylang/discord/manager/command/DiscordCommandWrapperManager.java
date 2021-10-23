@@ -22,10 +22,10 @@ import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-public class DiscordCommandWrapperManager extends CommandWrapperManager<DiscordCommand, Object> {
+public class DiscordCommandWrapperManager extends CommandWrapperManager<DiscordCommand> {
 
     @Override
-    public CommandWrapper<DiscordCommand> createCommandWrapper(String declaringClass, Object command, ScriptObjectMirror script) {
+    public CommandWrapper<DiscordCommand> createCommandWrapper(String declaringClass, String command, ScriptObjectMirror script) {
         return new DiscordCommandWrapper(script, command, script);
     }
 }

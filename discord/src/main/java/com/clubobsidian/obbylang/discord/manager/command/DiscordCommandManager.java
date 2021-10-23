@@ -37,12 +37,12 @@ public class DiscordCommandManager extends CommandManager {
     private Map<String, DiscordCommand> registeredCommands = new ConcurrentHashMap<>();
 
     @Inject
-    protected DiscordCommandManager(CommandWrapperManager<?, ?> wrapperManager) {
+    protected DiscordCommandManager(CommandWrapperManager<?> wrapperManager) {
         super(wrapperManager);
     }
 
     @Override
-    protected boolean registerCommand(CommandWrapper<?, ?> wrapper) {
+    protected boolean registerCommand(CommandWrapper<?> wrapper) {
         if(wrapper.getCommand() instanceof DiscordCommand) {
             String commandName = wrapper.getCommandName();
             DiscordCommand cmd = (DiscordCommand) wrapper.getCommand();
@@ -55,7 +55,7 @@ public class DiscordCommandManager extends CommandManager {
     }
 
     @Override
-    protected boolean removeCommand(CommandWrapper<?, ?> wrapper) {
+    protected boolean removeCommand(CommandWrapper<?> wrapper) {
         if(wrapper.getCommand() instanceof DiscordCommand) {
             String commandName = wrapper.getCommandName();
             super.unregister(wrapper.getCommandName());

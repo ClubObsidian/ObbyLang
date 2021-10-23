@@ -23,7 +23,7 @@ import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
 import com.velocitypowered.api.command.Command;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-public class VelocityCommandWrapperManager extends CommandWrapperManager<Command, String> {
+public class VelocityCommandWrapperManager extends CommandWrapperManager<Command> {
 
     @Override
     public CommandWrapper<Command> createCommandWrapper(String declaringClass, String command, ScriptObjectMirror script) {
