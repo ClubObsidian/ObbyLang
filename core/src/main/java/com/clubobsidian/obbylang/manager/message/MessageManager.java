@@ -18,7 +18,6 @@
 
 package com.clubobsidian.obbylang.manager.message;
 
-import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.util.ChatColor;
 import com.google.inject.Inject;
 import net.kyori.adventure.text.Component;
@@ -30,15 +29,14 @@ public abstract class MessageManager<T> {
     private static MessageManager<?> instance;
 
     private final MiniMessage miniMessage;
-    private final GsonComponentSerializer serializer;
+    private final GsonComponentSerializer jsonSerializer;
 
     @Inject
     protected MessageManager() {
         this.miniMessage = MiniMessage
                 .builder()
-                .markdown()
                 .build();
-        this.serializer = GsonComponentSerializer.builder().build();
+        this.jsonSerializer = GsonComponentSerializer.builder().build();
     }
 
     public abstract void msg(T sender, String msg);
@@ -53,7 +51,7 @@ public abstract class MessageManager<T> {
 
     public String parseMiniMessage(String message) {
         Component component = this.miniMessage.deserialize(message);
-        return this.serializer.serialize(component);
+        return this.jsonSerializer.serialize(component);
     }
 
     public void miniMsg(T sender, String msg) {
