@@ -3,14 +3,12 @@
 
 [![License](https://img.shields.io/badge/license-AGPL%20with%20linking%20exception-blue)](https://github.com/ClubObsidian/ObbyLang/blob/master/LICENSE)
 
-Use Javascript in Minecraft and for Discord as a scripting language
-
-Fourth generation of ObbyLang for different Minecraft platforms and Discord
+Fourth generation of ObbyLang for Minecraft platforms and Discord
 </div>
 
 ## Description
 
-ObbyLang is a Javascript based project that provides support for a number of modules to make content development quicker right out of the box. ObbyLang was written as an answer to a scripting language with similar capabilities to Skript such as: being able to be hot reloaded, unloaded and loaded at will as well as being extendable while also being in a more formal programming format. ObbyLang also comes with a number of tools for common programming issues right out of the box.
+ObbyLang is a project to run Javascript scripts, it provides support for a number of modules to make content development quicker right out of the box. ObbyLang was written as an answer to a scripting language with similar capabilities to Skript such as: being able to be hot reloaded, unloaded and loaded at will as well as being extendable while also being in a more formal programming format.
 
 ObbyLang supports the following tools:
 * SQL databases
@@ -33,7 +31,7 @@ ObbyLang is pretty fast as it does not interpret Javascript code all the time. O
 ## License
 
 ObbyLang is licensed under the AGPL with a linking exception for scripts. Please look at the full details [here](https://github.com/ClubObsidian/ObbyLang/blob/master/LICENSE#L664-L669). 
-If you plan on forking ObbyLang [please also understand what all the AGPL entails.](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) Generally if you are running ObbyLang anywhere and modify it you will need to distribute the source code.
+If you plan on forking ObbyLang [please also understand what the AGPL entails.](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) Generally if you are running ObbyLang anywhere and modify it you will need to distribute the source code.
 
 ## Building
 
