@@ -13,9 +13,11 @@ Fourth generation of ObbyLang for different Minecraft platforms and Discord
 ObbyLang is a Javascript based project that provides support for a number of modules to make content development quicker right out of the box. ObbyLang was written as an answer to a scripting language with similar capabilities to Skript such as: being able to be hot reloaded, unloaded and loaded at will as well as being extendable while also being in a more formal programming format. ObbyLang also comes with a number of tools for common programming issues right out of the box.
 
 ObbyLang supports the following tools:
-* SQL databases with object pooling
+* SQL databases
+  * With connection pooling through HikariCP
 * Redis
-* InfluxDB with object pooling
+* InfluxDB
+  * With object pooling through influx4j
 * MongoDB
 
 Platforms:
