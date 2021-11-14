@@ -661,9 +661,11 @@ For more information on this, and how to apply and follow the GNU AGPL, see
 <https://www.gnu.org/licenses/>.
 
 
-Script Linking Exception to the GNU AFFERO GENERAL PUBLIC LICENSE
+Linking Exception to the GNU AFFERO GENERAL PUBLIC LICENSE
 
-Script files that are run, interpreted or executed by ObbyLang do not fall 
-under the GNU AFFERO GENERAL PUBLIC LICENSE or AGPL license unless these script(s)
-attempt to modify the project's runtime, jar file or code in any way
-that would normally fall under the AGPL.
+Files that link to ObbyLang do not fall 
+under the GNU AFFERO GENERAL PUBLIC LICENSE or AGPL license.
+Examples of linking include but are not limited to are jar files and scripts.
+Modifying the source of ObbyLang by bytecode manipulation or other means
+should still fall under the AGPL license as the linking
+exception does not pertain to it.

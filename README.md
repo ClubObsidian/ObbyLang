@@ -30,7 +30,7 @@ ObbyLang is pretty fast as it does not interpret Javascript code all the time. O
 
 ## License
 
-ObbyLang is licensed under the AGPL with a linking exception for scripts. Please look at the full details [here](https://github.com/ClubObsidian/ObbyLang/blob/master/LICENSE#L664-L669). 
+ObbyLang is licensed under the AGPL with a linking exception. Please look at the full details [here](https://github.com/ClubObsidian/ObbyLang/blob/master/LICENSE#L664-L669). 
 If you plan on forking ObbyLang [please also understand what the AGPL entails.](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) Generally if you are running ObbyLang anywhere and modify it you will need to distribute the source code.
 
 ## Building
