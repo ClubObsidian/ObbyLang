@@ -116,14 +116,6 @@ public class SchedulerManager implements RegisteredManager {
         return wrapper.getFuture();
     }
 
-    public void sleep(long delay) {
-        this.delay(delay);
-    }
-
-    public void delay(long delay) {
-        this.crouton.delay(delay);
-    }
-
     public void unregister(String declaringClass) {
         this.init(declaringClass);
         Iterator<WeakReference<JobWrapper>> it = this.jobs.get(declaringClass).iterator();
