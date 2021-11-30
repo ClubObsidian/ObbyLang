@@ -24,7 +24,6 @@ import com.clubobsidian.obbylang.manager.database.type.mongo.MongoDatabase;
 import com.clubobsidian.obbylang.manager.database.type.sql.MySQLDatabase;
 import com.google.inject.Inject;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

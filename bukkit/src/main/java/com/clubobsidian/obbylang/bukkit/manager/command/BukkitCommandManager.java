@@ -24,12 +24,12 @@ import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
 import com.clubobsidian.obbylang.manager.message.MessageManager;
 import com.google.inject.Inject;
-import org.bukkit.command.TabCompleter;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.SimpleCommandMap;
+import org.bukkit.command.TabCompleter;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -209,7 +209,6 @@ public class BukkitCommandManager extends CommandManager {
                 return true;
             }
         }
-
         return false;
     }
 }

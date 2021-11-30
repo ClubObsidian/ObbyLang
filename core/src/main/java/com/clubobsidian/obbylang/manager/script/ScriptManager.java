@@ -18,21 +18,9 @@
 
 package com.clubobsidian.obbylang.manager.script;
 
-import com.clubobsidian.obbylang.ObbyLang;
-import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.addon.AddonManager;
-import com.clubobsidian.obbylang.manager.command.CommandManager;
-import com.clubobsidian.obbylang.manager.config.ConfigurationManager;
-import com.clubobsidian.obbylang.manager.database.DatabaseManager;
-import com.clubobsidian.obbylang.manager.event.CustomEventManager;
-import com.clubobsidian.obbylang.manager.global.GlobalManager;
 import com.clubobsidian.obbylang.manager.listener.ListenerManager;
-import com.clubobsidian.obbylang.manager.message.MessageManager;
-import com.clubobsidian.obbylang.manager.plugin.DependencyManager;
-import com.clubobsidian.obbylang.manager.proxy.ProxyManager;
-import com.clubobsidian.obbylang.manager.redis.RedisManager;
-import com.clubobsidian.obbylang.manager.scheduler.SchedulerManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.obbylang.util.ChatColor;

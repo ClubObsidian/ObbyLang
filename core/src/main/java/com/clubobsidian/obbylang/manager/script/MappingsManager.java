@@ -18,7 +18,6 @@
 
 package com.clubobsidian.obbylang.manager.script;
 
-import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.obbylang.util.ClassUtil;
 import com.google.inject.Inject;

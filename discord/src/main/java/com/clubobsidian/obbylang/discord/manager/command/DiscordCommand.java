@@ -18,10 +18,10 @@
 
 package com.clubobsidian.obbylang.discord.manager.command;
 
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public class DiscordCommand {
 

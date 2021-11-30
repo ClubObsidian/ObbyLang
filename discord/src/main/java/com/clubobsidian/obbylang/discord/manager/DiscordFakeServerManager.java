@@ -18,7 +18,6 @@
 
 package com.clubobsidian.obbylang.discord.manager;
 
-import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.discord.plugin.DiscordObbyLangPlugin;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;

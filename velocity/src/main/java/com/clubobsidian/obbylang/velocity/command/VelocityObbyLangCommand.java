@@ -23,7 +23,6 @@ import com.clubobsidian.obbylang.pipe.Pipe;
 import com.clubobsidian.obbylang.velocity.pipe.SourcePipe;
 import com.clubobsidian.obbylang.velocity.util.MessageUtil;
 import com.google.inject.Inject;
-import com.velocitypowered.api.command.Command;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 

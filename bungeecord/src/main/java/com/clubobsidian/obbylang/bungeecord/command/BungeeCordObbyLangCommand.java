@@ -18,9 +18,9 @@
 
 package com.clubobsidian.obbylang.bungeecord.command;
 
+import com.clubobsidian.obbylang.bungeecord.pipe.SenderPipe;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
-import com.clubobsidian.obbylang.bungeecord.pipe.SenderPipe;
 import com.google.inject.Inject;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
@@ -28,6 +28,7 @@ import net.md_5.bungee.api.plugin.Command;
 public class BungeeCordObbyLangCommand extends Command {
 
     private final ScriptManager scriptManager;
+
     @Inject
     private BungeeCordObbyLangCommand(ScriptManager scriptManager) {
         super("gobbylang", null, "gol");

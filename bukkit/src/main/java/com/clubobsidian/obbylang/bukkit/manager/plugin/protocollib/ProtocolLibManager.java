@@ -18,9 +18,9 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.plugin.protocollib;
 
+import com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
-import com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketAdapter;

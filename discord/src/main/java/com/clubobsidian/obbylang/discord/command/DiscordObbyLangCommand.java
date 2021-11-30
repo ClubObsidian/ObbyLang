@@ -27,6 +27,7 @@ import java.util.List;
 public class DiscordObbyLangCommand extends Command {
 
     private final ScriptManager scriptManager;
+
     @Inject
     private DiscordObbyLangCommand(ScriptManager scriptManager) {
         super("obbylang");

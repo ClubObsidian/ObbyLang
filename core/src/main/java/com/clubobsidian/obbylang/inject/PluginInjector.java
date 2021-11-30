@@ -44,13 +44,9 @@ import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
-import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.implementation.attribute.AnnotationRetention;
 import net.bytebuddy.matcher.ElementMatchers;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -117,10 +113,11 @@ public class PluginInjector {
         return this;
     }
 
-    public <T> PluginInjector addAddon(Class<T>  bind) {
+    public <T> PluginInjector addAddon(Class<T> bind) {
         this.addonModules.add(new SameClassAddonModule<>(bind));
         return this;
     }
+
     public <T> PluginInjector addAddon(Class<T> bindFrom, Class<? extends T> bindTo) {
         this.addonModules.add(new DifferentClassAddonModule<>(bindFrom, bindTo));
         return this;
@@ -206,7 +203,8 @@ public class PluginInjector {
             new InjectorBinder<CustomEventManager>().bind(binder, CustomEventManager.class, customEventManager);
             new InjectorBinder<DependencyManager>().bind(binder, DependencyManager.class, dependencyManager);
             new InjectorBinder<ListenerManager>().bind(binder, ListenerManager.class, listenerManager);
-            new InjectorBinder<CommandWrapperManager<?>>().bind(binder, new TypeLiteral<>() {}, commandWrapperManager);
+            new InjectorBinder<CommandWrapperManager<?>>().bind(binder, new TypeLiteral<>() {
+            }, commandWrapperManager);
             new InjectorBinder<CommandManager>().bind(binder, CommandManager.class, commandManager);
         }
     }
@@ -216,6 +214,7 @@ public class PluginInjector {
         public void bind(Binder binder, Class<T> clazz, Class<? extends T> bind) {
             this.bind(binder, TypeLiteral.get(clazz), bind);
         }
+
         public void bind(Binder binder, TypeLiteral<T> bindTo, Class<? extends T> bind) {
             if(bind != null) {
                 binder.bind(bindTo).to(bind).asEagerSingleton();

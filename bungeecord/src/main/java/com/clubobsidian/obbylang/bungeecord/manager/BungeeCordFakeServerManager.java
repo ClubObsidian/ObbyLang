@@ -18,8 +18,8 @@
 
 package com.clubobsidian.obbylang.bungeecord.manager;
 
-import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.obbylang.bungeecord.plugin.BungeeCordObbyLangPlugin;
+import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.scheduler.ScheduledTask;

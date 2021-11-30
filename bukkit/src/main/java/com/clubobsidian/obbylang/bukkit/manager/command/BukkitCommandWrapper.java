@@ -19,9 +19,8 @@
 package com.clubobsidian.obbylang.bukkit.manager.command;
 
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
-import com.clubobsidian.obbylang.manager.message.MessageManager;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bukkit.command.Command;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public class BukkitCommandWrapper extends CommandWrapper<Command> {
 

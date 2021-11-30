@@ -163,7 +163,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
 
                         CtField field = CtField
                                 .make("com.clubobsidian.obbylang.manager.listener.ListenerManager listenerManager;",
-                                ctClass);
+                                        ctClass);
                         field.setModifiers(Modifier.PRIVATE);
                         ctClass.addField(field);
 

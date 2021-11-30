@@ -128,7 +128,6 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
         this.consoleThread.start();
 
 
-
         this.getLogger().info("Injecting ObbyLang plugin");
 
         this.obbyLang = new PluginInjector()

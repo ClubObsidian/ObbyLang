@@ -19,7 +19,6 @@
 package com.clubobsidian.obbylang.bukkit.manager.command;
 
 import com.clubobsidian.obbylang.manager.command.SenderWrapper;
-import com.clubobsidian.obbylang.manager.message.MessageManager;
 import com.clubobsidian.obbylang.util.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.block.CommandBlock;

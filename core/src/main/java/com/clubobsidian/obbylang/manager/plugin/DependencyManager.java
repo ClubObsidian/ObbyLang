@@ -18,8 +18,8 @@
 
 package com.clubobsidian.obbylang.manager.plugin;
 
-import com.clubobsidian.obbylang.manager.event.PluginEnableEvent;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
+import com.clubobsidian.obbylang.manager.event.PluginEnableEvent;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.trident.EventBus;

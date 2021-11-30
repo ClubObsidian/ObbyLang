@@ -3,8 +3,8 @@ main: com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin
 version: ${pluginVersion}
 author: VirusTotal
 api-version: 1.13
-softdepend: [DynamicGui, ProtocolLib, SellAllSigns, spark, PlaceholderAPI]
+softdepend: [ DynamicGui, ProtocolLib, SellAllSigns, spark, PlaceholderAPI ]
 commands:
   obbylang:
     description: "ObbyLang command"
-    aliases: [ol]
+    aliases: [ ol ]

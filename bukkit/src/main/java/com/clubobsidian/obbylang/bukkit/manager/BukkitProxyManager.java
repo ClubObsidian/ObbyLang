@@ -18,8 +18,8 @@
 
 package com.clubobsidian.obbylang.bukkit.manager;
 
-import com.clubobsidian.obbylang.manager.proxy.ProxyManager;
 import com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin;
+import com.clubobsidian.obbylang.manager.proxy.ProxyManager;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import org.bukkit.entity.Player;

@@ -33,8 +33,8 @@ import com.clubobsidian.dynamicgui.registry.replacer.impl.DynamicGuiReplacerRegi
 import com.clubobsidian.dynamicgui.replacer.Replacer;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bukkit.entity.Player;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.CompiledScript;
 import java.util.ArrayList;
@@ -52,6 +52,7 @@ public class GuiManager implements RegisteredManager {
     private final Map<String, ScriptObjectMirror> replacerScripts = new HashMap<>();
     private final Map<String, String> replacerScriptOwners = new HashMap<>(); //Key(ReplacerName) Value(ScriptName)
     private final ScriptManager scriptManager;
+
     public GuiManager(ScriptManager scriptManager) {
         this.scriptManager = scriptManager;
     }

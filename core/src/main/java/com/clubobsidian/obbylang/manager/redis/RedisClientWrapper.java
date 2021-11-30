@@ -18,7 +18,6 @@
 
 package com.clubobsidian.obbylang.manager.redis;
 
-import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import io.lettuce.core.ClientOptions;
@@ -29,7 +28,6 @@ import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.CompiledScript;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

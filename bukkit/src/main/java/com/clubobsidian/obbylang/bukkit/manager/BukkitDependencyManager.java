@@ -18,8 +18,8 @@
 
 package com.clubobsidian.obbylang.bukkit.manager;
 
-import com.clubobsidian.obbylang.manager.plugin.DependencyManager;
 import com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin;
+import com.clubobsidian.obbylang.manager.plugin.DependencyManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.trident.EventBus;

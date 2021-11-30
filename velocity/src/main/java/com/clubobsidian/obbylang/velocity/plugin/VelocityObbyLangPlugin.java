@@ -20,9 +20,9 @@ package com.clubobsidian.obbylang.velocity.plugin;
 
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.ObbyLangPlatform;
+import com.clubobsidian.obbylang.inject.PluginInjector;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.obbylang.velocity.command.VelocityObbyLangCommand;
-import com.clubobsidian.obbylang.inject.PluginInjector;
 import com.clubobsidian.obbylang.velocity.manager.VelocityCustomEventManager;
 import com.clubobsidian.obbylang.velocity.manager.VelocityFakeServerManager;
 import com.clubobsidian.obbylang.velocity.manager.VelocityListenerManager;

@@ -19,8 +19,6 @@
 package com.clubobsidian.obbylang.velocity.manager.command;
 
 import com.clubobsidian.obbylang.manager.command.SenderWrapper;
-import com.velocitypowered.api.command.Command;
-import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 

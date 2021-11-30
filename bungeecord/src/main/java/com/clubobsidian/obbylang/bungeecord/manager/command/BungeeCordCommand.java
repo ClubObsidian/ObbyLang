@@ -19,9 +19,9 @@
 package com.clubobsidian.obbylang.bungeecord.manager.command;
 
 import com.clubobsidian.obbylang.manager.command.SenderWrapper;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.util.HashMap;
 import java.util.Map;
