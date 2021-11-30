@@ -2,11 +2,41 @@ plugins {
     id 'java-library'
     id 'eclipse'
     id 'idea'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
 subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'com.github.johnrengelman.shadow'
+
     group 'com.clubobsidian'
     version '4.0.0-SNAPSHOT'
+
+    shadowJar {
+        archiveClassifier.set('')
+        relocate 'afu', 'com.clubobsidian.obbylang.afu'
+        relocate 'io.netty', 'com.clubobsidian.obbylang.netty'
+        relocate 'javassist', 'com.clubobsidian.obbylang.javassist'
+        relocate 'io.lettuce.core', 'com.clubobsidian.obbylang.io.lettuce.core'
+        relocate 'org.apache.commons.io', 'com.clubobsidian.obbylang.commons.io'
+        relocate 'com.typesafe', 'com.clubobsidian.obbylang.typesafe'
+        relocate 'com.zaxxer', 'com.clubobsidian.obbylang.zaxxer'
+        relocate 'com.fasterxml', 'com.clubobsidian.obbylang.fasterxml'
+        relocate 'org.jsoup', 'com.clubobsidian.obbylang.jsoup'
+        relocate 'reactor', 'com.clubobsidian.obbylang.reactor'
+        relocate 'org.apache', 'com.clubobsidian.obbylang.apache'
+        relocate 'org.aopalliance', 'com.clubobsidian.obbylang.aopalliance'
+        relocate 'org.checkerframework', 'com.clubobsidian.obbylang.checkerframework'
+        relocate 'org.codehaus', 'com.clubobsidian.obbylang.codehaus'
+        relocate 'org.reactivestreams', 'com.clubobsidian.obbylang.reactivestreams'
+        relocate 'org.slf4j', 'com.clubobsidian.obbylang.slf4j'
+        relocate 'org.yaml.snakeyaml', 'com.clubobsidian.obbylang.snakeyaml'
+        relocate 'com.clubobsidian.wrappy', 'com.clubobsidian.obbylang.wrappy'
+        relocate 'org.spongepowered.configurate', 'com.clubobsidian.obbylang.configurate'
+        relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
+        relocate 'com.google.common', 'com.clubobsidian.obbylang.guava'
+        relocate 'io.leangen', 'com.clubobsidian.obbylang.leangen'
+    }
 
     repositories {
         flatDir {
@@ -17,5 +47,25 @@ subprojects {
         maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
         maven { url 'https://jitpack.io' }
         maven { url = "https://repo.velocitypowered.com/snapshots/" }
+    }
+
+    dependencies {
+        compileOnly 'org.slf4j:slf4j-api:1.7.21'
+        api 'com.zaxxer:HikariCP:3.3.1'
+        api 'com.github.clubobsidian:wrappy:2.3.2'
+        api 'org.jsoup:jsoup:1.11.3'
+        api 'io.lettuce:lettuce-core:6.0.2.RELEASE'
+        api 'org.javassist:javassist:3.28.0-GA'
+        api 'net.bytebuddy:byte-buddy:1.11.21'
+        api 'com.google.inject:guice:5.0.1'
+        api 'commons-io:commons-io:2.8.0'
+        api 'org.apache.commons:commons-lang3:3.9'
+        api 'com.github.clubobsidian:trident:3.0.0'
+        api 'com.github.clubobsidian:crouton:0.6.1'
+        api 'net.kyori:adventure-text-minimessage:4.2.0-SNAPSHOT'
+        api 'net.kyori:adventure-text-serializer-gson:4.9.2'
+        api 'com.zaxxer:influx4j:2.14'
+        api 'org.mongodb:mongodb-driver-sync:4.2.3'
+        api 'org.openjdk.nashorn:nashorn-core:15.2'
     }
 }
