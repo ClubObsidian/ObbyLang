@@ -46,7 +46,6 @@ public class BukkitCommand extends Command implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(label.equalsIgnoreCase(this.command)) {
             SenderWrapper<?> wrapper = new BukkitSenderWrapper(sender);
-
             Object ret = this.base.call(this.owner, wrapper, command, label, args);
             if(ret != null && ret instanceof Boolean) {
                 return (boolean) ret;
@@ -69,7 +68,6 @@ public class BukkitCommand extends Command implements CommandExecutor {
         if(this.tabCompleter == null) {
             return super.tabComplete(sender, alias, args);
         }
-
         return this.tabCompleter.onTabComplete(sender, this, alias, args);
     }
 }

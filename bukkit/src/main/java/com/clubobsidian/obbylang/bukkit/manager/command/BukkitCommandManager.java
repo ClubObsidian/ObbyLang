@@ -24,6 +24,7 @@ import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
 import com.clubobsidian.obbylang.manager.message.MessageManager;
 import com.google.inject.Inject;
+import org.bukkit.command.TabCompleter;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -34,6 +35,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 
 public class BukkitCommandManager extends CommandManager {
@@ -71,6 +73,21 @@ public class BukkitCommandManager extends CommandManager {
 
         }
         return this.cm;
+    }
+
+    public void register(String declaringClass, ScriptObjectMirror cmdScript,
+                         String cmd, ScriptObjectMirror tabScript) {
+        this.register(declaringClass, cmdScript, new String[]{cmd}, tabScript);
+    }
+
+    public void register(String declaringClass, ScriptObjectMirror cmdScript,
+                         String[] cmds, ScriptObjectMirror tabScript) {
+        TabCompleter tabCompleter = this.createTabCompleter(declaringClass, tabScript);
+        List<CommandWrapper<?>> registered = super.register(declaringClass, cmdScript, cmds);
+        for(CommandWrapper<?> wrapper : registered) {
+            BukkitCommand bukkitCommand = (BukkitCommand) this.getCommand(wrapper.getCommandName());
+            bukkitCommand.setTabCompleter(tabCompleter);
+        }
     }
 
     public Command getCommand(String commandName) {

@@ -40,7 +40,7 @@ public class BukkitTabCompleter implements TabCompleter {
     @SuppressWarnings("unchecked")
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         BukkitSenderWrapper senderWrapper = new BukkitSenderWrapper(sender);
-        Object call = script.call(owner, senderWrapper, command, alias, args);
+        Object call = this.script.call(owner, senderWrapper, command, alias, args);
         if(call == null || !(call instanceof List)) {
             return null;
         }

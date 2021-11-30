@@ -23,6 +23,7 @@ import com.google.inject.Inject;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,7 @@ public abstract class CommandManager implements RegisteredManager {
         return this.register(declaringClass, script, new String[]{command}).get(0);
     }
 
-    public List<CommandWrapper<?>> register(String declaringClass, ScriptObjectMirror script, String... cmds) {
+    public List<CommandWrapper<?>> register(String declaringClass, ScriptObjectMirror script, String[] cmds) {
         List<CommandWrapper<?>> newlyRegistedWrappers = new ArrayList<>();
         for(String command : cmds) {
             command = command.toLowerCase();
@@ -55,9 +56,9 @@ public abstract class CommandManager implements RegisteredManager {
 
             CommandWrapper<?> wrapper = this.wrapperManager.createCommandWrapper(declaringClass, command, script);
             commands.add(wrapper);
-            newlyRegistedWrappers.add(wrapper);
             this.removeCommand(wrapper);
             this.registerCommand(wrapper);
+            newlyRegistedWrappers.add(wrapper);
         }
         return newlyRegistedWrappers;
     }
