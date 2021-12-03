@@ -1,0 +1,23 @@
+name: Feature Request
+description: Request a new feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before making a feature request please ensure that the feature you are requesting does not already exist.
+  - type: textarea
+    attributes:
+      label: Feature
+      description: What feature do you want implemented? Give as much detail as possible.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Why should this feature be implemented
+      description: Why do you want this feature or in other words how would it be useful?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Any other information
+      description: Any other information that could be useful when implementing the feature.
