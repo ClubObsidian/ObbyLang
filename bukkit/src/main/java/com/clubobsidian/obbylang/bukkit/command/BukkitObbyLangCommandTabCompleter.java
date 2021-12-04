@@ -43,9 +43,9 @@ public class BukkitObbyLangCommandTabCompleter implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if(sender.hasPermission("obbylang.use")) {
             if(args.length == 1) {
-                return StringUtil.copyPartialMatches(args[args.length - 1], obbyLangArgs, Lists.newArrayList());
+                return StringUtil.copyPartialMatches(args[args.length - 1], this.obbyLangArgs, Lists.newArrayList());
             } else if(args.length == 2 && !args[0].equalsIgnoreCase("list")) {
-                if(obbyLangArgs.contains(args[0])) {
+                if(this.obbyLangArgs.contains(args[0])) {
                     return StringUtil.copyPartialMatches(args[args.length - 1], this.scriptManager.getScriptNames(), Lists.newArrayList());
                 }
             }

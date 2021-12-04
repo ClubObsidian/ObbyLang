@@ -22,16 +22,21 @@ import org.bukkit.Bukkit;
 
 public final class VersionUtil {
 
-    private VersionUtil() {
+    private static final String VERSION;
+
+    static {
+        if(Bukkit.getServer() == null) {
+            VERSION = null;
+        } else {
+            String name = Bukkit.getServer().getClass().getPackage().getName();
+            VERSION = name.substring(name.lastIndexOf('.') + 1);
+        }
     }
 
     public synchronized static String getVersion() {
-        String version = "";
-        if(Bukkit.getServer() == null) {
-            return null;
-        }
-        String name = Bukkit.getServer().getClass().getPackage().getName();
-        version = name.substring(name.lastIndexOf('.') + 1);
-        return version;
+        return VERSION;
+    }
+
+    private VersionUtil() {
     }
 }

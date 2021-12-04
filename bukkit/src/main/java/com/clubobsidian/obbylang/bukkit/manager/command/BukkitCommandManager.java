@@ -70,7 +70,6 @@ public class BukkitCommandManager extends CommandManager {
             } catch(NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
                 e.printStackTrace();
             }
-
         }
         return this.cm;
     }
@@ -142,7 +141,7 @@ public class BukkitCommandManager extends CommandManager {
             Object craftServer = Bukkit.getServer();
             Field consoleField = craftServerClass.getDeclaredField("console");
             consoleField.setAccessible(true);
-            Class<?> consoleClass = ReflectionUtil.getMinecraftClass("server", "MinecraftServer");
+            Class<?> consoleClass = ReflectionUtil.getNmsClass("server", "MinecraftServer");
             Object console = consoleField.get(craftServer);
             Field dispatcherField = null;
             if(this.fieldExists(consoleClass, "commandDispatcher")) {
@@ -153,7 +152,7 @@ public class BukkitCommandManager extends CommandManager {
             dispatcherField.setAccessible(true);
             Object dispatcher = dispatcherField.get(console);
 
-            Class<?> nmsDispatcherClass = ReflectionUtil.getMinecraftClass("commands", "CommandDispatcher");
+            Class<?> nmsDispatcherClass = ReflectionUtil.getNmsClass("commands", "CommandDispatcher");
             Method toBrigadierDispatcher = nmsDispatcherClass.getDeclaredMethod("a");
 
             Class<?> bukkitCommandWrapperClass = ReflectionUtil.getCraftClass("command", "BukkitCommandWrapper");
@@ -175,7 +174,7 @@ public class BukkitCommandManager extends CommandManager {
             Object craftServer = Bukkit.getServer();
             Field consoleField = craftServerClass.getDeclaredField("console");
             consoleField.setAccessible(true);
-            Class<?> consoleClass = ReflectionUtil.getMinecraftClass("server", "MinecraftServer");
+            Class<?> consoleClass = ReflectionUtil.getNmsClass("server", "MinecraftServer");
             Object console = consoleField.get(craftServer);
             Field dispatcherField = null;
             if(this.fieldExists(consoleClass, "commandDispatcher")) {
@@ -186,7 +185,7 @@ public class BukkitCommandManager extends CommandManager {
             dispatcherField.setAccessible(true);
             Object dispatcher = dispatcherField.get(console);
 
-            Class<?> nmsDispatcherClass = ReflectionUtil.getMinecraftClass("commands", "CommandDispatcher");
+            Class<?> nmsDispatcherClass = ReflectionUtil.getNmsClass("commands", "CommandDispatcher");
             Method toBrigadierDispatcher = nmsDispatcherClass.getDeclaredMethod("a");
 
             Class<?> brigadierDispatcherClass = Class.forName("com.mojang.brigadier.CommandDispatcher");

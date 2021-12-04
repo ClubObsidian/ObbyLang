@@ -29,7 +29,6 @@ public class PluginManager {
 
     private final boolean dynamicGuiEnabled = this.resolveDynamicGui();
     private final boolean protocolLibEnabled = this.resolveProtocolLib();
-
     private final AddonManager addonManager;
     private final ScriptManager scriptManager;
 
