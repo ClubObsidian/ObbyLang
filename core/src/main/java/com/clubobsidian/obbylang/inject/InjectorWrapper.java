@@ -18,7 +18,7 @@
 
 package com.clubobsidian.obbylang.inject;
 
-import com.google.inject.Injector;
+import javax.inject.Injector;
 
 public class InjectorWrapper {
 

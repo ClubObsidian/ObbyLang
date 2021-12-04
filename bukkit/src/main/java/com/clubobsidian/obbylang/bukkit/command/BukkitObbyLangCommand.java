@@ -21,10 +21,11 @@ package com.clubobsidian.obbylang.bukkit.command;
 import com.clubobsidian.obbylang.bukkit.pipe.SenderPipe;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
-import com.google.inject.Inject;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+
+import javax.inject.Inject;
 
 public class BukkitObbyLangCommand implements CommandExecutor {
 

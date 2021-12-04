@@ -24,9 +24,9 @@ import com.clubobsidian.crouton.wrapper.JobWrapper;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
-import com.google.inject.Inject;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
+import javax.inject.Inject;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Iterator;

@@ -22,9 +22,10 @@ import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
 import com.clubobsidian.obbylang.velocity.plugin.VelocityObbyLangPlugin;
-import com.google.inject.Inject;
 import com.velocitypowered.api.command.Command;
 import com.velocitypowered.api.command.CommandMeta;
+
+import javax.inject.Inject;
 
 public class VelocityCommandManager extends CommandManager {
 

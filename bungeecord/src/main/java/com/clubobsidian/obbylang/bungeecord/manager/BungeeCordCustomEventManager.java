@@ -21,8 +21,9 @@ package com.clubobsidian.obbylang.bungeecord.manager;
 import com.clubobsidian.obbylang.bungeecord.event.ObbyLangCustomEvent;
 import com.clubobsidian.obbylang.manager.event.CustomEventManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
-import com.google.inject.Inject;
 import net.md_5.bungee.api.ProxyServer;
+
+import javax.inject.Inject;
 
 public class BungeeCordCustomEventManager extends CustomEventManager {
 

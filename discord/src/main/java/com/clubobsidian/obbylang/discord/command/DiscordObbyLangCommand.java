@@ -20,8 +20,8 @@ package com.clubobsidian.obbylang.discord.command;
 
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
-import com.google.inject.Inject;
 
+import javax.inject.Inject;
 import java.util.List;
 
 public class DiscordObbyLangCommand extends Command {

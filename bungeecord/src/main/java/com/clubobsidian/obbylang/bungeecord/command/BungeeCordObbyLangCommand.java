@@ -21,9 +21,10 @@ package com.clubobsidian.obbylang.bungeecord.command;
 import com.clubobsidian.obbylang.bungeecord.pipe.SenderPipe;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
-import com.google.inject.Inject;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
+
+import javax.inject.Inject;
 
 public class BungeeCordObbyLangCommand extends Command {
 

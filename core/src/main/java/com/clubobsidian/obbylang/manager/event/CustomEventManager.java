@@ -19,7 +19,8 @@
 package com.clubobsidian.obbylang.manager.event;
 
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
-import com.google.inject.Inject;
+
+import javax.inject.Inject;
 
 public abstract class CustomEventManager {
 

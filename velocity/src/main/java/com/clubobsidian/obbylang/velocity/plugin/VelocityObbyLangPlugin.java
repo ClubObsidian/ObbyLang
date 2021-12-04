@@ -30,7 +30,6 @@ import com.clubobsidian.obbylang.velocity.manager.VelocityMessageManager;
 import com.clubobsidian.obbylang.velocity.manager.VelocityProxyManager;
 import com.clubobsidian.obbylang.velocity.manager.command.VelocityCommandManager;
 import com.clubobsidian.obbylang.velocity.manager.command.VelocityCommandWrapperManager;
-import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
@@ -38,6 +37,7 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.logging.Logger;

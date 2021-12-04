@@ -23,11 +23,12 @@ import com.clubobsidian.obbylang.manager.plugin.DependencyManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.trident.EventBus;
-import com.google.inject.Inject;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
+
+import javax.inject.Inject;
 
 public class BukkitDependencyManager extends DependencyManager implements Listener {
 

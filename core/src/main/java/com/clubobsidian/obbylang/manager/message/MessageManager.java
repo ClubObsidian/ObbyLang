@@ -19,10 +19,11 @@
 package com.clubobsidian.obbylang.manager.message;
 
 import com.clubobsidian.obbylang.util.ChatColor;
-import com.google.inject.Inject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+
+import javax.inject.Inject;
 
 public abstract class MessageManager<T> {
 

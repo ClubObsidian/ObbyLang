@@ -18,8 +18,7 @@
 
 package com.clubobsidian.obbylang.manager.global;
 
-import com.google.inject.Inject;
-
+import javax.inject.Inject;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

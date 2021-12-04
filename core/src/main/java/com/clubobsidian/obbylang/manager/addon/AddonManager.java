@@ -18,8 +18,7 @@
 
 package com.clubobsidian.obbylang.manager.addon;
 
-import com.google.inject.Inject;
-
+import javax.inject.Inject;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

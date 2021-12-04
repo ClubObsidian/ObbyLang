@@ -22,8 +22,9 @@ import com.clubobsidian.obbylang.bukkit.manager.plugin.dynamicgui.GuiManager;
 import com.clubobsidian.obbylang.bukkit.manager.plugin.protocollib.ProtocolLibManager;
 import com.clubobsidian.obbylang.manager.addon.AddonManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
-import com.google.inject.Inject;
 import org.bukkit.Bukkit;
+
+import javax.inject.Inject;
 
 public class PluginManager {
 

@@ -20,9 +20,9 @@ package com.clubobsidian.obbylang.manager.config;
 
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.wrappy.Configuration;
-import com.google.inject.Inject;
 import org.apache.commons.io.FileUtils;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

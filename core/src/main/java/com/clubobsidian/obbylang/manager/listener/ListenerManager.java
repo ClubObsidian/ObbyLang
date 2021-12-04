@@ -25,7 +25,6 @@ import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.script.ScriptWrapper;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.obbylang.util.ListenerUtil;
-import com.google.inject.Inject;
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
@@ -44,6 +43,7 @@ import javassist.bytecode.annotation.MemberValue;
 import org.apache.commons.lang3.ClassUtils;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
+import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;

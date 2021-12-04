@@ -20,12 +20,12 @@ package com.clubobsidian.obbylang.bukkit.command;
 
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.util.StringUtil;
 
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 

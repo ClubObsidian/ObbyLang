@@ -21,8 +21,9 @@ package com.clubobsidian.obbylang.bukkit.manager;
 import com.clubobsidian.obbylang.bukkit.event.ObbyLangCustomEvent;
 import com.clubobsidian.obbylang.manager.event.CustomEventManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
-import com.google.inject.Inject;
 import org.bukkit.Bukkit;
+
+import javax.inject.Inject;
 
 public class BukkitCustomEventManager extends CustomEventManager {
 

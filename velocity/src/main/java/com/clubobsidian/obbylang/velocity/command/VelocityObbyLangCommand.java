@@ -22,9 +22,10 @@ import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
 import com.clubobsidian.obbylang.velocity.pipe.SourcePipe;
 import com.clubobsidian.obbylang.velocity.util.MessageUtil;
-import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
+
+import javax.inject.Inject;
 
 
 public class VelocityObbyLangCommand implements SimpleCommand {

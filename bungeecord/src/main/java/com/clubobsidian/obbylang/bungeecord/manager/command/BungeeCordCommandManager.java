@@ -21,11 +21,11 @@ package com.clubobsidian.obbylang.bungeecord.manager.command;
 import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
-import com.google.inject.Inject;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.PluginManager;
 
+import javax.inject.Inject;
 import java.lang.reflect.Field;
 import java.util.Map;
 

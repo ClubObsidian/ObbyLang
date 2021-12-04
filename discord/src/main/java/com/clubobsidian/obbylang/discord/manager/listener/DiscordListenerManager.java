@@ -22,8 +22,9 @@ import com.clubobsidian.obbylang.manager.listener.ListenerManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
-import com.google.inject.Inject;
 import net.dv8tion.jda.api.hooks.SubscribeEvent;
+
+import javax.inject.Inject;
 
 public class DiscordListenerManager extends ListenerManager<String> {
 

@@ -20,8 +20,8 @@ package com.clubobsidian.obbylang.manager.script;
 
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.obbylang.util.ClassUtil;
-import com.google.inject.Inject;
 
+import javax.inject.Inject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;

@@ -25,9 +25,9 @@ import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.trident.EventBus;
 import com.clubobsidian.trident.EventHandler;
 import com.clubobsidian.trident.EventPriority;
-import com.google.inject.Inject;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
+import javax.inject.Inject;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
