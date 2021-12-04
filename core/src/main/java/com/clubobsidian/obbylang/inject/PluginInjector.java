@@ -39,6 +39,7 @@ import com.clubobsidian.trident.EventBus;
 import com.clubobsidian.trident.eventbus.methodhandle.MethodHandleEventBus;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
 import net.bytebuddy.ByteBuddy;
@@ -46,7 +47,6 @@ import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.matcher.ElementMatchers;
 
-import javax.inject.Injector;
 import java.util.ArrayList;
 import java.util.Collection;
 
