@@ -27,7 +27,6 @@ import com.velocitypowered.api.command.SimpleCommand;
 
 import javax.inject.Inject;
 
-
 public class VelocityObbyLangCommand implements SimpleCommand {
 
     private final ScriptManager scriptManager;
