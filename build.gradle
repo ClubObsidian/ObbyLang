@@ -38,6 +38,23 @@ subprojects {
         relocate 'io.leangen', 'com.clubobsidian.obbylang.leangen'
         relocate 'kotlin', 'com.clubobsidian.obbylang.kotlin'
         relocate 'kotlinx', 'com.clubobsidian.obbylang.kotlinx'
+        relocate 'net.bytebuddy', 'com.clubobsidian.obbylang.bytebuddy'
+        relocate 'net.kyori.examination', 'com.clubobsidian.obbylang.examination'
+        relocate 'okhttp3', 'com.clubobsidian.obbylang.okhttp3'
+        relocate 'okio', 'com.clubobsidian.obbylang.okio'
+        relocate 'org.bson', 'com.clubobsidian.obbylang.bson'
+        relocate 'org.intellij.lang.annotations', 'com.clubobsidian.obbylang.intellijannotations'
+        relocate 'org.jctools', 'com.clubobsidian.obbylang.jctools'
+        relocate 'org.jetbrains.annotations', 'com.clubobsidian.obbylang.jetbrainsannotations'
+        relocate 'org.objectweb.asm', 'com.clubobsidian.obbylang.asm'
+        relocate 'com.clubobsidian.crouton', 'com.clubobsidian.obbylang.crouton'
+        relocate 'com.clubobsidian.trident', 'com.clubobsidian.obbylang.trident'
+        relocate 'com.google.errorprone', 'com.clubobsidian.obbylang.errorprone'
+        relocate 'com.google.gson', 'com.clubobsidian.obbylang.gson'
+        relocate 'com.google.inject', 'com.clubobsidian.obbylang.guice'
+        relocate 'com.google.j2objc', 'com.clubobsidian.obbylang.j2objc'
+        relocate 'com.google.thirdparty.publicsuffix', 'com.clubobsidian.obbylang.publicsuffix'
+        relocate 'com.mongodb', 'com.clubobsidian.obbylang.mongodb'
     }
 
     repositories {
