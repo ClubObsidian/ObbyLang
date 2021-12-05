@@ -28,7 +28,10 @@ There is work in progress documentation for ObbyLang [here](https://clubobsidian
 ObbyLang runs off of nashorn so it supports es5 with some es6 support. The es6 syntax that ObbyLang supports is listed below, the quote is from the [nashorn Github](https://github.com/openjdk/nashorn).
 
 ```
-It also implements many new features introduced in ECMAScript 6 including template strings; let, const, and block scope; iterators and for..of loops; Map, Set, WeakMap, and WeakSet data types; symbols; and binary and octal literals.
+It also implements many new features introduced in ECMAScript 6 
+including template strings; let, const, and block scope; 
+iterators and for..of loops; Map, Set, WeakMap, and WeakSet 
+data types; symbols; and binary and octal literals.
 ```
 
 
