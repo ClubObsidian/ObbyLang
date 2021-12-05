@@ -35,7 +35,6 @@ public class DatabaseManager implements RegisteredManager {
 
     @Inject
     private DatabaseManager() {
-
     }
 
     public Database connect(String declaringClass, String type, String connection, int maxPoolSize) {
