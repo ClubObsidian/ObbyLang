@@ -36,6 +36,8 @@ subprojects {
         relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
         relocate 'com.google.common', 'com.clubobsidian.obbylang.guava'
         relocate 'io.leangen', 'com.clubobsidian.obbylang.leangen'
+        relocate 'kotlin', 'com.clubobsidian.obbylang.kotlin'
+        relocate 'kotlinx', 'com.clubobsidian.obbylang.kotlinx'
     }
 
     repositories {
