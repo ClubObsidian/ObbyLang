@@ -19,9 +19,21 @@ jobs:
       run: ./gradlew shadowJar
     - uses: actions/upload-artifact@v2
       with:
-        name: obbylang
+        name: obbylang-bukkit
         path: |
           bukkit/build/libs/
+    - uses: actions/upload-artifact@v2
+      with:
+        name: obbylang-bungeecord
+        path: |
           bungeecord/build/libs/
-          discord/build/libs/
+    - uses: actions/upload-artifact@v2
+      with:
+        name: obbylang-velocity
+        path: |
           velocity/build/libs/
+    - uses: actions/upload-artifact@v2
+      with:
+        name: obbylang-discord
+        path: |
+          discord/build/libs/
