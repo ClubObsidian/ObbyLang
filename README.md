@@ -17,11 +17,12 @@ ObbyLang supports the following platforms:
 * Bukkit
 * BungeeCord
 * Discord
+  * Standalone bot that can run ObbyLang scripts
 * Velocity
 
 ## Documentation
 
-To work with ObbyLang you will want to be familiar with JavaScript. There is work in progress documentation for the ObbyLang api [here](https://clubobsidian.gitbook.io/obbylang/). You will also want to be familar with nashorn which you can find documentation for [here](https://wiki.openjdk.java.net/display/Nashorn/Nashorn+extensions).
+To work with ObbyLang you will want to be familiar with JavaScript. There is work in progress documentation for the ObbyLang API [here](https://clubobsidian.gitbook.io/obbylang/). You will also want to be familar with nashorn which you can find documentation for [here](https://wiki.openjdk.java.net/display/Nashorn/Nashorn+extensions).
 
 ## JavaScript Compatibility
 
@@ -56,8 +57,6 @@ ObbyLang supports the following tools:
 ## Performance
 
 ObbyLang is pretty fast as it does not interpret Javascript code every time code is ran. ObbyLang takes advantage of nashorn's CompiledScript functionality to interpret code once and then compile it. These compiled scripts then provide values to listeners, commands etc which are quick to execute since they get compiled down into native Java lamdas, which can be confirmed by running a code profiler such as Spark or VisualVM.
-
-
 
 ## Building
 
