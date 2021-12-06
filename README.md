@@ -2,6 +2,7 @@
 <h1>ObbyLang</h1>
 
 
+[![build](https://github.com/ClubObsidian/ObbyLang/actions/workflows/build.yml/badge.svg)](https://github.com/ClubObsidian/ObbyLang/actions/workflows/build.yml)
 [![License](https://img.shields.io/badge/license-GPL-blue)](https://github.com/ClubObsidian/ObbyLang/blob/master/LICENSE)
 
 Fourth generation of ObbyLang for Minecraft and Discord
