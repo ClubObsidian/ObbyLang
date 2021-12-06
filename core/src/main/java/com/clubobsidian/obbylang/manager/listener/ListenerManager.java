@@ -24,6 +24,7 @@ import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.script.ScriptWrapper;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
+import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.obbylang.util.ListenerUtil;
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
@@ -52,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public abstract class ListenerManager<T> implements RegisteredManager {
 
@@ -61,13 +63,15 @@ public abstract class ListenerManager<T> implements RegisteredManager {
     private final MappingsManager mappingsManager;
     private final ScriptManager scriptManager;
     private final FakeServerManager fakeServer;
+    private final ObbyLangPlugin plugin;
 
     @Inject
     protected ListenerManager(MappingsManager mappingsManager, ScriptManager scriptManager,
-                              FakeServerManager fakeServer) {
+                              FakeServerManager fakeServer, ObbyLangPlugin plugin) {
         this.mappingsManager = mappingsManager;
         this.scriptManager = scriptManager;
         this.fakeServer = fakeServer;
+        this.plugin = plugin;
     }
 
     protected void loadEvents(String[] events) {
@@ -90,6 +94,11 @@ public abstract class ListenerManager<T> implements RegisteredManager {
         Iterator<Entry<String, String>> it = this.mappingsManager.getEventMappings().entrySet().iterator();
         while(it.hasNext()) {
             Entry<String, String> next = it.next();
+            String className = next.getKey();
+            if(!eventClassExists(className)) {
+                this.plugin.getLogger().log(Level.INFO, String.format("The class %s does not exist", className));
+                continue;
+            }
             Map<T, ScriptWrapper[]> scriptMap = new HashMap<>();
             for(T priority : this.getPriorities()) {
                 scriptMap.put(priority, new ScriptWrapper[0]);
@@ -98,6 +107,15 @@ public abstract class ListenerManager<T> implements RegisteredManager {
         }
 
         return scripts;
+    }
+
+    private boolean eventClassExists(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch(ClassNotFoundException e) {
+            return false;
+        }
     }
 
     public ScriptWrapper[] getEventScripts(String event, T priority) {

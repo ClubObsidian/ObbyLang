@@ -22,6 +22,7 @@ import com.clubobsidian.obbylang.manager.listener.ListenerManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
+import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -32,8 +33,8 @@ public class BukkitListenerManager extends ListenerManager<EventPriority> {
 
     @Inject
     protected BukkitListenerManager(MappingsManager mappingsManager, ScriptManager scriptManager,
-                                    FakeServerManager fakeServer) {
-        super(mappingsManager, scriptManager, fakeServer);
+                                    FakeServerManager fakeServer, ObbyLangPlugin plugin) {
+        super(mappingsManager, scriptManager, fakeServer, plugin);
     }
 
     @Override

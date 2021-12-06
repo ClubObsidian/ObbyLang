@@ -22,6 +22,7 @@ import com.clubobsidian.obbylang.manager.listener.ListenerManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
+import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
@@ -39,10 +40,9 @@ public class BungeeCordListenerManager extends ListenerManager<Byte> {
     };
 
     @Inject
-    protected BungeeCordListenerManager(MappingsManager mappingsManager,
-                                        ScriptManager scriptManager,
-                                        FakeServerManager fakeServer) {
-        super(mappingsManager, scriptManager, fakeServer);
+    protected BungeeCordListenerManager(MappingsManager mappingsManager, ScriptManager scriptManager,
+                                        FakeServerManager fakeServer, ObbyLangPlugin plugin) {
+        super(mappingsManager, scriptManager, fakeServer, plugin);
     }
 
 

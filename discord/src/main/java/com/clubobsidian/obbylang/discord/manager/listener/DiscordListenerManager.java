@@ -22,6 +22,7 @@ import com.clubobsidian.obbylang.manager.listener.ListenerManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
+import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import net.dv8tion.jda.api.hooks.SubscribeEvent;
 
 import javax.inject.Inject;
@@ -29,10 +30,9 @@ import javax.inject.Inject;
 public class DiscordListenerManager extends ListenerManager<String> {
 
     @Inject
-    protected DiscordListenerManager(MappingsManager mappingsManager,
-                                     ScriptManager scriptManager,
-                                     FakeServerManager fakeServer) {
-        super(mappingsManager, scriptManager, fakeServer);
+    protected DiscordListenerManager(MappingsManager mappingsManager, ScriptManager scriptManager,
+                                     FakeServerManager fakeServer, ObbyLangPlugin plugin) {
+        super(mappingsManager, scriptManager, fakeServer, plugin);
     }
 
     @Override
