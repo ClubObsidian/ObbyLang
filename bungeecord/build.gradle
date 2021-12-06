@@ -19,5 +19,5 @@ tasks.withType(AbstractArchiveTask) {
 
 dependencies {
     implementation project(path: ':core')
-    compileOnly 'net.md-5:bungeecord-api:1.12-SNAPSHOT'
+    compileOnly 'net.md-5:bungeecord-api:1.18-R0.1-SNAPSHOT'
 }
