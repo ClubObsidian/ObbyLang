@@ -85,6 +85,6 @@ subprojects {
         api 'net.kyori:adventure-text-serializer-gson:4.9.2'
         api 'com.zaxxer:influx4j:2.14'
         api 'org.mongodb:mongodb-driver-sync:4.2.3'
-        api 'org.openjdk.nashorn:nashorn-core:15.2'
+        api 'org.openjdk.nashorn:nashorn-core:15.3'
     }
 }
