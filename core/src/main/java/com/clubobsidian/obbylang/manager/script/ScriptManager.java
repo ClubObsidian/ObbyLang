@@ -142,7 +142,6 @@ public class ScriptManager {
                 this.plugin.getLogger().info("Loading " + file.getName());
                 FileReader reader = new FileReader(file);
                 CompiledScript script = this.compilableEngine.compile(reader);
-                System.out.println(script.getClass().getName());
                 reader.close();
                 this.scripts.put(file.getName(), script);
             } catch(Exception ex) {
