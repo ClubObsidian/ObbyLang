@@ -10,7 +10,7 @@ Fourth generation of ObbyLang for Minecraft and Discord
 
 ## Description
 
-ObbyLang is a project to run es5 and [some es6](#JavaScript-Compatability) JavaScript on Minecraft and on other platforms, it provides support for a number of modules to make content development quicker right out of the box. ObbyLang was written to be a scripting language with similar capabilities to Skript such as: being able to be hot reloaded, unloaded and loaded at will as well as being extendable but with the ability to write code in a formal programming language.
+ObbyLang is a project to run es5 and some es6 JavaScript on Minecraft and on other platforms, it provides support for a number of modules to make content development quicker right out of the box. ObbyLang was written to be a scripting language with similar capabilities to Skript such as: being able to be hot reloaded, unloaded and loaded at will as well as being extendable but with the ability to write code in a formal programming language.
 
 ## Platforms
 
