@@ -22,7 +22,11 @@ body:
       label: Steps to reproduce the bug
       description: A description of the problem and if possible screenshots, a video or anything else that can be used to understand the issue.
     validations:
-      required: true      
+      required: true
+  - type: textarea
+    attributes:
+      label: Error given from console
+      description: If there is an error given from the console please provide that here
   - type: checkboxes
     attributes: 
       label: Verify
@@ -31,4 +35,6 @@ body:
         - label: I have tried the latest stable build and the latest dev build
           required: true
         - label: I am running a supported Minecraft version 1.12.x - 1.17.x
+          required: true
+        - label: If there was an error in console it has been provided, if not disregard
           required: true
