@@ -4,23 +4,29 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before making a report please ensure you were running the latest stable build and have tried the latest development build.
+        Before making a report please ensure you have tried running the latest stable build and have tried the latest development build.
   - type: textarea
     attributes:
       label: Current Behavior
       description: What buggy behavior is happening?
+    validations:
+      required: true      
   - type: textarea
     attributes:
       label: Expected Behavior
       description: What is expected to happen?
+    validations:
+      required: true      
   - type: textarea
     attributes:
-      label: Steps to reproduce to the bug
-      description: A description of the problem and if helpful screenshots, a video or anything else that can be used to understand the issue.
+      label: Steps to reproduce the bug
+      description: A description of the problem and if possible screenshots, a video or anything else that can be used to understand the issue.
+    validations:
+      required: true      
   - type: checkboxes
     attributes: 
-      label: Agreements
-      description: Please take the time to make sure you have followed these steps.
+      label: Verify
+      description: Please verify that you have completed the following steps.
       options:
         - label: I have tried the latest stable build and the latest dev build
           required: true
