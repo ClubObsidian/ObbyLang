@@ -9,7 +9,7 @@ Fourth generation of ObbyLang for Minecraft and Discord
 
 ## Description
 
-ObbyLang is a project to run es5 and [some es6](#Javascript-Compatability) Javascript in Minecraft and on other platforms, it provides support for a number of modules to make content development quicker right out of the box. ObbyLang was written to be a scripting language with similar capabilities to Skript such as: being able to be hot reloaded, unloaded and loaded at will as well as being extendable but with the ability to write code in a formal programming language.
+ObbyLang is a project to run es5 and [some es6](#JavaScript-Compatability) JavaScript on Minecraft and on other platforms, it provides support for a number of modules to make content development quicker right out of the box. ObbyLang was written to be a scripting language with similar capabilities to Skript such as: being able to be hot reloaded, unloaded and loaded at will as well as being extendable but with the ability to write code in a formal programming language.
 
 ## Platforms
 
@@ -21,19 +21,27 @@ ObbyLang supports the following platforms:
 
 ## Documentation
 
-There is work in progress documentation for ObbyLang [here](https://clubobsidian.gitbook.io/obbylang/). You will also want to be familar with nashorn which you can find documentation for [here](https://wiki.openjdk.java.net/display/Nashorn/Nashorn+extensions).
+To work with ObbyLang you will want to be familiar with JavaScript. There is work in progress documentation for the ObbyLang api [here](https://clubobsidian.gitbook.io/obbylang/). You will also want to be familar with nashorn which you can find documentation for [here](https://wiki.openjdk.java.net/display/Nashorn/Nashorn+extensions).
 
-## Javascript Compatability
+## JavaScript Compatibility
 
-ObbyLang runs off of nashorn so it supports es5 with some es6 support. The es6 syntax that ObbyLang supports is listed below, the quote is from the [nashorn Github](https://github.com/openjdk/nashorn).
+ObbyLang runs off of nashorn so it supports es5 with some es6 support.
 
+Supported es6 features:
 ```
-It also implements many new features introduced in ECMAScript 6 
-including template strings; let, const, and block scope; 
-iterators and for..of loops; Map, Set, WeakMap, and WeakSet 
-data types; symbols; and binary and octal literals.
+arrow functions
+let
+const
+block scope
+for..of loops
+Map
+Set
+WeakMap
+WeakSet
+data types
+symbols
+binary and octal literals
 ```
-
 
 ## Tooling
 
