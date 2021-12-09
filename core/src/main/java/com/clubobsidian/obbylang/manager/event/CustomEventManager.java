@@ -25,8 +25,8 @@ import javax.inject.Inject;
 public abstract class CustomEventManager {
 
     @Inject
-    protected CustomEventManager(MappingsManager mappingsManager) {
-        mappingsManager.addEventMapping("com.clubobsidian.obbylang.velocity.event.ObbyLangCustomEvent", "obbylangcustomevent");
+    protected CustomEventManager(MappingsManager mappingsManager, String eventClassName) {
+        mappingsManager.addEventMapping(eventClassName, "obbylangcustomevent");
     }
 
     public abstract void fire(Object[] args);

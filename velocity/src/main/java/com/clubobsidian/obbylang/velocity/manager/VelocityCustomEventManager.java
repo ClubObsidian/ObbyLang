@@ -30,7 +30,7 @@ public class VelocityCustomEventManager extends CustomEventManager {
 
     @Inject
     protected VelocityCustomEventManager(MappingsManager mappingsManager) {
-        super(mappingsManager);
+        super(mappingsManager, ObbyLangCustomEvent.class.getName());
     }
 
     @Override

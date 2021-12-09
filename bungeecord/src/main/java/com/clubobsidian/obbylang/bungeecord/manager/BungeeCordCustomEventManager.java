@@ -29,7 +29,7 @@ public class BungeeCordCustomEventManager extends CustomEventManager {
 
     @Inject
     protected BungeeCordCustomEventManager(MappingsManager mappingsManager) {
-        super(mappingsManager);
+        super(mappingsManager, ObbyLangCustomEvent.class.getName());
     }
 
     @Override

@@ -29,7 +29,7 @@ public class BukkitCustomEventManager extends CustomEventManager {
 
     @Inject
     protected BukkitCustomEventManager(MappingsManager mappingsManager) {
-        super(mappingsManager);
+        super(mappingsManager, ObbyLangCustomEvent.class.getName());
     }
 
     @Override
