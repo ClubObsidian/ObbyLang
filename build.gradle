@@ -14,6 +14,8 @@ subprojects {
 
     shadowJar {
         archiveClassifier.set('')
+        relocate 'javax.inject', 'com.clubobsidian.obbylang.javaxinject'
+        relocate 'javax.annotation', 'com.clubobsidian.obbylang.javaxannotation'
         relocate 'afu', 'com.clubobsidian.obbylang.afu'
         relocate 'io.netty', 'com.clubobsidian.obbylang.netty'
         relocate 'javassist', 'com.clubobsidian.obbylang.javassist'
