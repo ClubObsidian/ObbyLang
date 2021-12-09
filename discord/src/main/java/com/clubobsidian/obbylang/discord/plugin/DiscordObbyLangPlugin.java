@@ -87,24 +87,27 @@ public class DiscordObbyLangPlugin implements ObbyLangPlugin {
             this.dataFolder.mkdirs();
         }
 
-        if(!configFile.exists()) {
-            InputStream configStream = this.getClass().getResourceAsStream("/config.yml");
-            this.saveResource(configStream, configFile);
-        }
-
         if(!eventsFile.exists()) {
             InputStream eventsStream = this.getClass().getResourceAsStream("/events.csv");
             this.saveResource(eventsStream, eventsFile);
         }
 
-        Configuration config = Configuration.load(configFile);
+        String token = System.getenv("BOT_TOKEN");
+        if(token == null) {
+            if(!configFile.exists()) {
+                InputStream configStream = this.getClass().getResourceAsStream("/config.yml");
+                this.saveResource(configStream, configFile);
+            }
 
-        String token = config.getString("token");
+            Configuration config = Configuration.load(configFile);
+
+            token = config.getString("token");
+        }
+        
         if(token == null) {
             this.getLogger().info("Bot token not found, shutting down...");
             return;
         }
-
 
         try {
             this.jda = JDABuilder.create(token, EnumSet.allOf(GatewayIntent.class))
