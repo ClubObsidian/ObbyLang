@@ -20,7 +20,7 @@ tasks.withType(AbstractArchiveTask) {
 
 dependencies {
     implementation project(path: ':core')
-    compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
     compileOnly 'com.github.ClubObsidian:DynamicGui:4.1.0'
     compileOnly name: 'ProtocolLib-4.4.0'
 }
