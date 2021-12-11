@@ -17,7 +17,7 @@ shadowJar {
 
 dependencies {
     implementation project(path: ':core')
-    implementation('com.github.DV8FromTheWorld:JDA:v4.3.0') {
+    implementation('com.github.DV8FromTheWorld:JDA:v4.4.0') {
         exclude module: 'opus-java'
     }
     implementation 'org.slf4j:slf4j-log4j12:1.7.30'
