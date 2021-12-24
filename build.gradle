@@ -72,7 +72,7 @@ subprojects {
         maven { url = "https://oss.sonatype.org/content/repositories/snapshots" }
         maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
         maven { url 'https://jitpack.io' }
-        maven { url = "https://repo.velocitypowered.com/snapshots/" }
+        maven { url = "https://nexus.velocitypowered.com/repository/maven-public/" }
     }
 
     dependencies {
