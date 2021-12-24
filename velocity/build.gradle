@@ -3,6 +3,8 @@ plugins {
     id "net.kyori.blossom" version "1.3.0"
 }
 
+def velocityVersion = '3.1.0'
+
 blossom {
     replaceTokenIn('com/clubobsidian/obbylang/velocity/plugin/VelocityObbyLangPlugin.java')
     replaceToken('${pluginVersion}', project.version)
@@ -19,7 +21,7 @@ tasks.withType(AbstractArchiveTask) {
 
 dependencies {
     implementation project(path: ':core')
-    compileOnly 'com.velocitypowered:velocity-api:3.1.0'
-    annotationProcessor 'com.velocitypowered:velocity-api:3.0.1'
+    compileOnly 'com.velocitypowered:velocity-api:' + velocityVersion
+    annotationProcessor 'com.velocitypowered:velocity-api:' + velocityVersion
 }
 
