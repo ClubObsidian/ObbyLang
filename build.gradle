@@ -12,6 +12,11 @@ subprojects {
     group 'com.clubobsidian'
     version '4.0.0-SNAPSHOT'
 
+    tasks.withType(JavaCompile) {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
     shadowJar {
         archiveClassifier.set('')
         relocate 'javax.inject', 'com.clubobsidian.obbylang.javaxinject'
