@@ -17,6 +17,10 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    test {
+        useJUnitPlatform()
+    }
+
     shadowJar {
         archiveClassifier.set('')
         relocate 'javax.inject', 'com.clubobsidian.obbylang.javaxinject'
@@ -93,5 +97,7 @@ subprojects {
         api 'com.zaxxer:influx4j:2.14'
         api 'org.mongodb:mongodb-driver-sync:4.4.0'
         api 'org.openjdk.nashorn:nashorn-core:15.3'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     }
 }

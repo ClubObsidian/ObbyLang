@@ -204,7 +204,7 @@ public class ScriptManager {
             builder.append(strippedName);
             builder.append(ChatColor.WHITE + ", ");
         }
-        return builder.toString().substring(0, builder.toString().length() - 2);
+        return builder.substring(0, builder.toString().length() - 2);
     }
 
     public List<String> getScriptNamesRaw() {
@@ -228,8 +228,9 @@ public class ScriptManager {
     }
 
     public boolean unloadScript(String className, Pipe pipe) {
-        if(!className.endsWith(".js"))
+        if(!className.endsWith(".js")) {
             className += ".js";
+        }
         CompiledScript script = this.scripts.get(className);
         if(script == null) {
             return false;
