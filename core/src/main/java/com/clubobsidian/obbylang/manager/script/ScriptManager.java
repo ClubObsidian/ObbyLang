@@ -40,7 +40,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -50,6 +49,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -71,6 +71,7 @@ public class ScriptManager {
 
     private final ObbyLangPlugin plugin;
     private final AddonManager addonManager;
+    private final CompiledScript require;
 
     @Inject
     private ScriptManager(ObbyLangPlugin plugin, AddonManager addonManager) {
@@ -82,12 +83,11 @@ public class ScriptManager {
         this.plugin = plugin;
         this.directory = Paths.get(plugin.getDataFolder().getPath(), "scripts");
         this.addonManager = addonManager;
+        this.require = this.loadScriptFromFile(new File(this.plugin.getDataFolder(), "require.js"));
     }
 
     public boolean load() {
         if(!this.loaded) {
-            //load for each different event,pass into script eval below
-            //use javassist to create classes with listeners
             this.loadClassPool();
             this.loadGlobalScript();
             this.loadScripts();
@@ -110,19 +110,26 @@ public class ScriptManager {
         File globalFile = new File(this.plugin.getDataFolder(), "global.js");
         if(globalFile.exists()) {
             try {
-                FileReader reader = new FileReader(globalFile);
-                CompiledScript script = this.compilableEngine.compile(reader);
+                CompiledScript script = this.loadScriptFromFile(globalFile);
                 Bindings bindings = this.engine.createBindings();
                 ScriptContext context = new SimpleScriptContext();
                 context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
                 context.setAttribute("owner", "global.js", ScriptContext.ENGINE_SCOPE);
                 this.addContext(context);
-                //TODO - Eval require
                 script.eval(context);
-            } catch(FileNotFoundException | ScriptException e) {
+            } catch(ScriptException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private CompiledScript loadScriptFromFile(File file) {
+        try(FileReader reader = new FileReader(file)) {
+            return this.compilableEngine.compile(reader);
+        } catch(IOException | ScriptException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void loadScripts() {
@@ -134,39 +141,15 @@ public class ScriptManager {
 
         Collection<File> fileCollection = FileUtils.listFiles(this.directory.toFile(), new String[]{"js"}, true);
         File[] files = fileCollection.toArray(new File[fileCollection.size()]);
-        Arrays.sort(files);
 
-        for(File file : files) {
+        Collection<File> sortedScripts = Arrays.stream(files)
+                .sorted(Comparator.comparing(File::getName))
+                .collect(Collectors.toList());
+
+        for(File file : sortedScripts) {
             try {
-                this.plugin.getLogger().info("Loading " + file.getName());
-                FileReader reader = new FileReader(file);
-                CompiledScript script = this.compilableEngine.compile(reader);
-                reader.close();
-                this.scripts.put(file.getName(), script);
+                this.loadScript(file, null);
             } catch(Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-
-
-        Map<String, CompiledScript> sorted = this.scripts
-                .entrySet()
-                .stream()
-                .sorted(Entry.comparingByKey())
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (key, value) -> key, LinkedHashMap::new));
-
-        Iterator<Entry<String, CompiledScript>> it = sorted.entrySet().iterator();
-        while(it.hasNext()) {
-            Entry<String, CompiledScript> next = it.next();
-            try {
-                Bindings bindings = this.engine.createBindings();
-                ScriptContext context = new SimpleScriptContext();
-                context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-                context.setAttribute("owner", next.getKey(), ScriptContext.ENGINE_SCOPE);
-                this.addContext(context);
-                next.getValue().eval(context);
-            } catch(Exception ex) {
-                this.unloadScript(next.getKey());
                 ex.printStackTrace();
             }
         }
@@ -251,44 +234,37 @@ public class ScriptManager {
     }
 
     public boolean loadScript(String location, Pipe pipe) {
-        if(!location.endsWith(".js"))
+        if(!location.endsWith(".js")) {
             location += ".js";
-
+        }
         File file = new File(this.directory.toFile(), location);
+        return this.loadScript(file, pipe);
+    }
 
-        if(!file.exists()) {
-            return false;
-        } else if(this.scripts.containsKey(file.getName())) {
+    private boolean loadScript(File file, Pipe pipe) {
+        String scriptName = file.getName();
+        if(!file.exists() || this.scripts.containsKey(scriptName)) {
             return false;
         }
-
-
-        FileReader reader = null;
         try {
-            reader = new FileReader(file);
-            CompiledScript script = this.compilableEngine.compile(reader);
-            this.scripts.put(file.getName(), script);
+            this.plugin.getLogger().info("Loading: " + scriptName);
+            CompiledScript script = this.loadScriptFromFile(file);
+            this.scripts.put(scriptName, script);
             Bindings bindings = this.engine.createBindings();
             ScriptContext context = new SimpleScriptContext();
             context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-            context.setAttribute("owner", file.getName(), ScriptContext.ENGINE_SCOPE);
+            context.setAttribute("owner", scriptName, ScriptContext.ENGINE_SCOPE);
             this.addContext(context);
             script.eval(context);
+            return true;
         } catch(Exception e) {
-            this.unloadScript(file.getName(), pipe);
+            this.unloadScript(scriptName, pipe);
             e.printStackTrace();
             if(pipe != null) {
                 this.sendStacktrace(e, pipe);
             }
-        } finally {
-            try {
-                reader.close();
-            } catch(IOException e) {
-                e.printStackTrace();
-            }
         }
-
-        return true;
+        return false;
     }
 
     public boolean reloadScript(String location, Pipe pipe) {
