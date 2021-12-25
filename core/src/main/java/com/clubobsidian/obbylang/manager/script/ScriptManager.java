@@ -51,7 +51,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -71,7 +70,6 @@ public class ScriptManager {
 
     private final ObbyLangPlugin plugin;
     private final AddonManager addonManager;
-    private final CompiledScript require;
 
     @Inject
     private ScriptManager(ObbyLangPlugin plugin, AddonManager addonManager) {
@@ -83,7 +81,6 @@ public class ScriptManager {
         this.plugin = plugin;
         this.directory = Paths.get(plugin.getDataFolder().getPath(), "scripts");
         this.addonManager = addonManager;
-        this.require = this.loadScriptFromFile(new File(this.plugin.getDataFolder(), "require.js"));
     }
 
     public boolean load() {
@@ -105,7 +102,7 @@ public class ScriptManager {
         ClassPool.getDefault().insertClassPath(new ClassClassPath(Map.class));
     }
 
-    private CompiledScript loadScriptFromFile(File file) {
+    private CompiledScript createCompiledScript(File file) {
         try(FileReader reader = new FileReader(file)) {
             return this.compilableEngine.compile(reader);
         } catch(IOException | ScriptException e) {
@@ -230,13 +227,9 @@ public class ScriptManager {
         }
         try {
             this.plugin.getLogger().info("Loading: " + scriptName);
-            CompiledScript script = this.loadScriptFromFile(file);
+            CompiledScript script = this.createCompiledScript(file);
             this.scripts.put(scriptName, script);
-            Bindings bindings = this.engine.createBindings();
-            ScriptContext context = new SimpleScriptContext();
-            context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-            context.setAttribute("owner", scriptName, ScriptContext.ENGINE_SCOPE);
-            this.addContext(context);
+            SimpleScriptContext context = this.createContext(scriptName);
             script.eval(context);
             return true;
         } catch(Exception e) {
@@ -247,6 +240,21 @@ public class ScriptManager {
             }
         }
         return false;
+    }
+
+    private SimpleScriptContext createContext(String scriptName) {
+        SimpleScriptContext context = new SimpleScriptContext();
+        Bindings bindings = this.engine.createBindings();
+        context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
+        context.setAttribute("owner", scriptName, ScriptContext.ENGINE_SCOPE);
+        Iterator<Entry<String, Object>> it = this.addonManager.getAddons().entrySet().iterator();
+        while(it.hasNext()) {
+            Entry<String, Object> next = it.next();
+            String key = next.getKey();
+            Object value = next.getValue();
+            context.setAttribute(key, value, ScriptContext.ENGINE_SCOPE);
+        }
+        return context;
     }
 
     public boolean reloadScript(String location, Pipe pipe) {
@@ -346,15 +354,5 @@ public class ScriptManager {
             pipe.out(message);
         }
 
-    }
-
-    private void addContext(ScriptContext context) {
-        Iterator<Entry<String, Object>> it = this.addonManager.getAddons().entrySet().iterator();
-        while(it.hasNext()) {
-            Entry<String, Object> next = it.next();
-            String key = next.getKey();
-            Object value = next.getValue();
-            context.setAttribute(key, value, ScriptContext.ENGINE_SCOPE);
-        }
     }
 }

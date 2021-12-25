@@ -80,17 +80,17 @@ public class ObbyLang {
             e.printStackTrace();
         }
 
-        InputStream requireStream = this.getClass().getResourceAsStream("/require.js");
+        /*InputStream requireStream = this.getClass().getResourceAsStream("/require.js");
         this.plugin.getLogger().info("RequireStream:" + (requireStream == null));
         File requireFile = new File(dataFolder, "require.js");
         try {
-            if(!eventsFile.exists()) {
+            if(!requireFile.exists()) {
                 this.plugin.getLogger().info("Require file does not exist, copying to directory");
                 Files.copy(requireStream, requireFile.toPath());
             }
         } catch(IOException e) {
             e.printStackTrace();
-        }
+        }*/
 
         this.injector.getInstance(MappingsManager.class).loadEventMappingsFromFile();
         this.loadBuiltinManagers();
