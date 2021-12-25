@@ -73,8 +73,20 @@ public class ObbyLang {
         File eventsFile = new File(dataFolder, "events.csv");
         try {
             if(!eventsFile.exists()) {
-                this.plugin.getLogger().info("EventsFile does not exist, copying to directory");
+                this.plugin.getLogger().info("Events file does not exist, copying to directory");
                 Files.copy(eventsStream, eventsFile.toPath());
+            }
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+
+        InputStream requireStream = this.getClass().getResourceAsStream("/require.js");
+        this.plugin.getLogger().info("RequireStream:" + (requireStream == null));
+        File requireFile = new File(dataFolder, "require.js");
+        try {
+            if(!eventsFile.exists()) {
+                this.plugin.getLogger().info("Require file does not exist, copying to directory");
+                Files.copy(requireStream, requireFile.toPath());
             }
         } catch(IOException e) {
             e.printStackTrace();

@@ -109,7 +109,6 @@ public class ScriptManager {
     private void loadGlobalScript() {
         File globalFile = new File(this.plugin.getDataFolder(), "global.js");
         if(globalFile.exists()) {
-
             try {
                 FileReader reader = new FileReader(globalFile);
                 CompiledScript script = this.compilableEngine.compile(reader);
@@ -118,11 +117,11 @@ public class ScriptManager {
                 context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
                 context.setAttribute("owner", "global.js", ScriptContext.ENGINE_SCOPE);
                 this.addContext(context);
+                //TODO - Eval require
                 script.eval(context);
             } catch(FileNotFoundException | ScriptException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
