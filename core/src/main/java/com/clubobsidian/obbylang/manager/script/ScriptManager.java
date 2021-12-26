@@ -277,20 +277,16 @@ public class ScriptManager {
     }
 
     public boolean enableScript(String location, Pipe pipe) {
-        if(!location.contains(".js")) //add jxl3 at the end
-        {
+        if(!location.contains(".js")) {
             location += ".js";
         }
-
         File file = new File(this.directory.toFile(), location);
-
         if(file.getName().endsWith(".dis")) {
             File toCopy = new File(this.directory.toFile(), location.replace(".dis", ""));
             try {
                 Files.copy(Paths.get(file.toURI()), Paths.get(toCopy.toURI()));
                 file.delete();
-                this.loadScript(location.replace(".dis", ""), pipe);
-                return true;
+                return this.loadScript(location.replace(".dis", ""), pipe);
             } catch(IOException e) {
                 e.printStackTrace();
                 return false;
@@ -304,8 +300,7 @@ public class ScriptManager {
                 try {
                     Files.copy(Paths.get(file.toURI()), Paths.get(original.toURI()));
                     file.delete();
-                    this.loadScript(location.replace(".dis", ""));
-                    return true;
+                    return this.loadScript(location.replace(".dis", ""));
                 } catch(IOException e) {
                     e.printStackTrace();
                     return false;
