@@ -1,2 +1,3 @@
+main: "index.js"
 name: "test-package"
 version: "1.0.0"

@@ -39,6 +39,11 @@ public class ProjectPackageTest {
     }
 
     @Test
+    public void testMain() {
+        assertEquals("index.js", this.projectPackage.getMain());
+    }
+
+    @Test
     public void testName() {
         assertEquals("test-package", this.projectPackage.getName());
     }

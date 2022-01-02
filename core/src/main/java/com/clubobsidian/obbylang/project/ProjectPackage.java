@@ -22,10 +22,16 @@ import com.clubobsidian.wrappy.inject.Node;
 
 public class ProjectPackage {
 
+    @Node("main")
+    private String main;
     @Node("name")
     private String name;
     @Node("version")
     private String version;
+
+    public String getMain() {
+        return this.main;
+    }
 
     public String getName() {
         return this.name;
