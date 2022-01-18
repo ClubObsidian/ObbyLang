@@ -86,7 +86,6 @@ public class ScriptManager {
     public boolean load() {
         if(!this.loaded) {
             this.loadClassPool();
-            this.loadGlobalScript();
             this.loadScripts();
             this.loaded = true;
             return true;
@@ -101,19 +100,6 @@ public class ScriptManager {
         ClassPool.getDefault().insertClassPath(new ClassClassPath(ListenerManager.class));
         ClassPool.getDefault().insertClassPath(new ClassClassPath(Field.class));
         ClassPool.getDefault().insertClassPath(new ClassClassPath(Map.class));
-    }
-
-    private void loadGlobalScript() {
-        File globalFile = new File(this.plugin.getDataFolder(), "global.js");
-        if(globalFile.exists()) {
-            try {
-                CompiledScript script = this.createCompiledScript(globalFile);
-                ScriptContext context = this.createContext("global.js");
-                script.eval(context);
-            } catch(ScriptException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private CompiledScript createCompiledScript(File file) {
