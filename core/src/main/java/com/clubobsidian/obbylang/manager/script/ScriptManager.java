@@ -23,7 +23,11 @@ import com.clubobsidian.obbylang.manager.addon.AddonManager;
 import com.clubobsidian.obbylang.manager.listener.ListenerManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
+import com.clubobsidian.obbylang.project.PackageResolver;
+import com.clubobsidian.obbylang.project.ProjectPackage;
 import com.clubobsidian.obbylang.util.ChatColor;
+import com.clubobsidian.obbylang.util.ResourceUtil;
+import io.lettuce.core.SslOptions;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
 import org.apache.commons.io.FileUtils;
@@ -54,8 +58,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -63,12 +69,13 @@ import java.util.stream.Collectors;
 public class ScriptManager {
 
     private boolean loaded;
-    private final Path directory;
     private final ScriptEngine engine;
     private final Compilable compilableEngine;
     private final Map<String, CompiledScript> scripts = new ConcurrentHashMap<>();
-
     private final ObbyLangPlugin plugin;
+    private final Path dependenciesDirectory;
+    private final Path scriptDirectory;
+    private final Path projectDirectory;
     private final AddonManager addonManager;
 
     @Inject
@@ -79,13 +86,17 @@ public class ScriptManager {
         this.engine = new NashornScriptEngineFactory().getScriptEngine();
         this.compilableEngine = (Compilable) engine;
         this.plugin = plugin;
-        this.directory = Paths.get(plugin.getDataFolder().getPath(), "scripts");
+        this.dependenciesDirectory = Paths.get(plugin.getDataFolder().getPath(), "dependencies");
+        this.scriptDirectory = Paths.get(plugin.getDataFolder().getPath(), "scripts");
+        this.projectDirectory = Paths.get(plugin.getDataFolder().getPath(), "projects");
         this.addonManager = addonManager;
     }
 
     public boolean load() {
         if(!this.loaded) {
             this.loadClassPool();
+            this.createDependencies();
+            this.loadProjects();
             this.loadScripts();
             this.loaded = true;
             return true;
@@ -111,14 +122,75 @@ public class ScriptManager {
         return null;
     }
 
+    private void createDependencies() {
+        try {
+            Files.createDirectories(this.dependenciesDirectory);
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        File requireFile = new File(this.dependenciesDirectory.toFile(), "require.js");
+        ResourceUtil.save("require.js", requireFile, true);
+    }
+
+    private void createProjectDirectory() {
+        try {
+            Files.createDirectories(this.projectDirectory);
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadRequire(ScriptContext context) {
+        try {
+            File requireFile = new File(this.dependenciesDirectory.toFile(), "require.js");
+            this.createCompiledScript(requireFile).eval(context);
+        } catch(ScriptException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadProjects() {
+        this.createProjectDirectory();
+        File directoryFile = this.projectDirectory.toFile();
+        for(File file : directoryFile.listFiles()) {
+            if(!file.isDirectory()) {
+                continue;
+            }
+            String fileName = file.getName();
+            Optional<ProjectPackage> packageOpt = PackageResolver.resolve(file);
+            if(packageOpt.isPresent()) {
+                ProjectPackage project = packageOpt.get();
+                String name = project.getName();
+                if(name != null) {
+                    String main = project.getMain();
+                    System.out.println("main: " + main);
+                    File projectDirectory = new File(directoryFile, file.getName());
+                    if(main != null && new File(projectDirectory, main).exists()) {
+                        File mainFile = new File(projectDirectory, main);
+                        ScriptContext context = this.createContext(name);
+                        context.setAttribute("PROJECT_DIRECTORY", projectDirectory, ScriptContext.ENGINE_SCOPE);
+                        this.loadRequire(context);
+                        this.loadScript(name, context, mainFile, null);
+                    } else {
+                        this.plugin.getLogger().log(Level.SEVERE, "No main file found for: " + fileName);
+                    }
+                } else {
+                    this.plugin.getLogger().log(Level.SEVERE, "No name found in project: " + fileName);
+                }
+            } else {
+                this.plugin.getLogger().log(Level.SEVERE, "No package file found for: " + fileName);
+            }
+        }
+    }
+
     private void loadScripts() {
         try {
-            Files.createDirectories(this.directory);
+            Files.createDirectories(this.scriptDirectory);
         } catch(IOException e) {
             e.printStackTrace();
         }
 
-        Collection<File> fileCollection = FileUtils.listFiles(this.directory.toFile(), new String[]{"js"}, true);
+        Collection<File> fileCollection = FileUtils.listFiles(this.scriptDirectory.toFile(), new String[]{"js"}, true);
         File[] files = fileCollection.toArray(new File[fileCollection.size()]);
 
         Collection<File> sortedScripts = Arrays.stream(files)
@@ -134,8 +206,8 @@ public class ScriptManager {
         }
     }
 
-    public Path getDirectory() {
-        return this.directory;
+    public Path getScriptDirectory() {
+        return this.scriptDirectory;
     }
 
     public CompiledScript getScript(String script) {
@@ -150,7 +222,7 @@ public class ScriptManager {
         StringBuilder builder = new StringBuilder();
         Set<String> scripts = this.scripts.keySet();
 
-        for(File file : FileUtils.listFiles(this.directory.toFile(), new String[]{"js", "dis"}, true)) {
+        for(File file : FileUtils.listFiles(this.scriptDirectory.toFile(), new String[]{"js", "dis"}, true)) {
             String name = file.getName();
             String strippedName = name.replace(".dis", "").replace(".js", "");
             if(name.endsWith(".dis")) {
@@ -216,34 +288,51 @@ public class ScriptManager {
         if(!location.endsWith(".js")) {
             location += ".js";
         }
-        File file = new File(this.directory.toFile(), location);
+        File file = new File(this.scriptDirectory.toFile(), location);
         return this.loadScript(file, pipe);
     }
 
     private boolean loadScript(File file, Pipe pipe) {
-        String scriptName = file.getName();
-        if(!file.exists() || this.scripts.containsKey(scriptName)) {
-            return false;
-        }
+        return this.loadScript(null, file, pipe);
+    }
+
+    private boolean loadScript(String projectName, File file, Pipe pipe) {
+        return this.loadScript(projectName, null, file, pipe);
+    }
+
+    private boolean loadScript(String projectName, ScriptContext context, File file, Pipe pipe) {
         try {
-            this.plugin.getLogger().info("Loading: " + scriptName);
-            CompiledScript script = this.createCompiledScript(file);
-            this.scripts.put(scriptName, script);
-            SimpleScriptContext context = this.createContext(scriptName);
-            script.eval(context);
-            return true;
-        } catch(Exception e) {
-            this.unloadScript(scriptName, pipe);
-            e.printStackTrace();
+            String name = projectName != null ? projectName : file.getName();
+            this.plugin.getLogger().info("Loading: " + name);
+            return this.loadScriptSilent(projectName, context, file, pipe);
+        } catch(Exception ex) {
             if(pipe != null) {
-                this.sendStacktrace(e, pipe);
+                this.sendStacktrace(ex, pipe);
             }
         }
         return false;
     }
 
-    private SimpleScriptContext createContext(String scriptName) {
-        SimpleScriptContext context = new SimpleScriptContext();
+    private boolean loadScriptSilent(String projectName, ScriptContext context, File file, Pipe pipe) throws Exception {
+        String name = projectName != null ? projectName : file.getName();
+        if(!file.exists() || this.scripts.containsKey(name)) {
+            return false;
+        }
+        try {
+            CompiledScript script = this.createCompiledScript(file);
+            this.scripts.put(name, script);
+            ScriptContext evalContext = context != null ? context : this.createContext(name);
+            script.eval(evalContext);
+            return true;
+        } catch(Exception ex) {
+            this.unloadScript(name, pipe);
+            ex.printStackTrace();
+            throw(ex);
+        }
+    }
+
+    private ScriptContext createContext(String scriptName) {
+        ScriptContext context = new SimpleScriptContext();
         Bindings bindings = this.engine.createBindings();
         context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
         context.setAttribute("owner", scriptName, ScriptContext.ENGINE_SCOPE);
@@ -261,7 +350,7 @@ public class ScriptManager {
         if(!location.endsWith(".js"))
             location = location + ".js";
 
-        File file = new File(this.directory.toFile(), location);
+        File file = new File(this.scriptDirectory.toFile(), location);
         if(!file.exists())
             return false;
 
@@ -280,9 +369,9 @@ public class ScriptManager {
         if(!location.contains(".js")) {
             location += ".js";
         }
-        File file = new File(this.directory.toFile(), location);
+        File file = new File(this.scriptDirectory.toFile(), location);
         if(file.getName().endsWith(".dis")) {
-            File toCopy = new File(this.directory.toFile(), location.replace(".dis", ""));
+            File toCopy = new File(this.scriptDirectory.toFile(), location.replace(".dis", ""));
             try {
                 Files.copy(Paths.get(file.toURI()), Paths.get(toCopy.toURI()));
                 file.delete();
@@ -293,7 +382,7 @@ public class ScriptManager {
             }
         } else if(!file.exists()) {
             File original = file;
-            file = new File(this.directory.toFile(), location + ".dis");
+            file = new File(this.scriptDirectory.toFile(), location + ".dis");
             if(!file.exists()) {
                 return false;
             } else {
@@ -318,11 +407,11 @@ public class ScriptManager {
         if(!location.endsWith(".js")) {
             location += ".js";
         }
-        File file = new File(this.directory.toFile(), location);
+        File file = new File(this.scriptDirectory.toFile(), location);
         if(!file.exists()) {
             return false;
         } else {
-            File toCopy = new File(this.directory.toFile(), location + ".dis");
+            File toCopy = new File(this.scriptDirectory.toFile(), location + ".dis");
             try {
                 this.unloadScript(location, pipe);
                 Files.copy(Paths.get(file.toURI()), Paths.get(toCopy.toURI()));
@@ -348,6 +437,5 @@ public class ScriptManager {
             }
             pipe.out(message);
         }
-
     }
 }
