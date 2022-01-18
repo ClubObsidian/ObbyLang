@@ -19,15 +19,44 @@
 package com.clubobsidian.obbylang.bukkit.manager.command;
 
 import com.clubobsidian.obbylang.manager.command.SenderWrapper;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.matcher.ElementMatchers;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class BukkitCommand extends Command implements CommandExecutor {
+
+    private static Class<?> subwrapperClazz;
+
+    private static void createWrapperClazz() {
+        if(subwrapperClazz == null) {
+            subwrapperClazz = new ByteBuddy()
+                    .subclass(BukkitSenderWrapper.class, ConstructorStrategy.Default.IMITATE_SUPER_CLASS.withInheritedAnnotations())
+                    .method(ElementMatchers.isAbstract())
+                    .intercept(MethodDelegation.to(new CommandInterceptor()))
+                    .make()
+                    .load(BukkitCommand.class.getClassLoader())
+                    .getLoaded();
+        }
+    }
+
+    public static SenderWrapper<?> createWrapper(CommandSender sender) {
+        createWrapperClazz();
+        try {
+            return (SenderWrapper<?>) subwrapperClazz.getDeclaredConstructor(CommandSender.class).newInstance(sender);
+        } catch(InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     private final Object owner;
     private final String command;
@@ -44,7 +73,7 @@ public class BukkitCommand extends Command implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(label.equalsIgnoreCase(this.command)) {
-            SenderWrapper<?> wrapper = new BukkitSenderWrapper(sender);
+            SenderWrapper<?> wrapper = createWrapper(sender);
             Object ret = this.base.call(this.owner, wrapper, command, label, args);
             if(ret != null && ret instanceof Boolean) {
                 return (boolean) ret;

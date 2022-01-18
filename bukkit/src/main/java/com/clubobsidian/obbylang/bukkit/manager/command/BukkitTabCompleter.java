@@ -18,6 +18,7 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.command;
 
+import com.clubobsidian.obbylang.manager.command.SenderWrapper;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -38,7 +39,7 @@ public class BukkitTabCompleter implements TabCompleter {
     @Override
     @SuppressWarnings("unchecked")
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        BukkitSenderWrapper senderWrapper = new BukkitSenderWrapper(sender);
+        SenderWrapper<?> senderWrapper = BukkitCommand.createWrapper(sender);
         Object call = this.script.call(owner, senderWrapper, command, alias, args);
         if(call == null || !(call instanceof List)) {
             return null;
