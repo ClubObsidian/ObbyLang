@@ -80,7 +80,7 @@ subprojects {
     }
 
     dependencies {
-        compileOnly 'org.slf4j:slf4j-api:1.7.32'
+        compileOnly 'org.slf4j:slf4j-api:1.7.35'
         api 'com.zaxxer:HikariCP:5.0.1'
         api 'com.github.clubobsidian:wrappy:2.3.2'
         api 'org.jsoup:jsoup:1.11.3'
