@@ -49,7 +49,8 @@ public class PluginManager {
     }
 
     private boolean resolveDynamicGui() {
-        return Bukkit.getServer().getPluginManager().getPlugin("DynamicGui") != null;
+        boolean classExists = this.classExists("com.clubobsidian.dynamicgui.function.Function");
+        return Bukkit.getServer().getPluginManager().getPlugin("DynamicGui") != null && classExists;
     }
 
     private boolean resolveProtocolLib() {
@@ -62,6 +63,15 @@ public class PluginManager {
         }
         if(this.protocolLibEnabled) {
             this.addonManager.registerAddon("protocolLib", new ProtocolLibManager(this.scriptManager));
+        }
+    }
+
+    private boolean classExists(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch(ClassNotFoundException ex) {
+            return false;
         }
     }
 }
