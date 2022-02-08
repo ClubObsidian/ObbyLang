@@ -119,6 +119,7 @@ org.bukkit.event.player.PlayerMoveEvent,playermoveevent
 org.bukkit.event.player.PlayerPickupItemEvent,playerpickupitemevent
 org.bukkit.event.player.PlayerPortalEvent,playerportalevent
 org.bukkit.event.player.PlayerPreLoginEvent,playerpreloginevent
+org.bukkit.event.player.PlayerSwapHandItemsEvent,playerswaphanditemsevent
 org.bukkit.event.player.PlayerQuitEvent,playerquitevent
 org.bukkit.event.player.PlayerResourcePackStatusEvent,playerresourcepackstatusevent
 org.bukkit.event.player.PlayerRespawnEvent,playerrespawnevent
