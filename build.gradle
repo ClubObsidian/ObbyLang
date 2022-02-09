@@ -95,7 +95,7 @@ subprojects {
         api 'net.kyori:adventure-text-minimessage:4.2.0-SNAPSHOT'
         api 'net.kyori:adventure-text-serializer-gson:4.9.3'
         api 'com.zaxxer:influx4j:2.14'
-        api 'org.mongodb:mongodb-driver-sync:4.4.1'
+        api 'org.mongodb:mongodb-driver-sync:4.4.2'
         api 'org.openjdk.nashorn:nashorn-core:15.3'
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
