@@ -12,10 +12,13 @@ shadowJar {
     archiveBaseName.set('ObbyLangBungeeCord')
 }
 
+
 tasks.withType(AbstractArchiveTask) {
     preserveFileTimestamps = false
     reproducibleFileOrder = true
 }
+
+tasks.shadowJar.dependsOn ':core:shadowJar'
 
 dependencies {
     implementation project(path: ':core')

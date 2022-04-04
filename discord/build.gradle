@@ -15,6 +15,8 @@ shadowJar {
     archiveBaseName.set('ObbyLangDiscord')
 }
 
+tasks.shadowJar.dependsOn ':core:shadowJar'
+
 dependencies {
     implementation project(path: ':core')
     implementation('com.github.DV8FromTheWorld:JDA:v4.4.0') {

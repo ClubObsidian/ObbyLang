@@ -19,6 +19,8 @@ tasks.withType(AbstractArchiveTask) {
     reproducibleFileOrder = true
 }
 
+tasks.shadowJar.dependsOn ':core:shadowJar'
+
 dependencies {
     implementation project(path: ':core')
     compileOnly 'com.velocitypowered:velocity-api:' + velocityVersion

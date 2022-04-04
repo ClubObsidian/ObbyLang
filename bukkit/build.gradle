@@ -17,6 +17,7 @@ tasks.withType(AbstractArchiveTask) {
     reproducibleFileOrder = true
 }
 
+tasks.shadowJar.dependsOn ':core:shadowJar'
 
 dependencies {
     implementation project(path: ':core')
