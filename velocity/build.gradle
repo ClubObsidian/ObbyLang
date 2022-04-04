@@ -25,7 +25,7 @@ tasks.shadowJar.dependsOn ':core:shadowJar'
 dependencies {
     implementation(project(path: ':core'))
     compileOnly 'com.velocitypowered:velocity-api:' + velocityVersion
-    compileOnly 'net.kyori:adventure-text-serializer-gson:4.9.3'
+    compileOnly 'net.kyori:adventure-text-serializer-gson:4.10.1'
     annotationProcessor 'com.velocitypowered:velocity-api:' + velocityVersion
 }
 
