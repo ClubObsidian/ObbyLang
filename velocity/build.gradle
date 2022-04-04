@@ -21,9 +21,11 @@ tasks.withType(AbstractArchiveTask) {
 
 tasks.shadowJar.dependsOn ':core:shadowJar'
 
+
 dependencies {
-    implementation project(path: ':core')
+    implementation(project(path: ':core'))
     compileOnly 'com.velocitypowered:velocity-api:' + velocityVersion
+    compileOnly 'net.kyori:adventure-text-serializer-gson:4.9.3'
     annotationProcessor 'com.velocitypowered:velocity-api:' + velocityVersion
 }
 

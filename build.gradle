@@ -23,7 +23,6 @@ subprojects {
 
     shadowJar {
         archiveClassifier.set('')
-        relocate 'javax.inject', 'com.clubobsidian.obbylang.javaxinject'
         relocate 'javax.annotation', 'com.clubobsidian.obbylang.javaxannotation'
         relocate 'afu', 'com.clubobsidian.obbylang.afu'
         relocate 'io.netty', 'com.clubobsidian.obbylang.netty'
@@ -44,7 +43,6 @@ subprojects {
         relocate 'org.yaml.snakeyaml', 'com.clubobsidian.obbylang.snakeyaml'
         relocate 'com.clubobsidian.wrappy', 'com.clubobsidian.obbylang.wrappy'
         relocate 'org.spongepowered.configurate', 'com.clubobsidian.obbylang.configurate'
-        relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
         relocate 'com.google.common', 'com.clubobsidian.obbylang.guava'
         relocate 'io.leangen', 'com.clubobsidian.obbylang.leangen'
         relocate 'kotlin', 'com.clubobsidian.obbylang.kotlin'
@@ -92,8 +90,6 @@ subprojects {
         api 'org.apache.commons:commons-lang3:3.12.0'
         api 'com.github.clubobsidian:trident:3.0.0'
         api 'com.github.clubobsidian:crouton:0.6.1'
-        api 'net.kyori:adventure-text-minimessage:4.2.0-SNAPSHOT'
-        api 'net.kyori:adventure-text-serializer-gson:4.9.3'
         api 'com.zaxxer:influx4j:2.14'
         api 'org.mongodb:mongodb-driver-sync:4.5.0'
         api 'org.openjdk.nashorn:nashorn-core:15.3'

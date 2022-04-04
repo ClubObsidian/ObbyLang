@@ -4,6 +4,7 @@ plugins {
 
 shadowJar {
     archiveBaseName.set('ObbyLangBukkit')
+    relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
 }
 
 processResources {

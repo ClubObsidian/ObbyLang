@@ -10,6 +10,7 @@ processResources {
 
 shadowJar {
     archiveBaseName.set('ObbyLangBungeeCord')
+    relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
 }
 
 
