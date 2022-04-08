@@ -84,7 +84,7 @@ subprojects {
         api 'org.jsoup:jsoup:1.11.3'
         api 'io.lettuce:lettuce-core:6.1.6.RELEASE'
         api 'org.javassist:javassist:3.28.0-GA'
-        api 'net.bytebuddy:byte-buddy:1.12.7'
+        api 'net.bytebuddy:byte-buddy:1.12.9'
         api 'com.google.inject:guice:5.1.0'
         api 'commons-io:commons-io:2.11.0'
         api 'org.apache.commons:commons-lang3:3.12.0'
