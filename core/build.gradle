@@ -3,6 +3,6 @@ plugins {
 }
 
 dependencies {
-    api 'net.kyori:adventure-text-minimessage:4.2.0-SNAPSHOT'
+    api 'net.kyori:adventure-text-minimessage:4.11.0-SNAPSHOT'
     api 'net.kyori:adventure-text-serializer-gson:4.9.3'
 }
