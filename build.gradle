@@ -91,7 +91,7 @@ subprojects {
         api 'com.github.clubobsidian:trident:3.0.0'
         api 'com.github.clubobsidian:crouton:0.6.1'
         api 'com.zaxxer:influx4j:2.14'
-        api 'org.mongodb:mongodb-driver-sync:4.5.0'
+        api 'org.mongodb:mongodb-driver-sync:4.6.0'
         api 'org.openjdk.nashorn:nashorn-core:15.3'
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
