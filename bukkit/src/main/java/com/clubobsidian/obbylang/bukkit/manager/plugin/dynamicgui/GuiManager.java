@@ -18,19 +18,18 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.plugin.dynamicgui;
 
-import com.clubobsidian.dynamicgui.builder.EnchantmentBuilder;
-import com.clubobsidian.dynamicgui.builder.FunctionBuilder;
-import com.clubobsidian.dynamicgui.builder.FunctionTokenBuilder;
-import com.clubobsidian.dynamicgui.builder.GuiBuilder;
-import com.clubobsidian.dynamicgui.builder.SlotBuilder;
-import com.clubobsidian.dynamicgui.entity.PlayerWrapper;
-import com.clubobsidian.dynamicgui.entity.bukkit.BukkitPlayerWrapper;
-import com.clubobsidian.dynamicgui.function.Function;
-import com.clubobsidian.dynamicgui.gui.Gui;
-import com.clubobsidian.dynamicgui.manager.dynamicgui.FunctionManager;
+import com.clubobsidian.dynamicgui.core.builder.EnchantmentBuilder;
+import com.clubobsidian.dynamicgui.core.builder.FunctionBuilder;
+import com.clubobsidian.dynamicgui.core.builder.FunctionTokenBuilder;
+import com.clubobsidian.dynamicgui.core.builder.GuiBuilder;
+import com.clubobsidian.dynamicgui.core.builder.SlotBuilder;
+import com.clubobsidian.dynamicgui.core.entity.PlayerWrapper;
+import com.clubobsidian.dynamicgui.core.function.Function;
+import com.clubobsidian.dynamicgui.core.gui.Gui;
+import com.clubobsidian.dynamicgui.core.manager.dynamicgui.FunctionManager;
+import com.clubobsidian.dynamicgui.core.registry.replacer.impl.DynamicGuiReplacerRegistry;
+import com.clubobsidian.dynamicgui.core.replacer.Replacer;
 import com.clubobsidian.dynamicgui.parser.function.tree.FunctionTree;
-import com.clubobsidian.dynamicgui.registry.replacer.impl.DynamicGuiReplacerRegistry;
-import com.clubobsidian.dynamicgui.replacer.Replacer;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import org.bukkit.entity.Player;
@@ -149,7 +148,7 @@ public class GuiManager implements RegisteredManager {
     }
 
     public void openGui(Gui gui, Player player) {
-        com.clubobsidian.dynamicgui.manager.dynamicgui.GuiManager.get().openGui(new BukkitPlayerWrapper<>(player), gui);
+        com.clubobsidian.dynamicgui.core.manager.dynamicgui.GuiManager.get().openGui(player, gui);
     }
 
     @Override
