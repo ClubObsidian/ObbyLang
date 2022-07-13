@@ -82,7 +82,7 @@ subprojects {
         api 'com.zaxxer:HikariCP:5.0.1'
         api 'com.github.clubobsidian:wrappy:2.3.2'
         api 'org.jsoup:jsoup:1.11.3'
-        api 'io.lettuce:lettuce-core:6.1.6.RELEASE'
+        api 'io.lettuce:lettuce-core:6.2.0.RELEASE'
         api 'org.javassist:javassist:3.28.0-GA'
         api 'net.bytebuddy:byte-buddy:1.12.7'
         api 'com.google.inject:guice:5.1.0'
