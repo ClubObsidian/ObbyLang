@@ -37,4 +37,8 @@ public class AddonManager {
     public Map<String, Object> getAddons() {
         return new LinkedHashMap<>(this.addonContext);
     }
+
+    public <T> T getAddon(String name) {
+        return (T) this.addonContext.get(name);
+    }
 }

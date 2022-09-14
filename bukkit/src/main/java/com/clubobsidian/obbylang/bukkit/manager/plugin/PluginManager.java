@@ -28,6 +28,9 @@ import javax.inject.Inject;
 
 public class PluginManager {
 
+    public static final String DYNAMIC_GUI = "guiManager";
+    public static final String PROTOCOL_LIB = "protocolLib";
+
     private final boolean dynamicGuiEnabled = this.resolveDynamicGui();
     private final boolean protocolLibEnabled = this.resolveProtocolLib();
     private final AddonManager addonManager;
@@ -48,6 +51,10 @@ public class PluginManager {
         return this.protocolLibEnabled;
     }
 
+    public AddonManager getAddonManager() {
+        return this.addonManager;
+    }
+
     private boolean resolveDynamicGui() {
         boolean classExists = this.classExists("com.clubobsidian.dynamicgui.core.function.Function");
         return Bukkit.getServer().getPluginManager().getPlugin("DynamicGui") != null && classExists;
@@ -59,10 +66,10 @@ public class PluginManager {
 
     public void addPluginContext() {
         if(this.dynamicGuiEnabled) {
-            this.addonManager.registerAddon("guiManager", new GuiManager(this.scriptManager));
+            this.addonManager.registerAddon(DYNAMIC_GUI, new GuiManager(this.scriptManager));
         }
         if(this.protocolLibEnabled) {
-            this.addonManager.registerAddon("protocolLib", new ProtocolLibManager(this.scriptManager));
+            this.addonManager.registerAddon(PROTOCOL_LIB, new ProtocolLibManager(this.scriptManager));
         }
     }
 

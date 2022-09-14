@@ -70,20 +70,7 @@ public class GuiManager implements RegisteredManager {
         this.functionStrings.get(declaringClass).add(functionName);
         this.functionScripts.put(functionName, script);
         this.functionScriptOwners.put(functionName, declaringClass);
-        FunctionManager.get().addFunction(new Function(functionName) {
-            @Override
-            public boolean function(PlayerWrapper<?> playerWrapper) {
-                CompiledScript owner = getFunctionOwner(this.getName());
-                ScriptObjectMirror script = getScriptByFunctionName(this.getName());
-                Object ret = script.call(owner, playerWrapper, this.getData(), this.getOwner());
-                if(ret == null) {
-                    return true;
-                } else if(ret instanceof Boolean) {
-                    return (boolean) ret;
-                }
-                return true;
-            }
-        });
+        FunctionManager.get().addFunction(new ObbyLangDynamicGuiFunction(functionName));
     }
 
     public void registerReplacer(String declaringClass, String replacer, ScriptObjectMirror script) {

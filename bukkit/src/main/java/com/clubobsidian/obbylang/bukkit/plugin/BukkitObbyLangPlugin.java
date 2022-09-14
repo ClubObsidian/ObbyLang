@@ -31,7 +31,9 @@ import com.clubobsidian.obbylang.bukkit.manager.BukkitProxyManager;
 import com.clubobsidian.obbylang.bukkit.manager.command.BukkitCommandManager;
 import com.clubobsidian.obbylang.bukkit.manager.command.BukkitCommandWrapperManager;
 import com.clubobsidian.obbylang.bukkit.manager.plugin.PluginManager;
+import com.clubobsidian.obbylang.bukkit.manager.plugin.dynamicgui.GuiManager;
 import com.clubobsidian.obbylang.inject.PluginInjector;
+import com.clubobsidian.obbylang.manager.addon.AddonManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
@@ -44,6 +46,7 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
     private static BukkitObbyLangPlugin instance;
 
     private ObbyLang obbyLang;
+    private AddonManager addonManager;
 
     @Override
     public boolean createObbyLangCommand() {
@@ -82,7 +85,7 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
                 .addAddon(BukkitObbyLangCommand.class)
                 .addAddon(BukkitObbyLangCommandTabCompleter.class)
                 .create();
-
+        this.addonManager = this.obbyLang.getInstance(AddonManager.class);
         ClassPool.getDefault().insertClassPath(new ClassClassPath(Listener.class));
         this.getLogger().info("About to enable ObbyLang");
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
@@ -92,6 +95,10 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
     @Override
     public void onDisable() {
         this.obbyLang.onDisable();
+    }
+
+    public AddonManager getAddonManager() {
+         return this.addonManager;
     }
 
     public static BukkitObbyLangPlugin get() {
