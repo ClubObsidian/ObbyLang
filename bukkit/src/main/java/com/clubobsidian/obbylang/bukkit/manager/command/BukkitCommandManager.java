@@ -24,6 +24,7 @@ import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
 import com.clubobsidian.obbylang.manager.message.MessageManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.SimpleCommandMap;
@@ -39,6 +40,9 @@ import java.util.List;
 import java.util.Map;
 
 public class BukkitCommandManager extends CommandManager {
+
+    private static Method SYNC_COMMANDS = ReflectionUtil
+            .getMethod(Bukkit.getServer().getClass(), "syncCommands");
 
     private CommandMap cm = null;
     private final MessageManager messageManager;
@@ -107,6 +111,7 @@ public class BukkitCommandManager extends CommandManager {
                 String commandName = wrapper.getCommandName();
                 this.unregisterBrigadier(commandName);
                 this.registerBrigadier(cmd, commandName);
+                this.syncCommands();
             }
             return true;
         }
@@ -133,6 +138,18 @@ public class BukkitCommandManager extends CommandManager {
         } catch(ClassNotFoundException ex) {
             return false;
         }
+    }
+
+    private boolean syncCommands() {
+        if (SYNC_COMMANDS != null) {
+            try {
+                SYNC_COMMANDS.invoke(Bukkit.getServer());
+                return true;
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return false;
     }
 
     private void registerBrigadier(Command cmd, String label) {

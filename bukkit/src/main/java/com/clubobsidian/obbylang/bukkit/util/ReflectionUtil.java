@@ -18,6 +18,8 @@
 
 package com.clubobsidian.obbylang.bukkit.util;
 
+import java.lang.reflect.Method;
+
 public final class ReflectionUtil {
 
     private static final boolean MOJANG_MAPPED = checkMojangMapped();
@@ -51,6 +53,17 @@ public final class ReflectionUtil {
 
     public static Class<?> getCraftClass(String className) throws ClassNotFoundException {
         return Class.forName("org.bukkit.craftbukkit." + VersionUtil.getVersion() + "." + className);
+    }
+
+    public static Method getMethod(Class<?> cl, String... methods) {
+        for (Method m : cl.getDeclaredMethods()) {
+            for (String methodName : methods) {
+                if(m.getName().equals(methodName)) {
+                    return m;
+                }
+            }
+        }
+        return null;
     }
 
     private ReflectionUtil() {
