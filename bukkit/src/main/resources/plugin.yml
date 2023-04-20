@@ -4,6 +4,7 @@ version: ${pluginVersion}
 author: VirusTotal
 api-version: 1.13
 softdepend: [ DynamicGui, ProtocolLib, SellAllSigns, spark, PlaceholderAPI ]
+folia-supported: true
 commands:
   obbylang:
     description: "ObbyLang command"

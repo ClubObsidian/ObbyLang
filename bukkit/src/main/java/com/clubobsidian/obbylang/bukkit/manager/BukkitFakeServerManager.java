@@ -25,6 +25,21 @@ import org.bukkit.event.Listener;
 
 public class BukkitFakeServerManager extends FakeServerManager {
 
+    private static final boolean FOLIA = checkForFolia();
+
+    private static boolean checkForFolia() {
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean isFolia() {
+        return FOLIA;
+    }
+
     @Override
     public Object getPlugin(String plugin) {
         return Bukkit.getServer().getPluginManager().getPlugin(plugin);
@@ -42,7 +57,7 @@ public class BukkitFakeServerManager extends FakeServerManager {
 
     @Override
     public int scheduleSyncRepeatingTask(Runnable task, int delay, int period) {
-        return Bukkit.getServer()
+        return isFolia() ? -1 : Bukkit.getServer()
                 .getScheduler()
                 .scheduleSyncRepeatingTask(BukkitObbyLangPlugin.get(), task, delay, period);
     }
