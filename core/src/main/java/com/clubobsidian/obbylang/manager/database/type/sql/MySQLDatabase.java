@@ -81,6 +81,20 @@ public class MySQLDatabase extends AbstractSQLDatabase {
     }
 
     @Override
+    public boolean executeUpdate(String query, List<Object> vars) {
+        try(Connection con = this.source.getConnection()) {
+            PreparedStatement statement = con.prepareStatement(query);
+            for(int i = 0; i < vars.size(); i++) {
+                statement.setObject(i + 1, vars.get(i));
+            }
+            return statement.executeUpdate() > 0;
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
     public boolean close() {
         this.source.close();
         return this.source.isClosed();

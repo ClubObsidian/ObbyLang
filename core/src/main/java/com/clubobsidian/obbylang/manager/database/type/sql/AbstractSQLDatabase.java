@@ -38,4 +38,5 @@ public abstract class AbstractSQLDatabase extends Database {
 
     public abstract boolean execute(String query, List<Object> vars);
 
+    public abstract boolean executeUpdate(String query, List<Object> vars);
 }
