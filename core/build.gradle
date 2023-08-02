@@ -2,7 +2,9 @@ plugins {
     id 'java-library'
 }
 
+def adventureVersion = '4.14.0'
+
 dependencies {
-    api 'net.kyori:adventure-text-minimessage:4.2.0-SNAPSHOT'
-    api 'net.kyori:adventure-text-serializer-gson:4.9.3'
+    api("net.kyori:adventure-text-minimessage:$adventureVersion")
+    api("net.kyori:adventure-text-serializer-gson:$adventureVersion")
 }
