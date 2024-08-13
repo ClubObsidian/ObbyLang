@@ -2,6 +2,12 @@ plugins {
     id 'java-library'
 }
 
+jar {
+    manifest {
+        attributes["paperweight-mappings-namespace"] = "mojang"
+    }
+}
+
 shadowJar {
     archiveBaseName.set('ObbyLangBukkit')
     relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
