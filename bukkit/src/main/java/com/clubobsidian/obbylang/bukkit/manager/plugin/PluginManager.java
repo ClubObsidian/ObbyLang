@@ -56,7 +56,7 @@ public class PluginManager {
     }
 
     private boolean resolveDynamicGui() {
-        boolean classExists = this.classExists("com.clubobsidian.dynamicgui.api.function.Function");
+        boolean classExists = this.classExists("com.clubobsidian.dynamicgui.core.function.Function");
         return Bukkit.getServer().getPluginManager().getPlugin("DynamicGui") != null && classExists;
     }
 
