@@ -1,12 +1,5 @@
 rootProject.name = 'ObbyLang'
 include 'core'
-include 'core'
-include 'discord'
-include 'discord'
-include 'bungeecord'
-include 'bungeecord'
-include 'bungeecord'
 include 'bungeecord'
 include 'velocity'
 include 'bukkit'
-
