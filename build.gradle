@@ -13,8 +13,8 @@ subprojects {
     version '4.0.0-SNAPSHOT'
 
     tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     test {
@@ -55,7 +55,6 @@ subprojects {
         relocate 'org.intellij.lang.annotations', 'com.clubobsidian.obbylang.intellijannotations'
         relocate 'org.jctools', 'com.clubobsidian.obbylang.jctools'
         relocate 'org.jetbrains.annotations', 'com.clubobsidian.obbylang.jetbrainsannotations'
-        relocate 'org.objectweb.asm', 'com.clubobsidian.obbylang.asm'
         relocate 'com.clubobsidian.crouton', 'com.clubobsidian.obbylang.crouton'
         relocate 'com.clubobsidian.trident', 'com.clubobsidian.obbylang.trident'
         relocate 'com.google.errorprone', 'com.clubobsidian.obbylang.errorprone'
@@ -92,7 +91,7 @@ subprojects {
         api 'com.github.clubobsidian:crouton:0.6.1'
         api 'com.zaxxer:influx4j:2.14'
         api 'org.mongodb:mongodb-driver-sync:4.6.1'
-        api 'org.openjdk.nashorn:nashorn-core:15.3'
+        api 'org.openjdk.nashorn:nashorn-core:15.6'
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
     }
