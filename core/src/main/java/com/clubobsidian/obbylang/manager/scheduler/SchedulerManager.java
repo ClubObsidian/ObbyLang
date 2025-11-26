@@ -96,6 +96,15 @@ public class SchedulerManager implements RegisteredManager {
         return wrapper;
     }
 
+    public JobWrapper asyncDelayed(String declaringClass, final ScriptObjectMirror script, long delay) {
+        this.init(declaringClass);
+        JobWrapper wrapper = this.crouton.asyncDelayed(() -> {
+            this.callScript(declaringClass, script);
+        }, delay);
+        this.jobs.get(declaringClass).add(new WeakReference<>(wrapper));
+        return wrapper;
+    }
+
     public JobWrapper asyncRepeating(final String declaringClass, final ScriptObjectMirror script, long delayStart, long delayRepeating) {
         this.init(declaringClass);
         JobWrapper wrapper = this.crouton.asyncRepeating(() -> {
