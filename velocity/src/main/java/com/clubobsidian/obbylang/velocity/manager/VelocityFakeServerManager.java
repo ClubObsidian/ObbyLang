@@ -43,6 +43,11 @@ public class VelocityFakeServerManager extends FakeServerManager {
     }
 
     @Override
+    public boolean supportsSyncScheduler() {
+        return false;
+    }
+
+    @Override
     public SchedulerJob sync(Runnable task) {
         throw new UnsupportedOperationException("Cannot use sync tasks on proxy");
     }

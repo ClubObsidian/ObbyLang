@@ -2,6 +2,7 @@ package com.clubobsidian.obbylang.bukkit.scheduler;
 
 import com.clubobsidian.obbylang.manager.scheduler.SchedulerJob;
 import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitScheduler;
 
 public class BukkitSchedulerJob implements SchedulerJob {
 
@@ -13,7 +14,8 @@ public class BukkitSchedulerJob implements SchedulerJob {
 
     @Override
     public boolean isRunning() {
-        return Bukkit.getServer().getScheduler().isCurrentlyRunning(this.taskId);
+        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+        return scheduler.isCurrentlyRunning(this.taskId) || scheduler.isQueued(this.taskId);
     }
 
     @Override

@@ -26,7 +26,6 @@ import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.inject.Inject;
-import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,7 +36,7 @@ import java.util.concurrent.Future;
 public class SchedulerManager implements RegisteredManager {
 
     private final Crouton crouton = new Crouton();
-    private final Map<String, Collection<WeakReference<SchedulerJob>>> jobs = new ConcurrentHashMap<>();
+    private final Map<String, Collection<SchedulerJob>> jobs = new ConcurrentHashMap<>();
     private final FakeServerManager fakeServer;
     private final ScriptManager scriptManager;
 
@@ -45,13 +44,22 @@ public class SchedulerManager implements RegisteredManager {
     private SchedulerManager(FakeServerManager fakeServer, ScriptManager scriptManager) {
         this.fakeServer = fakeServer;
         this.scriptManager = scriptManager;
+        this.scheduleCleanupTask();
+    }
+
+    private void scheduleCleanupTask() {
+        if (this.fakeServer.supportsSyncScheduler()) {
+            this.fakeServer.scheduleSyncRepeatingTask(() -> {
+                this.jobs.values().forEach(jobList -> jobList.removeIf(schedulerJob -> !schedulerJob.isRunning()));
+            }, 1000, 1000);
+        }
     }
 
     public SchedulerJob sync(final String declaringClass,
-                                      final ScriptObjectMirror script) {
+                             final ScriptObjectMirror script) {
         this.init(declaringClass);
         SchedulerJob schedulerJob = this.fakeServer.sync(() -> this.callScript(declaringClass, script));
-        this.jobs.get(declaringClass).add(new WeakReference<>(schedulerJob));
+        this.jobs.get(declaringClass).add(schedulerJob);
         return schedulerJob;
     }
 
@@ -60,7 +68,7 @@ public class SchedulerManager implements RegisteredManager {
                                              long delay) {
         this.init(declaringClass);
         SchedulerJob schedulerJob = this.fakeServer.syncDelayed(() -> this.callScript(declaringClass, script), delay);
-        this.jobs.get(declaringClass).add(new WeakReference<>(schedulerJob));
+        this.jobs.get(declaringClass).add(schedulerJob);
         return schedulerJob;
     }
 
@@ -72,7 +80,7 @@ public class SchedulerManager implements RegisteredManager {
         this.init(declaringClass);
         SchedulerJob schedulerJob = this.fakeServer
                 .scheduleSyncRepeatingTask(() -> this.callScript(declaringClass, script), delayStart, delayRepeating);
-        this.jobs.get(declaringClass).add(new WeakReference<>(schedulerJob));
+        this.jobs.get(declaringClass).add(schedulerJob);
         return schedulerJob;
     }
 
@@ -81,7 +89,7 @@ public class SchedulerManager implements RegisteredManager {
         SchedulerJob schedulerJob = new KotlinSchedulerJob(this.crouton.async(() -> {
             this.callScript(declaringClass, script);
         }));
-        this.jobs.get(declaringClass).add(new WeakReference<>(schedulerJob));
+        this.jobs.get(declaringClass).add(schedulerJob);
         return schedulerJob;
     }
 
@@ -90,7 +98,7 @@ public class SchedulerManager implements RegisteredManager {
        SchedulerJob schedulerJob = new KotlinSchedulerJob(this.crouton.asyncDelayed(() -> {
             this.callScript(declaringClass, script);
         }, delay));
-        this.jobs.get(declaringClass).add(new WeakReference<>(schedulerJob));
+        this.jobs.get(declaringClass).add(schedulerJob);
         return schedulerJob;
     }
 
@@ -99,7 +107,7 @@ public class SchedulerManager implements RegisteredManager {
         SchedulerJob schedulerJob = new KotlinSchedulerJob(this.crouton.asyncRepeating(() -> {
             this.callScript(declaringClass, script);
         }, delayStart, delayRepeating));
-        this.jobs.get(declaringClass).add(new WeakReference<>(schedulerJob));
+        this.jobs.get(declaringClass).add(schedulerJob);
         return schedulerJob;
     }
 
@@ -110,19 +118,16 @@ public class SchedulerManager implements RegisteredManager {
     public Future<Object> asyncWait(final String declaringClass, final ScriptObjectMirror script) {
         this.init(declaringClass);
         FutureJobWrapper wrapper = this.crouton.await(() -> this.callScript(declaringClass, script));
-        this.jobs.get(declaringClass).add(new WeakReference<>(new KotlinSchedulerJob(wrapper)));
+        this.jobs.get(declaringClass).add(new KotlinSchedulerJob(wrapper));
         return wrapper.getFuture();
     }
 
     public void unregister(String declaringClass) {
         this.init(declaringClass);
-        Iterator<WeakReference<SchedulerJob>> it = this.jobs.get(declaringClass).iterator();
+        Iterator<SchedulerJob> it = this.jobs.get(declaringClass).iterator();
         while(it.hasNext()) {
-            WeakReference<SchedulerJob> ref = it.next();
-            SchedulerJob job = ref.get();
-            if(job != null) {
-                job.stop();
-            }
+            SchedulerJob job = it.next();
+            job.stop();
             it.remove();
         }
     }

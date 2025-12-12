@@ -26,6 +26,8 @@ public abstract class FakeServerManager {
 
     public abstract boolean registerListener(Object listener);
 
+    public abstract boolean supportsSyncScheduler();
+
     public abstract SchedulerJob sync(Runnable task);
 
     public abstract SchedulerJob syncDelayed(Runnable task, long delay);
