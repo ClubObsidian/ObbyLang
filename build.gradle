@@ -10,7 +10,7 @@ subprojects {
     apply plugin: 'com.github.johnrengelman.shadow'
 
     group 'com.clubobsidian'
-    version '4.0.0-SNAPSHOT'
+    version '5.0.0-SNAPSHOT'
 
     tasks.withType(JavaCompile) {
         sourceCompatibility = JavaVersion.VERSION_17
