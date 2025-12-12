@@ -18,6 +18,7 @@
 
 package com.clubobsidian.obbylang.velocity.manager;
 
+import com.clubobsidian.obbylang.manager.scheduler.SchedulerJob;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.obbylang.velocity.plugin.VelocityObbyLangPlugin;
 
@@ -42,16 +43,17 @@ public class VelocityFakeServerManager extends FakeServerManager {
     }
 
     @Override
-    public int scheduleSyncRepeatingTask(Runnable task, int delay, int period) {
-        VelocityObbyLangPlugin
-                .get()
-                .getServer()
-                .getScheduler()
-                .buildTask(VelocityObbyLangPlugin.get(), task)
-                .delay(delay, TimeUnit.MILLISECONDS)
-                .repeat(period, TimeUnit.MILLISECONDS)
-                .schedule();
-        //TODO - Implement ids - just return -1 for now
-        return -1;
+    public SchedulerJob sync(Runnable task) {
+        throw new UnsupportedOperationException("Cannot use sync tasks on proxy");
+    }
+
+    @Override
+    public SchedulerJob syncDelayed(Runnable task, long delay) {
+        throw new UnsupportedOperationException("Cannot use sync tasks on proxy");
+    }
+
+    @Override
+    public SchedulerJob scheduleSyncRepeatingTask(Runnable task, long initialTickDelay, long repeatingTickDelay) {
+        throw new UnsupportedOperationException("Cannot use sync tasks on proxy");
     }
 }

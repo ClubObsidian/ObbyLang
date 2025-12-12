@@ -19,12 +19,10 @@
 package com.clubobsidian.obbylang.bungeecord.manager;
 
 import com.clubobsidian.obbylang.bungeecord.plugin.BungeeCordObbyLangPlugin;
+import com.clubobsidian.obbylang.manager.scheduler.SchedulerJob;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.api.scheduler.ScheduledTask;
-
-import java.util.concurrent.TimeUnit;
 
 public class BungeeCordFakeServerManager extends FakeServerManager {
 
@@ -44,11 +42,17 @@ public class BungeeCordFakeServerManager extends FakeServerManager {
     }
 
     @Override
-    public int scheduleSyncRepeatingTask(Runnable task, int delay, int period) {
-        ScheduledTask scheduledTask = ProxyServer
-                .getInstance()
-                .getScheduler()
-                .schedule(BungeeCordObbyLangPlugin.get(), task, delay, period, TimeUnit.MILLISECONDS);
-        return scheduledTask.getId();
+    public SchedulerJob sync(Runnable task) {
+        throw new UnsupportedOperationException("Cannot use sync tasks on proxy");
+    }
+
+    @Override
+    public SchedulerJob syncDelayed(Runnable task, long delay) {
+        throw new UnsupportedOperationException("Cannot use sync tasks on proxy");
+    }
+
+    @Override
+    public SchedulerJob scheduleSyncRepeatingTask(Runnable task, long initialTickDelay, long repeatingTickDelay) {
+        throw new UnsupportedOperationException("Cannot use sync tasks on proxy");
     }
 }
