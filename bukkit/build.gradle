@@ -28,7 +28,8 @@ tasks.shadowJar.dependsOn ':core:shadowJar'
 
 dependencies {
     implementation project(path: ':core')
-    compileOnly 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
-    compileOnly 'com.github.ClubObsidian.DynamicGui:core:7ffd6dc8ff'
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+    compileOnly 'com.github.ClubObsidian.DynamicGui:api:5cad257919'
+    compileOnly 'com.github.ClubObsidian.DynamicGui:core:5cad257919'
     compileOnly name: 'ProtocolLib-4.4.0'
 }

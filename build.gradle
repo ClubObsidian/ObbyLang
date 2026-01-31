@@ -2,20 +2,40 @@ plugins {
     id 'java-library'
     id 'eclipse'
     id 'idea'
-    id 'com.github.johnrengelman.shadow' version '7.1.1'
+    id("com.gradleup.shadow") version "9.1.0"
+}
+
+allprojects {
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+        mavenCentral()
+        maven { url = "https://oss.sonatype.org/content/repositories/snapshots" }
+        maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+        maven { url = "https://jitpack.io" }
+        maven { url = "https://repo.papermc.io/repository/maven-public/" }
+    }
 }
 
 subprojects {
     apply plugin: 'java-library'
-    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'com.gradleup.shadow'
 
     group 'com.clubobsidian'
     version '5.0.0-SNAPSHOT'
 
     tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
 
     test {
         useJUnitPlatform()
@@ -63,17 +83,6 @@ subprojects {
         relocate 'com.google.j2objc', 'com.clubobsidian.obbylang.j2objc'
         relocate 'com.google.thirdparty.publicsuffix', 'com.clubobsidian.obbylang.publicsuffix'
         relocate 'com.mongodb', 'com.clubobsidian.obbylang.mongodb'
-    }
-
-    repositories {
-        flatDir {
-            dirs 'libs'
-        }
-        mavenCentral()
-        maven { url = "https://oss.sonatype.org/content/repositories/snapshots" }
-        maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
-        maven { url 'https://jitpack.io' }
-        maven { url = "https://nexus.velocitypowered.com/repository/maven-public/" }
     }
 
     dependencies {

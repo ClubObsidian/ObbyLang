@@ -18,8 +18,8 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.plugin.dynamicgui;
 
-import com.clubobsidian.dynamicgui.core.entity.PlayerWrapper;
-import com.clubobsidian.dynamicgui.core.function.Function;
+import com.clubobsidian.dynamicgui.api.entity.PlayerWrapper;
+import com.clubobsidian.dynamicgui.api.function.Function;
 import com.clubobsidian.obbylang.bukkit.manager.plugin.PluginManager;
 import com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin;
 import com.clubobsidian.obbylang.manager.addon.AddonManager;

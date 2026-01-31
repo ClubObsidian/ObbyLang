@@ -1,23 +1,23 @@
 plugins {
     id 'java-library'
-    id "net.kyori.blossom" version "1.3.0"
+    id "net.kyori.blossom" version "2.2.0"
 }
 
-def velocityVersion = '3.4.0-SNAPSHOT'
+def velocityVersion = '3.5.0-SNAPSHOT'
 
-blossom {
+/*blossom {
     replaceTokenIn('com/clubobsidian/obbylang/velocity/plugin/VelocityObbyLangPlugin.java')
     replaceToken('${pluginVersion}', project.version)
-}
+}*/
 
-tasks.withType(JavaCompile) {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+sourceSets {
+    main {
+        blossom {
+            resources {
+                property('${pluginVersion}', project.version)
+            }
+        }
     }
 }
 

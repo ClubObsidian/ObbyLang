@@ -18,18 +18,14 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.plugin.dynamicgui;
 
-import com.clubobsidian.dynamicgui.core.builder.EnchantmentBuilder;
-import com.clubobsidian.dynamicgui.core.builder.FunctionBuilder;
-import com.clubobsidian.dynamicgui.core.builder.FunctionTokenBuilder;
-import com.clubobsidian.dynamicgui.core.builder.GuiBuilder;
-import com.clubobsidian.dynamicgui.core.builder.SlotBuilder;
-import com.clubobsidian.dynamicgui.core.entity.PlayerWrapper;
-import com.clubobsidian.dynamicgui.core.function.Function;
-import com.clubobsidian.dynamicgui.core.gui.Gui;
-import com.clubobsidian.dynamicgui.core.manager.dynamicgui.FunctionManager;
-import com.clubobsidian.dynamicgui.core.registry.replacer.impl.DynamicGuiReplacerRegistry;
-import com.clubobsidian.dynamicgui.core.replacer.Replacer;
-import com.clubobsidian.dynamicgui.parser.function.tree.FunctionTree;
+import com.clubobsidian.dynamicgui.api.entity.PlayerWrapper;
+import com.clubobsidian.dynamicgui.api.gui.Gui;
+import com.clubobsidian.dynamicgui.api.gui.Slot;
+import com.clubobsidian.dynamicgui.api.manager.FunctionManager;
+import com.clubobsidian.dynamicgui.api.parser.function.FunctionToken;
+import com.clubobsidian.dynamicgui.api.parser.function.tree.FunctionTree;
+import com.clubobsidian.dynamicgui.api.registry.replacer.DynamicGuiReplacerRegistry;
+import com.clubobsidian.dynamicgui.api.replacer.Replacer;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import org.bukkit.entity.Player;
@@ -70,7 +66,7 @@ public class GuiManager implements RegisteredManager {
         this.functionStrings.get(declaringClass).add(functionName);
         this.functionScripts.put(functionName, script);
         this.functionScriptOwners.put(functionName, declaringClass);
-        FunctionManager.get().addFunction(new ObbyLangDynamicGuiFunction(functionName));
+        FunctionManager.get().registerFunction(new ObbyLangDynamicGuiFunction(functionName));
     }
 
     public void registerReplacer(String declaringClass, String replacer, ScriptObjectMirror script) {
@@ -110,39 +106,31 @@ public class GuiManager implements RegisteredManager {
         return this.scriptManager.getScript(scriptName);
     }
 
-    public EnchantmentBuilder createEnchantmentBuilder() {
-        return new EnchantmentBuilder();
+    public FunctionToken.Builder createFunctionTokenBuilder() {
+        return new FunctionToken.Builder();
     }
 
-    public FunctionBuilder createFunctionBuilder() {
-        return new FunctionBuilder();
+    public Gui.Builder createGuiBuilder() {
+        return new Gui.Builder();
     }
 
-    public FunctionTokenBuilder createFunctionTokenBuilder() {
-        return new FunctionTokenBuilder();
-    }
-
-    public GuiBuilder createGuiBuilder() {
-        return new GuiBuilder();
-    }
-
-    public SlotBuilder createSlotBuilder() {
-        return new SlotBuilder();
+    public Slot.Builder createSlotBuilder() {
+        return new Slot.Builder();
     }
 
     public FunctionTree createFunctionTree() {
-        return new FunctionTree();
+        return new FunctionTree.Builder().build();
     }
 
     public void openGui(Gui gui, Player player) {
-        com.clubobsidian.dynamicgui.core.manager.dynamicgui.GuiManager.get().openGui(player, gui);
+        com.clubobsidian.dynamicgui.api.manager.gui.GuiManager.get().openGui(player, gui);
     }
 
     @Override
     public void unregister(String declaringClass) {
         this.init(declaringClass);
         for(String functionName : this.functionStrings.get(declaringClass)) {
-            FunctionManager.get().removeFunctionByName(functionName);
+            FunctionManager.get().unregisterFunction(functionName);
             this.functionScripts.keySet().remove(functionName);
             this.functionScriptOwners.remove(functionName);
         }
