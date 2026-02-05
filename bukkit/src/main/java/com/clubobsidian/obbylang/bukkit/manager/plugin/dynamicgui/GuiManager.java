@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class GuiManager implements RegisteredManager {
 
@@ -122,8 +123,16 @@ public class GuiManager implements RegisteredManager {
         return new FunctionTree.Builder().build();
     }
 
-    public void openGui(Gui gui, Player player) {
-        com.clubobsidian.dynamicgui.api.manager.gui.GuiManager.get().openGui(player, gui);
+    public CompletableFuture<Boolean> openGui(Gui gui, Player player) {
+        return com.clubobsidian.dynamicgui.api.manager.gui.GuiManager.get().openGui(player, gui);
+    }
+
+    public CompletableFuture<Boolean> openGui(String guiName, Player player) {
+        Gui gui = com.clubobsidian.dynamicgui.api.manager.gui.GuiManager.get().getGui(guiName);
+        if (gui == null) {
+            return CompletableFuture.completedFuture(false);
+        }
+        return com.clubobsidian.dynamicgui.api.manager.gui.GuiManager.get().openGui(player, gui);
     }
 
     @Override
