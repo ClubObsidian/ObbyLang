@@ -18,6 +18,9 @@
 
 package com.clubobsidian.obbylang.manager.plugin;
 
+import com.caoccao.qjs4j.core.JSContext;
+import com.caoccao.qjs4j.core.JSFunction;
+import com.caoccao.qjs4j.core.JSValue;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.event.PluginEnableEvent;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
@@ -25,7 +28,6 @@ import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.trident.EventBus;
 import com.clubobsidian.trident.EventHandler;
 import com.clubobsidian.trident.EventPriority;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.inject.Inject;
 import java.util.Iterator;
@@ -38,39 +40,37 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public abstract class DependencyManager implements RegisteredManager {
 
     private final Map<String, Queue<DependencyWrapper>> dependencies = new ConcurrentHashMap<>();
-    private final ScriptManager scriptManager;
     private final EventBus eventBus;
     private final FakeServerManager fakeServer;
 
     @Inject
-    protected DependencyManager(EventBus eventBus, ScriptManager scriptManager, FakeServerManager fakeServer) {
+    protected DependencyManager(EventBus eventBus, FakeServerManager fakeServer) {
         this.eventBus = eventBus;
-        this.scriptManager = scriptManager;
         this.fakeServer = fakeServer;
         this.eventBus.registerEvents(this);
         this.registerPluginEnableListener();
     }
 
     private void init(String declaringClass) {
-        if(this.dependencies.get(declaringClass) == null) {
-            this.dependencies.put(declaringClass, new ConcurrentLinkedQueue<>());
-        }
+        this.dependencies.computeIfAbsent(declaringClass, k -> new ConcurrentLinkedQueue<>());
     }
 
     protected EventBus getEventBus() {
         return this.eventBus;
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String dependency) {
+    public void register(String declaringClass, JSFunction script, String dependency) {
         this.register(declaringClass, script, new String[]{dependency});
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String[] dependencies) {
+    public void register(String declaringClass, JSFunction script, String[] dependencies) {
         this.init(declaringClass);
         DependencyWrapper wrapper = new DependencyWrapper(script, dependencies);
         boolean hasDependencies = this.checkDependencies(declaringClass, wrapper);
         if(hasDependencies) {
-            script.call(this.scriptManager.getScript(declaringClass));
+            JSFunction function = script.asFunction().get();
+            JSContext owner = function.getContext();
+            function.call(owner, owner.getCurrentThis(), new JSValue[]{});
         } else {
             this.dependencies.get(declaringClass).add(wrapper);
         }
@@ -93,11 +93,13 @@ public abstract class DependencyManager implements RegisteredManager {
                 String declaringClass = next.getKey();
                 boolean hasDependencies = this.checkDependencies(declaringClass, wrapper);
                 if(hasDependencies) {
-                    wrapper.getScript().call(this.scriptManager.getScript(declaringClass));
+                    JSFunction function = wrapper.getScript().asFunction().get();
+                    JSContext owner = function.getContext();
+                    function.call(owner, owner.getCurrentThis(), new JSValue[]{});
                     listIterator.remove();
                 }
             }
-            if(queue.size() == 0) {
+            if(queue.isEmpty()) {
                 it.remove();
             }
         }

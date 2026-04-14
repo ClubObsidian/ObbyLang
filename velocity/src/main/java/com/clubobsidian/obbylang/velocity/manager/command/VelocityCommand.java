@@ -18,33 +18,37 @@
 
 package com.clubobsidian.obbylang.velocity.manager.command;
 
+import com.caoccao.qjs4j.core.JSContext;
+import com.caoccao.qjs4j.core.JSFunction;
+import com.caoccao.qjs4j.core.JSString;
+import com.caoccao.qjs4j.core.JSValue;
+import com.clubobsidian.obbylang.compat.NashornJavaCompat;
 import com.clubobsidian.obbylang.manager.command.SenderWrapper;
+import com.clubobsidian.obbylang.util.JSUtil;
 import com.velocitypowered.api.command.SimpleCommand;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class VelocityCommand implements SimpleCommand {
 
-    private final Object owner;
+    private final String declaringClass;
     private final String command;
-    private final ScriptObjectMirror base;
+    private final JSFunction script;
 
-    public VelocityCommand(Object owner, String command, ScriptObjectMirror base) {
-        this.owner = owner;
+    public VelocityCommand(String declaringClass, String command, JSFunction script) {
+        this.declaringClass = declaringClass;
         this.command = command;
-        this.base = base;
+        this.script = script;
     }
 
     @Override
     public void execute(Invocation invocation) {
         String[] args = invocation.arguments();
         SenderWrapper<?> wrapper = new VelocitySenderWrapper(invocation.source());
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("args", args);
-        properties.put("sender", wrapper);
-
-        this.base.call(this.owner, wrapper, this, this.command, args);
+        JSContext context = this.script.getContext();
+        JSUtil.call(this.script, new JSValue[]{
+                NashornJavaCompat.wrapJavaObject(this.declaringClass, wrapper),
+                NashornJavaCompat.wrapJavaObject(this.declaringClass, this),
+                new JSString(this.command),
+                JSUtil.convertStringArray(context, args)
+        });
     }
 }

@@ -18,10 +18,11 @@
 
 package com.clubobsidian.obbylang.manager.command;
 
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import com.caoccao.qjs4j.core.JSContext;
+import com.caoccao.qjs4j.core.JSFunction;
 
 public abstract class CommandWrapperManager<T> {
 
-    public abstract CommandWrapper<T> createCommandWrapper(String declaringClass, String command, ScriptObjectMirror script);
+    public abstract CommandWrapper<T> createCommandWrapper(String declaringClass, String command, JSFunction script);
 
 }

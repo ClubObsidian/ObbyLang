@@ -18,32 +18,41 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.plugin.dynamicgui;
 
+import com.caoccao.qjs4j.core.JSContext;
+import com.caoccao.qjs4j.core.JSFunction;
+import com.caoccao.qjs4j.core.JSString;
+import com.caoccao.qjs4j.core.JSValue;
 import com.clubobsidian.dynamicgui.api.entity.PlayerWrapper;
 import com.clubobsidian.dynamicgui.api.function.Function;
 import com.clubobsidian.obbylang.bukkit.manager.plugin.PluginManager;
 import com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin;
+import com.clubobsidian.obbylang.compat.NashornJavaCompat;
 import com.clubobsidian.obbylang.manager.addon.AddonManager;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
-
-import javax.script.CompiledScript;
 
 public class ObbyLangDynamicGuiFunction extends Function {
 
-    public ObbyLangDynamicGuiFunction(String name) {
+    private final String declaringClass;
+
+    public ObbyLangDynamicGuiFunction(String name, String declaringClass) {
         super(name);
+        this.declaringClass = declaringClass;
     }
 
     @Override
     public boolean function(PlayerWrapper<?> playerWrapper) {
         AddonManager addon = BukkitObbyLangPlugin.get().getAddonManager();
         GuiManager manager = addon.getAddon(PluginManager.DYNAMIC_GUI);
-        CompiledScript owner = manager.getFunctionOwner(this.getName());
-        ScriptObjectMirror script = manager.getScriptByFunctionName(this.getName());
-        Object ret = script.call(owner, playerWrapper, this.getData(), this.getOwner());
+        JSFunction script = manager.getScriptByFunctionName(this.getName());
+        JSContext context = script.getContext();
+        JSValue ret = script.call(context, context.getCurrentThis(), new JSValue[]{
+                NashornJavaCompat.wrapJavaObject(declaringClass, playerWrapper),
+                new JSString(this.getData()),
+                NashornJavaCompat.wrapJavaObject(declaringClass, this.getOwner())
+        });
         if(ret == null) {
             return true;
-        } else if(ret instanceof Boolean) {
-            return (boolean) ret;
+        } else if(ret.isBoolean()) {
+            return ret.asBoolean().get().value();
         }
         return true;
     }

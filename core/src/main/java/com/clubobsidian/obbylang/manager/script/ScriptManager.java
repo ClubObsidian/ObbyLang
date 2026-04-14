@@ -18,6 +18,9 @@
 
 package com.clubobsidian.obbylang.manager.script;
 
+import com.caoccao.qjs4j.core.*;
+import com.clubobsidian.obbylang.compat.JavaObjectRegistry;
+import com.clubobsidian.obbylang.compat.NashornJavaCompat;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.addon.AddonManager;
 import com.clubobsidian.obbylang.manager.listener.ListenerManager;
@@ -28,21 +31,12 @@ import javassist.ClassClassPath;
 import javassist.ClassPool;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.inject.Inject;
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-import javax.script.SimpleScriptContext;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -64,9 +57,9 @@ public class ScriptManager {
 
     private boolean loaded;
     private final Path directory;
-    private final ScriptEngine engine;
-    private final Compilable compilableEngine;
-    private final Map<String, CompiledScript> scripts = new ConcurrentHashMap<>();
+    private final JSRuntime engine;
+    private final Map<String, JSContext> scripts = new ConcurrentHashMap<>();
+    private final Map<String, JavaObjectRegistry> registries = new ConcurrentHashMap<>();
 
     private final ObbyLangPlugin plugin;
     private final AddonManager addonManager;
@@ -75,11 +68,9 @@ public class ScriptManager {
     private ScriptManager(ObbyLangPlugin plugin, AddonManager addonManager) {
         ClassLoader cl = plugin.getClass().getClassLoader();
         Thread.currentThread().setContextClassLoader(cl);
-        System.setProperty("nashorn.args", "--language=es6");
-        this.engine = new NashornScriptEngineFactory().getScriptEngine();
-        this.compilableEngine = (Compilable) engine;
         this.plugin = plugin;
         this.directory = Paths.get(plugin.getDataFolder().getPath(), "scripts");
+        this.engine = new JSRuntime();
         this.addonManager = addonManager;
     }
 
@@ -94,7 +85,9 @@ public class ScriptManager {
     }
 
     private void loadClassPool() {
-        ClassPool.getDefault().insertClassPath(new ClassClassPath(ScriptObjectMirror.class));
+        ClassPool.getDefault().insertClassPath(new ClassClassPath(JSValue.class));
+        ClassPool.getDefault().insertClassPath(new ClassClassPath(JSContext.class));
+        ClassPool.getDefault().insertClassPath(new ClassClassPath(JSFunction.class));
         ClassPool.getDefault().insertClassPath(new ClassClassPath(ScriptWrapper.class));
         ClassPool.getDefault().insertClassPath(new ClassClassPath(ScriptWrapper[].class));
         ClassPool.getDefault().insertClassPath(new ClassClassPath(ListenerManager.class));
@@ -102,13 +95,8 @@ public class ScriptManager {
         ClassPool.getDefault().insertClassPath(new ClassClassPath(Map.class));
     }
 
-    private CompiledScript createCompiledScript(File file) {
-        try(FileReader reader = new FileReader(file)) {
-            return this.compilableEngine.compile(reader);
-        } catch(IOException | ScriptException e) {
-            e.printStackTrace();
-        }
-        return null;
+    private JSContext createContext(String scriptName) {
+        return this.engine.createContext();
     }
 
     private void loadScripts() {
@@ -138,8 +126,12 @@ public class ScriptManager {
         return this.directory;
     }
 
-    public CompiledScript getScript(String script) {
+    public JSContext getScript(String script) {
         return this.scripts.get(script);
+    }
+
+    public JavaObjectRegistry getRegistry(String script) {
+        return this.registries.get(script);
     }
 
     public boolean isScriptLoaded(String script) {
@@ -192,7 +184,7 @@ public class ScriptManager {
         if(!className.endsWith(".js")) {
             className += ".js";
         }
-        CompiledScript script = this.scripts.get(className);
+        JSContext script = this.scripts.get(className);
         if(script == null) {
             return false;
         }
@@ -204,8 +196,15 @@ public class ScriptManager {
             }
         }
 
-        this.scripts.remove(className);
-        return true;
+        JSContext removed = this.scripts.remove(className);
+        if (removed != null) {
+            removed.close();
+        }
+        JavaObjectRegistry registry = this.registries.remove(className);
+        if (registry != null) {
+            registry.clear();
+        }
+        return removed != null;
     }
 
     public boolean loadScript(String location) {
@@ -227,10 +226,12 @@ public class ScriptManager {
         }
         try {
             this.plugin.getLogger().info("Loading: " + scriptName);
-            CompiledScript script = this.createCompiledScript(file);
-            this.scripts.put(scriptName, script);
-            SimpleScriptContext context = this.createContext(scriptName);
-            script.eval(context);
+            JSContext context = this.createContext(scriptName);
+            JavaObjectRegistry registry = this.addBindingsToContext(context, scriptName);
+            this.scripts.put(scriptName, context);
+            this.registries.put(scriptName, registry);
+            String source = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            context.eval(source, file.getName(), false);
             return true;
         } catch(Exception e) {
             this.unloadScript(scriptName, pipe);
@@ -242,19 +243,15 @@ public class ScriptManager {
         return false;
     }
 
-    private SimpleScriptContext createContext(String scriptName) {
-        SimpleScriptContext context = new SimpleScriptContext();
-        Bindings bindings = this.engine.createBindings();
-        context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-        context.setAttribute("owner", scriptName, ScriptContext.ENGINE_SCOPE);
-        Iterator<Entry<String, Object>> it = this.addonManager.getAddons().entrySet().iterator();
-        while(it.hasNext()) {
-            Entry<String, Object> next = it.next();
+    private JavaObjectRegistry addBindingsToContext(JSContext context, String scriptName) {
+        context.getGlobalObject().set("owner", new JSString(scriptName));
+        JavaObjectRegistry registry = NashornJavaCompat.install(context);
+        for (Entry<String, Object> next : this.addonManager.getAddons().entrySet()) {
             String key = next.getKey();
             Object value = next.getValue();
-            context.setAttribute(key, value, ScriptContext.ENGINE_SCOPE);
+            context.getGlobalObject().set(key, NashornJavaCompat.wrapJavaObject(context, registry, value));
         }
-        return context;
+        return registry;
     }
 
     public boolean reloadScript(String location, Pipe pipe) {

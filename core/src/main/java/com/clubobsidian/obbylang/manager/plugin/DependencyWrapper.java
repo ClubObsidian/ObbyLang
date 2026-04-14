@@ -18,19 +18,20 @@
 
 package com.clubobsidian.obbylang.manager.plugin;
 
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import com.caoccao.qjs4j.core.JSFunction;
+import com.caoccao.qjs4j.core.JSValue;
 
 public class DependencyWrapper {
 
-    private final ScriptObjectMirror script;
+    private final JSFunction script;
     private final String[] dependencies;
 
-    public DependencyWrapper(ScriptObjectMirror script, String[] dependencies) {
+    public DependencyWrapper(JSFunction script, String[] dependencies) {
         this.script = script;
         this.dependencies = dependencies;
     }
 
-    public ScriptObjectMirror getScript() {
+    public JSFunction getScript() {
         return this.script;
     }
 

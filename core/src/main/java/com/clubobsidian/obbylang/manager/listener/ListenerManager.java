@@ -18,6 +18,8 @@
 
 package com.clubobsidian.obbylang.manager.listener;
 
+import com.caoccao.qjs4j.core.JSFunction;
+import com.caoccao.qjs4j.core.JSValue;
 import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
@@ -42,7 +44,6 @@ import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.MemberValue;
 import org.apache.commons.lang3.ClassUtils;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
@@ -233,20 +234,20 @@ public abstract class ListenerManager<T> implements RegisteredManager {
         }
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String event) {
+    public void register(String declaringClass, JSFunction script, String event) {
         this.register(declaringClass, script, new String[]{event});
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String[] events) {
+    public void register(String declaringClass, JSFunction script, String[] events) {
         this.register(declaringClass, script, events, this.getDefaultPriority());
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String event, String eventPriorityStr) {
+    public void register(String declaringClass, JSFunction script, String event, String eventPriorityStr) {
         this.register(declaringClass, script, new String[]{event}, eventPriorityStr);
     }
 
     @SuppressWarnings("unchecked")
-    public void register(String declaringClass, ScriptObjectMirror script, String[] events, String eventPriorityStr) {
+    public void register(String declaringClass, JSFunction script, String[] events, String eventPriorityStr) {
         if(this.scripts == null) {
             this.scripts = initScripts();
         } else {

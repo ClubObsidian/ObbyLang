@@ -176,6 +176,7 @@ public class PluginInjector {
             binder.bind(ObbyLangPlugin.class).toInstance(plugin);
             binder.bind(InjectorWrapper.class).toInstance(this.wrapper);
             binder.bind(ObbyLang.class).asEagerSingleton();
+            binder.requestStaticInjection(ObbyLang.class);
         }
     }
 

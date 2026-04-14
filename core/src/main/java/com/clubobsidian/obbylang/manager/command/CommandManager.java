@@ -18,8 +18,10 @@
 
 package com.clubobsidian.obbylang.manager.command;
 
+import com.caoccao.qjs4j.core.JSContext;
+import com.caoccao.qjs4j.core.JSFunction;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import com.clubobsidian.obbylang.manager.script.ScriptManager;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -31,17 +33,19 @@ public abstract class CommandManager implements RegisteredManager {
 
     private final Map<String, List<CommandWrapper<?>>> commands = new ConcurrentHashMap<>();
     private final CommandWrapperManager<?> wrapperManager;
+    private final ScriptManager scriptManager;
 
     @Inject
-    protected CommandManager(CommandWrapperManager<?> wrapperManager) {
+    protected CommandManager(CommandWrapperManager<?> wrapperManager, ScriptManager scriptManager) {
         this.wrapperManager = wrapperManager;
+        this.scriptManager = scriptManager;
     }
 
-    public CommandWrapper<?> register(String declaringClass, ScriptObjectMirror script, String command) {
+    public CommandWrapper<?> register(String declaringClass, JSFunction script, String command) {
         return this.register(declaringClass, script, new String[]{command}).get(0);
     }
 
-    public List<CommandWrapper<?>> register(String declaringClass, ScriptObjectMirror script, String[] cmds) {
+    public List<CommandWrapper<?>> register(String declaringClass, JSFunction script, String[] cmds) {
         List<CommandWrapper<?>> newlyRegistedWrappers = new ArrayList<>();
         for(String command : cmds) {
             command = command.toLowerCase();
@@ -51,7 +55,7 @@ public abstract class CommandManager implements RegisteredManager {
                 commands = new ArrayList<>();
                 this.commands.put(declaringClass, commands);
             }
-
+            JSContext owner = this.scriptManager.getScript(declaringClass);
             CommandWrapper<?> wrapper = this.wrapperManager.createCommandWrapper(declaringClass, command, script);
             commands.add(wrapper);
             this.removeCommand(wrapper);

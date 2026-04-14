@@ -18,6 +18,8 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.command;
 
+import com.caoccao.qjs4j.core.*;
+import com.clubobsidian.obbylang.compat.NashornJavaCompat;
 import com.clubobsidian.obbylang.manager.command.SenderWrapper;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
@@ -27,7 +29,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -58,14 +59,14 @@ public class BukkitCommand extends Command implements CommandExecutor {
         return null;
     }
 
-    private final Object owner;
+    private final String declaringClass;
     private final String command;
-    private final ScriptObjectMirror base;
+    private final JSFunction base;
     private TabCompleter tabCompleter;
 
-    public BukkitCommand(Object owner, String command, ScriptObjectMirror base) {
+    public BukkitCommand(String declaringClass, String command, JSFunction base) {
         super(command);
-        this.owner = owner;
+        this.declaringClass = declaringClass;
         this.command = command;
         this.base = base;
     }
@@ -74,9 +75,23 @@ public class BukkitCommand extends Command implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(label.equalsIgnoreCase(this.command)) {
             SenderWrapper<?> wrapper = createWrapper(sender);
-            Object ret = this.base.call(this.owner, wrapper, command, label, args);
-            if(ret != null && ret instanceof Boolean) {
-                return (boolean) ret;
+            JSContext context = this.base.getContext();
+            JSArray jsArray = new JSArray(context, args.length);
+            for (int i = 0; i < args.length; i++) {
+                jsArray.set(i, new JSString(args[i]));
+            }
+            JSValue ret = this.base.call(
+                    context,
+                    context.getCurrentThis(),
+                    new JSValue[]{
+                            NashornJavaCompat.wrapJavaObject(declaringClass, wrapper),
+                            NashornJavaCompat.wrapJavaObject(declaringClass, command),
+                            new JSString(label),
+                            jsArray
+                    }
+            );
+            if(ret.isBoolean()) {
+                return ret.asBoolean().get().value();
             }
         }
         return false;

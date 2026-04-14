@@ -45,6 +45,13 @@ import java.nio.file.Files;
 
 public class ObbyLang {
 
+    @Inject
+    private static ObbyLang instance;
+
+    public static ObbyLang get() {
+        return instance;
+    }
+
     private final Injector injector;
     private final ObbyLangPlugin plugin;
     private final ScriptManager scriptManager;
@@ -94,7 +101,7 @@ public class ObbyLang {
 
         this.injector.getInstance(MappingsManager.class).loadEventMappingsFromFile();
         this.loadBuiltinManagers();
-        scriptManager.load();
+        this.scriptManager.load();
         this.plugin.createObbyLangCommand();
     }
 

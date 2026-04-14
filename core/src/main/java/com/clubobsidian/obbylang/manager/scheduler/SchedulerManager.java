@@ -18,12 +18,13 @@
 
 package com.clubobsidian.obbylang.manager.scheduler;
 
+import com.caoccao.qjs4j.core.JSFunction;
 import com.clubobsidian.crouton.Crouton;
 import com.clubobsidian.crouton.wrapper.FutureJobWrapper;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import com.clubobsidian.obbylang.util.JSUtil;
 
 import javax.inject.Inject;
 import java.util.Collection;
@@ -56,7 +57,7 @@ public class SchedulerManager implements RegisteredManager {
     }
 
     public SchedulerJob sync(final String declaringClass,
-                             final ScriptObjectMirror script) {
+                             final JSFunction script) {
         this.init(declaringClass);
         SchedulerJob schedulerJob = this.fakeServer.sync(() -> this.callScript(declaringClass, script));
         this.jobs.get(declaringClass).add(schedulerJob);
@@ -64,7 +65,7 @@ public class SchedulerManager implements RegisteredManager {
     }
 
     public SchedulerJob syncDelayed(final String declaringClass,
-                                             final ScriptObjectMirror script,
+                                             final JSFunction script,
                                              long delay) {
         this.init(declaringClass);
         SchedulerJob schedulerJob = this.fakeServer.syncDelayed(() -> this.callScript(declaringClass, script), delay);
@@ -74,7 +75,7 @@ public class SchedulerManager implements RegisteredManager {
 
 
     public SchedulerJob syncRepeating(final String declaringClass,
-                                               final ScriptObjectMirror script,
+                                               final JSFunction script,
                                                long delayStart,
                                                long delayRepeating) {
         this.init(declaringClass);
@@ -84,7 +85,7 @@ public class SchedulerManager implements RegisteredManager {
         return schedulerJob;
     }
 
-    public SchedulerJob async(final String declaringClass, final ScriptObjectMirror script) {
+    public SchedulerJob async(final String declaringClass, final JSFunction script) {
         this.init(declaringClass);
         SchedulerJob schedulerJob = new KotlinSchedulerJob(this.crouton.async(() -> {
             this.callScript(declaringClass, script);
@@ -93,7 +94,7 @@ public class SchedulerManager implements RegisteredManager {
         return schedulerJob;
     }
 
-    public SchedulerJob asyncDelayed(String declaringClass, final ScriptObjectMirror script, long delay) {
+    public SchedulerJob asyncDelayed(String declaringClass, final JSFunction script, long delay) {
         this.init(declaringClass);
        SchedulerJob schedulerJob = new KotlinSchedulerJob(this.crouton.asyncDelayed(() -> {
             this.callScript(declaringClass, script);
@@ -102,7 +103,7 @@ public class SchedulerManager implements RegisteredManager {
         return schedulerJob;
     }
 
-    public SchedulerJob asyncRepeating(final String declaringClass, final ScriptObjectMirror script, long delayStart, long delayRepeating) {
+    public SchedulerJob asyncRepeating(final String declaringClass, final JSFunction script, long delayStart, long delayRepeating) {
         this.init(declaringClass);
         SchedulerJob schedulerJob = new KotlinSchedulerJob(this.crouton.asyncRepeating(() -> {
             this.callScript(declaringClass, script);
@@ -111,11 +112,11 @@ public class SchedulerManager implements RegisteredManager {
         return schedulerJob;
     }
 
-    public Future<Object> await(String declaringClass, final ScriptObjectMirror script) {
+    public Future<Object> await(String declaringClass, final JSFunction script) {
         return this.asyncWait(declaringClass, script);
     }
 
-    public Future<Object> asyncWait(final String declaringClass, final ScriptObjectMirror script) {
+    public Future<Object> asyncWait(final String declaringClass, final JSFunction script) {
         this.init(declaringClass);
         FutureJobWrapper wrapper = this.crouton.await(() -> this.callScript(declaringClass, script));
         this.jobs.get(declaringClass).add(new KotlinSchedulerJob(wrapper));
@@ -132,8 +133,8 @@ public class SchedulerManager implements RegisteredManager {
         }
     }
 
-    private Object callScript(String declaringClass, ScriptObjectMirror script) {
-        return script.call(this.scriptManager.getScript(declaringClass));
+    private Object callScript(String declaringClass, JSFunction script) {
+        return JSUtil.call(script);
     }
 
     private void init(String declaringClass) {

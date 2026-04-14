@@ -18,20 +18,20 @@
 
 package com.clubobsidian.obbylang.manager.script;
 
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import com.caoccao.qjs4j.core.JSFunction;
 
 public class ScriptWrapper {
 
-    private final ScriptObjectMirror obj;
+    private final JSFunction script;
     private final Object owner;
 
-    public ScriptWrapper(ScriptObjectMirror obj, Object owner) {
-        this.obj = obj;
+    public ScriptWrapper(JSFunction script, Object owner) {
+        this.script = script;
         this.owner = owner;
     }
 
-    public ScriptObjectMirror getScript() {
-        return this.obj;
+    public JSFunction getScript() {
+        return this.script;
     }
 
     public Object getOwner() {
