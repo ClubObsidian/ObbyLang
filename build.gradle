@@ -87,6 +87,7 @@ subprojects {
 
     dependencies {
         compileOnly 'org.slf4j:slf4j-api:1.7.32'
+        compileOnly("javax.inject:javax.inject:1")
         api 'com.zaxxer:HikariCP:5.0.1'
         api 'com.github.clubobsidian:wrappy:2.3.2'
         api 'org.jsoup:jsoup:1.11.3'
@@ -101,7 +102,8 @@ subprojects {
         api 'com.zaxxer:influx4j:2.14'
         api 'org.mongodb:mongodb-driver-sync:4.6.1'
         api 'org.openjdk.nashorn:nashorn-core:15.6'
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+        testImplementation(platform('org.junit:junit-bom:6.0.3'))
+        testImplementation('org.junit.jupiter:junit-jupiter')
+        testRuntimeOnly('org.junit.platform:junit-platform-launcher')
     }
 }
