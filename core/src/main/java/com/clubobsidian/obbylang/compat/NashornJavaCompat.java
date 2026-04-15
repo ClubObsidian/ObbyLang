@@ -1,22 +1,5 @@
 /*
- *     ObbyLang
- *     Copyright (C) 2021 virustotalop
- *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-/*
+ * NashornJavaCompat.java
  *
  * Provides Nashorn-compatible Java.type() and Java.extend() for qjs4j.
  *
@@ -48,8 +31,8 @@
 package com.clubobsidian.obbylang.compat;
 
 import com.caoccao.qjs4j.core.*;
-import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
+import com.clubobsidian.obbylang.ObbyLang;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.InvocationHandlerAdapter;
@@ -80,6 +63,7 @@ public final class NashornJavaCompat {
     // (i.e. classes loaded by a disposable ClassLoader), the cache keys would need
     // to become weak references (WeakHashMap or ClassValue) to avoid classloader
     // leaks. For the current use case that is not necessary.
+    // INSTANCE_METHOD_CACHE follows the same rule: keys are stable JDK/Bukkit classes.
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
@@ -122,6 +106,15 @@ public final class NashornJavaCompat {
      * Key: declaringClassName + "#set#" + fieldName
      */
     private static final ConcurrentHashMap<String, MethodHandle> FIELD_SET_CACHE =
+            new ConcurrentHashMap<>();
+
+    /**
+     * Per-class list of public non-static, non-noisy instance methods to expose on
+     * JS wrappers. Computed once per class and reused across all contexts and wraps,
+     * so {@link #wrapJavaObject} never calls {@link Class#getMethods()} more than once
+     * per class regardless of how many times objects of that class are wrapped.
+     */
+    private static final ConcurrentHashMap<Class<?>, Method[]> INSTANCE_METHOD_CACHE =
             new ConcurrentHashMap<>();
 
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
@@ -190,6 +183,9 @@ public final class NashornJavaCompat {
      *   <li>When called with {@code new}, invokes the Java constructor via MethodHandle.</li>
      *   <li>Exposes static methods (via cached MethodHandles) and static fields as
      *       own properties.</li>
+     *   <li>Exposes public nested classes (including nested enums) as own properties,
+     *       so {@code Java.type("Outer").Inner} works without a separate
+     *       {@code Java.type("Outer$Inner")} call.</li>
      *   <li>Stashes the class name in {@code __javaClass__} for {@code Java.extend()}.</li>
      * </ul>
      */
@@ -215,6 +211,20 @@ public final class NashornJavaCompat {
                 MethodHandle getter = fieldGetHandle(f);
                 proxy.set(f.getName(), toJSValue(context, registry, getter.invoke()));
             } catch (Throwable ignored) {}
+        }
+
+        // Nested classes — getClasses() returns all public nested/member classes and
+        // interfaces, including nested enums, from this class and its superclasses.
+        // Each is exposed as a nested class proxy under its simple name, so
+        // Java.type("Outer").Inner works without a separate Java.type("Outer$Inner").
+        for (Class<?> nested : clazz.getClasses()) {
+            // Use simple name relative to the immediate enclosing class so that
+            // deeply nested types are still reachable one level at a time.
+            // e.g. Outer.Inner.Deepest — not the full "Outer.Inner$Deepest" form.
+            String simpleName = nested.getSimpleName();
+            if (simpleName.isEmpty()) continue; // skip anonymous classes
+            if (proxy.has(simpleName)) continue; // static field/method takes priority
+            proxy.set(simpleName, buildClassProxy(context, registry, nested));
         }
 
         proxy.set("__javaClass__", new JSString(clazz.getName()));
@@ -452,20 +462,28 @@ public final class NashornJavaCompat {
             superObj.set(mName, fn(context, mName, minArity,
                     (ctx, $this, callArgs) -> {
                         try {
-                            // Resolve overload by argument count at call time
+                            // Resolve overload by argument count and type compatibility
+                            Object[] rawArgs = fromJSArgs(callArgs);
                             Method resolved = null;
-                            Method varargFallback = null;
+                            Method anyExact = null;
+                            Method varargExactM = null;
+                            Method varargFallbackM = null;
                             for (Method m : overloads) {
-                                if (m.getParameterCount() == callArgs.length) {
-                                    resolved = m;
-                                    break;
-                                }
-                                if (m.isVarArgs()
-                                        && callArgs.length >= m.getParameterCount() - 1) {
-                                    varargFallback = m;
+                                if (m.getParameterCount() == callArgs.length && !m.isVarArgs()) {
+                                    if (isCompatible(m.getParameterTypes(), rawArgs, registry)) {
+                                        resolved = m;
+                                        break;
+                                    }
+                                    if (anyExact == null) anyExact = m;
+                                } else if (m.getParameterCount() == callArgs.length && m.isVarArgs()) {
+                                    if (varargExactM == null) varargExactM = m;
+                                } else if (m.isVarArgs() && callArgs.length >= m.getParameterCount() - 1) {
+                                    if (varargFallbackM == null) varargFallbackM = m;
                                 }
                             }
-                            if (resolved == null) resolved = varargFallback;
+                            if (resolved == null) resolved = anyExact;
+                            if (resolved == null) resolved = varargExactM;
+                            if (resolved == null) resolved = varargFallbackM;
                             if (resolved == null) resolved = overloads.get(0);
 
                             MethodHandle handle = superMethodHandle(proxy.getClass(), resolved);
@@ -475,7 +493,7 @@ public final class NashornJavaCompat {
                             }
                             MethodHandle bound = handle.bindTo(proxy);
                             Object[] javaArgs = coerce(
-                                    fromJSArgs(callArgs), resolved.getParameterTypes(), registry);
+                                    rawArgs, resolved.getParameterTypes(), registry);
                             Object result = bound.invokeWithArguments(javaArgs);
                             return toJSValue(ctx, registry, result);
                         } catch (Throwable e) {
@@ -617,27 +635,40 @@ public final class NashornJavaCompat {
     // wrapJavaObject
     // ─────────────────────────────────────────────────────────────────────────
 
-    public static JSObject wrapJavaObject(String declaringClass, Object javaObj) {
-        ScriptManager scriptManager = ObbyLang.get().getInstance(ScriptManager.class);
-        JSContext context = scriptManager.getScript(declaringClass);
-        JavaObjectRegistry registry = scriptManager.getRegistry(declaringClass);
-        return wrapJavaObject(context, registry, javaObj);
-    }
-
     /**
      * Wraps a live Java object in a {@link JSObject}, exposing all public instance
      * methods (via cached MethodHandles) and readable fields as own properties.
+     *
+     * <p>If this exact object (by identity) has already been wrapped in this context,
+     * the existing wrapper is returned immediately — no allocation, no method
+     * enumeration. This makes fluent builder chains cheap: each chained call that
+     * returns {@code this} hits the cache rather than re-wrapping.
+     *
+     * <p>The method list for each class is computed once and cached statically so
+     * {@link Class#getMethods()} is called at most once per class across all contexts.
      */
-    public static JSObject wrapJavaObject(JSContext context,
-                                          JavaObjectRegistry registry,
+    public static JSObject wrapJavaObject(JSContext context, JavaObjectRegistry registry,
                                           Object javaObj) {
+        // Fast path: same object wrapped before in this context
+        JSObject existing = registry.existingWrapper(javaObj);
+        if (existing != null) return existing;
+
         JSObject wrapper = context.createJSObject();
         Class<?> clazz = javaObj.getClass();
 
-        for (Method m : clazz.getMethods()) {
-            if (Modifier.isStatic(m.getModifiers())) continue;
-            if (isNoisyObjectMethod(m)) continue;
-            if (wrapper.has(m.getName())) continue;
+        // Use cached method list — computed once per class, never again
+        Method[] methods = INSTANCE_METHOD_CACHE.computeIfAbsent(clazz, c -> {
+            List<Method> list = new ArrayList<>();
+            java.util.Set<String> seen = new java.util.HashSet<>();
+            for (Method m : c.getMethods()) {
+                if (Modifier.isStatic(m.getModifiers())) continue;
+                if (isNoisyObjectMethod(m)) continue;
+                if (seen.add(m.getName())) list.add(m); // first overload per name
+            }
+            return list.toArray(new Method[0]);
+        });
+
+        for (Method m : methods) {
             final String name = m.getName();
             wrapper.set(name, fn(context, name, m.getParameterCount(),
                     (ctx, $this, mArgs) -> invokeInstance(ctx, registry, javaObj, name, mArgs)));
@@ -653,6 +684,19 @@ public final class NashornJavaCompat {
 
         registry.register(wrapper, javaObj);
         return wrapper;
+    }
+
+    /**
+     * Convenience overload that resolves the {@link JSContext} and
+     * {@link JavaObjectRegistry} from the {@link ScriptManager} by script name.
+     * Intended for use from Java code that holds a reference to a Java object
+     * and needs to hand it back to a specific script context.
+     */
+    public static JSObject wrapJavaObject(String declaringClass, Object javaObj) {
+        ScriptManager scriptManager = ObbyLang.get().getInstance(ScriptManager.class);
+        JSContext context = scriptManager.getScript(declaringClass);
+        JavaObjectRegistry registry = scriptManager.getRegistry(declaringClass);
+        return wrapJavaObject(context, registry, javaObj);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -677,9 +721,10 @@ public final class NashornJavaCompat {
     private static JSValue invokeStatic(JSContext context, JavaObjectRegistry registry,
                                         Class<?> clazz, String name, JSValue[] args) {
         try {
-            Method m = findMethod(clazz, name, args.length, true);
+            Object[] rawArgs = fromJSArgs(args);
+            Method m = findMethod(clazz, name, rawArgs, true, registry);
             MethodHandle mh = methodHandle(m);
-            Object[] javaArgs = coerce(fromJSArgs(args), m.getParameterTypes(), registry);
+            Object[] javaArgs = coerce(rawArgs, m.getParameterTypes(), registry);
             Object result = mh.invokeWithArguments(javaArgs);
             return toJSValue(context, registry, result);
         } catch (InvocationTargetException e) {
@@ -693,10 +738,11 @@ public final class NashornJavaCompat {
     private static JSValue invokeInstance(JSContext context, JavaObjectRegistry registry,
                                           Object target, String name, JSValue[] args) {
         try {
-            Method m = findMethod(target.getClass(), name, args.length, false);
+            Object[] rawArgs = fromJSArgs(args);
+            Method m = findMethod(target.getClass(), name, rawArgs, false, registry);
             MethodHandle mh = methodHandle(m);
             // For instance handles the first argument is the receiver
-            Object[] javaArgs = coerce(fromJSArgs(args), m.getParameterTypes(), registry);
+            Object[] javaArgs = coerce(rawArgs, m.getParameterTypes(), registry);
             Object[] withReceiver = prepend(target, javaArgs);
             Object result = mh.invokeWithArguments(withReceiver);
             return toJSValue(context, registry, result);
@@ -812,11 +858,17 @@ public final class NashornJavaCompat {
 
     private static Constructor<?> findConstructor(Class<?> clazz, int argCount)
             throws NoSuchMethodException {
+        Constructor<?> varargExact = null;
         Constructor<?> varargFallback = null;
         for (Constructor<?> c : clazz.getConstructors()) {
-            if (c.getParameterCount() == argCount) return c;
-            if (c.isVarArgs() && argCount >= c.getParameterCount() - 1) varargFallback = c;
+            if (c.getParameterCount() == argCount) {
+                if (!c.isVarArgs()) return c;
+                if (varargExact == null) varargExact = c;
+            } else if (c.isVarArgs() && argCount >= c.getParameterCount() - 1) {
+                if (varargFallback == null) varargFallback = c;
+            }
         }
+        if (varargExact != null) return varargExact;
         if (varargFallback != null) return varargFallback;
         throw new NoSuchMethodException(
                 "No constructor on " + clazz.getName() + " accepting " + argCount + " argument(s)");
@@ -833,19 +885,101 @@ public final class NashornJavaCompat {
         throw new IllegalStateException("No constructor found on " + clazz.getName());
     }
 
-    private static Method findMethod(Class<?> clazz, String name, int argCount, boolean isStatic)
-            throws NoSuchMethodException {
-        Method varargFallback = null;
+    /**
+     * Finds the best-matching method for a given name and argument list.
+     *
+     * <p>Overload resolution priority (highest to lowest):
+     * <ol>
+     *   <li>Non-varargs method whose every parameter type is assignable from the
+     *       corresponding argument — i.e. a fully compatible exact-arity match.</li>
+     *   <li>Any non-varargs method with the right arity (compatibility not checked) —
+     *       fallback when types can't be resolved (e.g. argument is a JSObject wrapper
+     *       whose underlying type isn't known yet).</li>
+     *   <li>Varargs method whose declared parameter count equals the argument count —
+     *       i.e. the caller passed exactly the right number including the array slot.</li>
+     *   <li>Varargs method that accepts the argument count via spreading.</li>
+     * </ol>
+     *
+     * @param rawArgs the intermediate Object[] produced by {@link #fromJSArgs} — used
+     *                for type-scoring only; may contain {@link JSObject} wrappers.
+     */
+    private static Method findMethod(Class<?> clazz, String name, Object[] rawArgs,
+                                     boolean isStatic,
+                                     JavaObjectRegistry registry) throws NoSuchMethodException {
+        int argCount = rawArgs.length;
+        Method anyExact = null;      // non-varargs, right arity, not type-compatible
+        Method varargExact = null;   // varargs, declared count == argCount
+        Method varargFallback = null;// varargs, accepts via spreading
+
         for (Method m : clazz.getMethods()) {
             if (!m.getName().equals(name)) continue;
             if (Modifier.isStatic(m.getModifiers()) != isStatic) continue;
-            if (m.getParameterCount() == argCount) return m;
-            if (m.isVarArgs() && argCount >= m.getParameterCount() - 1) varargFallback = m;
+
+            if (m.getParameterCount() == argCount && !m.isVarArgs()) {
+                if (isCompatible(m.getParameterTypes(), rawArgs, registry)) {
+                    // Fully compatible non-varargs — best possible match
+                    return m;
+                }
+                if (anyExact == null) anyExact = m;
+            } else if (m.getParameterCount() == argCount && m.isVarArgs()) {
+                if (varargExact == null) varargExact = m;
+            } else if (m.isVarArgs() && argCount >= m.getParameterCount() - 1) {
+                if (varargFallback == null) varargFallback = m;
+            }
         }
+
+        if (anyExact != null) return anyExact;
+        if (varargExact != null) return varargExact;
         if (varargFallback != null) return varargFallback;
         throw new NoSuchMethodException(
                 (isStatic ? "Static" : "Instance") + " method "
                         + clazz.getName() + "." + name + "(" + argCount + " args) not found");
+    }
+
+    /**
+     * Returns true if every element of {@code rawArgs} is assignable to the
+     * corresponding parameter type.
+     *
+     * <p>For {@link JSObject} arguments, the registry is consulted to recover the
+     * underlying Java object's actual type — this is what makes
+     * {@code sendMessage(Component)} win over {@code sendMessage(String)} when the
+     * argument is a wrapped {@code Component}. If the registry has no entry for the
+     * wrapper (e.g. a plain JS object), the arg is treated as tentatively compatible
+     * with any non-primitive target.
+     */
+    private static boolean isCompatible(Class<?>[] paramTypes, Object[] rawArgs,
+                                        JavaObjectRegistry registry) {
+        for (int i = 0; i < paramTypes.length; i++) {
+            Class<?> target = paramTypes[i];
+            Object val = i < rawArgs.length ? rawArgs[i] : null;
+            if (val == null) continue;
+            if (target.isInstance(val)) continue;
+            if (val instanceof JSObject jsObj) {
+                Object underlying = registry.unwrap(jsObj);
+                if (underlying != null) {
+                    // We know the real type — use it for an exact compatibility check
+                    if (target.isInstance(underlying)) continue;
+                    // Real type is known and incompatible — this overload does not match
+                    return false;
+                }
+                // No registry entry: plain JS object or functional interface arg —
+                // treat as compatible with any non-primitive target
+                if (!target.isPrimitive()) continue;
+                return false;
+            }
+            if (val instanceof Double) {
+                if (target.isPrimitive() || Number.class.isAssignableFrom(target)) continue;
+                if (target == String.class) continue;
+                if (target == Object.class) continue;
+            }
+            if (val instanceof String && (target == char.class || target == Character.class
+                    || target == String.class || target == Object.class
+                    || target == CharSequence.class)) continue;
+            if (val instanceof Boolean && (target == boolean.class || target == Boolean.class
+                    || target == Object.class)) continue;
+            return false;
+        }
+        return true;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -938,6 +1072,25 @@ public final class NashornJavaCompat {
         return value.toJavaObject();
     }
 
+    /**
+     * Registry-aware variant of {@link #fromJSValue}. When the value is a
+     * {@link JSObject} that wraps a real Java object (registered via
+     * {@link #wrapJavaObject}), the original Java object is returned directly
+     * instead of falling back to {@link JSObject#toJavaObject()} which produces
+     * a {@code LinkedHashMap}. Used by {@link #autoProxyFunction} so that lambda
+     * return values (e.g. a {@code Component} wrapped after a method call) are
+     * correctly unwrapped before being handed back to the Java caller.
+     */
+    static Object fromJSValue(JSValue value, Class<?> target, JavaObjectRegistry registry) {
+        if (value instanceof JSObject obj) {
+            Object underlying = registry.unwrap(obj);
+            if (underlying != null) return underlying;
+            // Fall through to toJavaObject() only if no registry entry exists
+            return obj.toJavaObject();
+        }
+        return fromJSValue(value, target);
+    }
+
     private static Object[] coerce(Object[] args, Class<?>[] types,
                                    JavaObjectRegistry registry) {
         if (types.length == 0) return args;
@@ -967,6 +1120,14 @@ public final class NashornJavaCompat {
     private static Object coerceOne(Object val, Class<?> target, JavaObjectRegistry registry) {
         if (val == null) return null;
         if (target.isInstance(val)) return val;
+
+        // If the target is a functional interface and the value is a JS function,
+        // auto-wrap it in a JDK Proxy so the caller never needs an explicit Java.extend().
+        // This covers cases like postProcessor(component -> ...) where Adventure or other
+        // Java APIs declare parameters as UnaryOperator, Consumer, Supplier, etc.
+        if (val instanceof JSFunction jsFn && isFunctionalInterface(target)) {
+            return autoProxyFunction(jsFn, target, registry);
+        }
 
         // Unwrap JS-wrapped Java objects back to their original type.
         // Check both exact match and broad Object target.
@@ -1005,6 +1166,75 @@ public final class NashornJavaCompat {
             return b;
         }
         return val;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Functional interface auto-proxy
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Returns true if {@code type} is a functional interface — an interface
+     * annotated with {@link FunctionalInterface} OR an interface that declares
+     * exactly one abstract method (the structural definition Java uses for lambdas).
+     */
+    private static boolean isFunctionalInterface(Class<?> type) {
+        if (!type.isInterface()) return false;
+        // Fast path: explicit annotation
+        if (type.isAnnotationPresent(FunctionalInterface.class)) return true;
+        // Structural check: exactly one abstract method
+        int abstractCount = 0;
+        for (Method m : type.getMethods()) {
+            if (Modifier.isAbstract(m.getModifiers())) {
+                abstractCount++;
+                if (abstractCount > 1) return false;
+            }
+        }
+        return abstractCount == 1;
+    }
+
+    /**
+     * Wraps a {@link JSFunction} in a JDK {@link Proxy} that implements the given
+     * functional interface. The single abstract method is routed to the JS function.
+     * Incoming Java arguments are wrapped via {@link #toJSArgs} so they're accessible
+     * from JS; the return value is coerced back via {@link #fromJSValue}.
+     * The registry is captured in the closure so that JS-wrapped Java objects passed
+     * as arguments (e.g. captured constants like {@code ITALIC} or {@code FALSE})
+     * can be unwrapped correctly when the JS function calls methods on them.
+     */
+    private static Object autoProxyFunction(JSFunction jsFn, Class<?> functionalInterface,
+                                            JavaObjectRegistry registry) {
+        Method sam = null;
+        for (Method m : functionalInterface.getMethods()) {
+            if (Modifier.isAbstract(m.getModifiers())) {
+                sam = m;
+                break;
+            }
+        }
+        final Method samMethod = sam;
+        ClassLoader cl = classLoader(functionalInterface);
+        return Proxy.newProxyInstance(cl, new Class<?>[]{ functionalInterface },
+                (proxy, method, methodArgs) -> {
+                    if (method.getDeclaringClass() == Object.class) {
+                        return method.invoke(proxy, methodArgs);
+                    }
+                    JSContext ctx = jsFn.getRealmContext();
+                    // Wrap incoming Java args into JS values using the registry so that
+                    // any Java-backed JSObject wrappers passed back into Java calls
+                    // (e.g. ITALIC, FALSE captured from the outer script scope) can be
+                    // properly unwrapped by coerceOne.
+                    JSValue[] jsArgs = methodArgs == null
+                            ? JSValue.NO_ARGS
+                            : toJSArgs(ctx, registry, methodArgs);
+                    JSValue result = jsFn.call(ctx, JSUndefined.INSTANCE, jsArgs);
+                    if (ctx.hasPendingException()) {
+                        JSValue ex = ctx.getPendingException();
+                        ctx.clearPendingException();
+                        throw new RuntimeException(
+                                "JS exception in functional interface proxy: " + ex);
+                    }
+                    return fromJSValue(result, samMethod != null
+                            ? samMethod.getReturnType() : method.getReturnType(), registry);
+                });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
