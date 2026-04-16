@@ -1178,6 +1178,8 @@ public final class NashornJavaCompat {
             return cached;
         }
 
+        Method bestCompatible = null;
+        int bestScore = -1;
         Method anyExact = null;
         Method varargExact = null;
         Method varargFallback = null;
@@ -1187,11 +1189,16 @@ public final class NashornJavaCompat {
             if (Modifier.isStatic(m.getModifiers()) != isStatic) continue;
 
             if (m.getParameterCount() == argCount && !m.isVarArgs()) {
-                if (isCompatible(m.getParameterTypes(), rawArgs, registry)) {
-                    METHOD_LOOKUP_CACHE.put(cacheKey, m);
-                    return m;
+                int score = compatibilityScore(m.getParameterTypes(), rawArgs, registry);
+                if (score >= 0) {
+                    // Higher score = better match; keep scanning for the best
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestCompatible = m;
+                    }
+                } else {
+                    if (anyExact == null) anyExact = m;
                 }
-                if (anyExact == null) anyExact = m;
             } else if (m.getParameterCount() == argCount && m.isVarArgs()) {
                 if (varargExact == null) varargExact = m;
             } else if (m.isVarArgs() && argCount >= m.getParameterCount() - 1) {
@@ -1199,7 +1206,8 @@ public final class NashornJavaCompat {
             }
         }
 
-        Method result = anyExact != null ? anyExact
+        Method result = bestCompatible != null ? bestCompatible
+                : anyExact != null ? anyExact
                 : varargExact != null ? varargExact
                 : varargFallback;
 
@@ -1247,49 +1255,80 @@ public final class NashornJavaCompat {
     }
 
     /**
-     * Returns true if every element of {@code rawArgs} is assignable to the
-     * corresponding parameter type.
+     * Scores how well {@code rawArgs} match {@code paramTypes}.
      *
-     * <p>For {@link JSObject} arguments, the registry is consulted to recover the
-     * underlying Java object's actual type — this is what makes
-     * {@code sendMessage(Component)} win over {@code sendMessage(String)} when the
-     * argument is a wrapped {@code Component}. If the registry has no entry for the
-     * wrapper (e.g. a plain JS object), the arg is treated as tentatively compatible
-     * with any non-primitive target.
+     * <p>Returns {@code -1} if the args are incompatible with the parameter types.
+     * Returns a non-negative integer otherwise — higher is a better match:
+     * <ul>
+     *   <li>Exact Java type match (or registered Java object matching the target): +2 per arg</li>
+     *   <li>Numeric widening to a primitive (e.g. Double → int): +1 per arg</li>
+     *   <li>Fallback compatible (e.g. Double → Object, unregistered JSObject): +0 per arg</li>
+     * </ul>
+     *
+     * <p>This scoring is what makes {@code remove(int)} beat {@code remove(Object)}
+     * when called with a JS number: the primitive parameter scores +1 while the
+     * Object parameter scores +0, so the int overload wins regardless of iteration order.
      */
-    private static boolean isCompatible(Class<?>[] paramTypes, Object[] rawArgs,
-                                        JavaObjectRegistry registry) {
+    private static int compatibilityScore(Class<?>[] paramTypes, Object[] rawArgs,
+                                          JavaObjectRegistry registry) {
+        int score = 0;
         for (int i = 0; i < paramTypes.length; i++) {
             Class<?> target = paramTypes[i];
             Object val = i < rawArgs.length ? rawArgs[i] : null;
             if (val == null) continue;
-            if (target.isInstance(val)) continue;
+
             if (val instanceof JSObject jsObj) {
                 Object underlying = unwrapJSObject(jsObj, registry);
                 if (underlying != null) {
-                    // We know the real type — use it for an exact compatibility check
-                    if (target.isInstance(underlying)) continue;
-                    // Real type is known and incompatible — this overload does not match
-                    return false;
+                    if (target == Object.class)             { /* score += 0 */ continue; }
+                    if (target.isInstance(underlying))      { score += 2; continue; }
+                    return -1;
                 }
-                // No registry entry: plain JS object or functional interface arg —
-                // treat as compatible with any non-primitive target
-                if (!target.isPrimitive()) continue;
-                return false;
+                if (!target.isPrimitive()) { /* score += 0 */ continue; }
+                return -1;
             }
+
+            // Numeric JS values arrive as Double. Primitives score +3 so they beat
+            // Object (+0) and boxed Number supertypes (+1). This makes remove(int)
+            // win over remove(Object) when called with a numeric argument.
             if (val instanceof Double) {
-                if (target.isPrimitive() || Number.class.isAssignableFrom(target)) continue;
-                if (target == String.class) continue;
-                if (target == Object.class) continue;
+                if (target == int.class    || target == Integer.class)   { score += 3; continue; }
+                if (target == long.class   || target == Long.class)      { score += 3; continue; }
+                if (target == double.class || target == Double.class)    { score += 3; continue; }
+                if (target == float.class  || target == Float.class)     { score += 3; continue; }
+                if (target == short.class  || target == Short.class)     { score += 3; continue; }
+                if (target == byte.class   || target == Byte.class)      { score += 3; continue; }
+                if (target == char.class   || target == Character.class) { score += 3; continue; }
+                if (target == boolean.class || target == Boolean.class)  { score += 3; continue; }
+                if (Number.class.isAssignableFrom(target))               { score += 1; continue; }
+                if (target == String.class || target == Object.class)    { /* score += 0 */ continue; }
+                return -1;
             }
-            if (val instanceof String && (target == char.class || target == Character.class
-                    || target == String.class || target == Object.class
-                    || target == CharSequence.class)) continue;
-            if (val instanceof Boolean && (target == boolean.class || target == Boolean.class
-                    || target == Object.class)) continue;
-            return false;
+            if (val instanceof String) {
+                if (target == String.class)                              { score += 3; continue; }
+                if (target == char.class || target == Character.class)   { score += 2; continue; }
+                if (target == CharSequence.class)                        { score += 1; continue; }
+                if (target == Object.class)                              { /* score += 0 */ continue; }
+                return -1;
+            }
+            if (val instanceof Boolean) {
+                if (target == boolean.class || target == Boolean.class)  { score += 3; continue; }
+                if (target == Object.class)                              { /* score += 0 */ continue; }
+                return -1;
+            }
+
+            // Other Java values: penalise Object target
+            if (target == Object.class) { /* score += 0 */ continue; }
+            if (target.isInstance(val)) { score += 2; continue; }
+            return -1;
         }
-        return true;
+        return score;
+    }
+
+    /** Convenience wrapper used outside findMethod where a boolean is sufficient. */
+    private static boolean isCompatible(Class<?>[] paramTypes, Object[] rawArgs,
+                                        JavaObjectRegistry registry) {
+        return compatibilityScore(paramTypes, rawArgs, registry) >= 0;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
