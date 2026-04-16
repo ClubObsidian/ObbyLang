@@ -27,8 +27,6 @@ import com.clubobsidian.obbylang.manager.listener.ListenerManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.obbylang.util.ChatColor;
-import javassist.ClassClassPath;
-import javassist.ClassPool;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -76,23 +74,11 @@ public class ScriptManager {
 
     public boolean load() {
         if(!this.loaded) {
-            this.loadClassPool();
             this.loadScripts();
             this.loaded = true;
             return true;
         }
         return false;
-    }
-
-    private void loadClassPool() {
-        ClassPool.getDefault().insertClassPath(new ClassClassPath(JSValue.class));
-        ClassPool.getDefault().insertClassPath(new ClassClassPath(JSContext.class));
-        ClassPool.getDefault().insertClassPath(new ClassClassPath(JSFunction.class));
-        ClassPool.getDefault().insertClassPath(new ClassClassPath(ScriptWrapper.class));
-        ClassPool.getDefault().insertClassPath(new ClassClassPath(ScriptWrapper[].class));
-        ClassPool.getDefault().insertClassPath(new ClassClassPath(ListenerManager.class));
-        ClassPool.getDefault().insertClassPath(new ClassClassPath(Field.class));
-        ClassPool.getDefault().insertClassPath(new ClassClassPath(Map.class));
     }
 
     private JSContext createContext(String scriptName) {
