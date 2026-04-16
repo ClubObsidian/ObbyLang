@@ -75,37 +75,38 @@ public final class NashornJavaCompat {
 
     /**
      * MethodHandles for constructor invocation.
-     * Key: declaringClassName + "#" + parameterCount
+     * Keyed by Constructor identity — no string allocation on the hot path.
      */
-    private static final ConcurrentHashMap<String, MethodHandle> CTOR_CACHE =
+    private static final ConcurrentHashMap<Constructor<?>, MethodHandle> CTOR_CACHE =
             new ConcurrentHashMap<>();
 
     /**
      * MethodHandles for static and instance method invocation.
-     * Key: declaringClassName + "." + methodName + "#" + paramCount + (S|I)
+     * Keyed by Method identity — no string allocation on the hot path.
      */
-    private static final ConcurrentHashMap<String, MethodHandle> METHOD_CACHE =
+    private static final ConcurrentHashMap<Method, MethodHandle> METHOD_CACHE =
             new ConcurrentHashMap<>();
 
     /**
      * MethodHandles for invokespecial super-method dispatch.
      * Key: generatedClassName + ">" + declaringClassName + "." + methodName
+     * (String key retained — lookup involves two classes, no per-call allocation.)
      */
     private static final ConcurrentHashMap<String, MethodHandle> SUPER_CACHE =
             new ConcurrentHashMap<>();
 
     /**
      * MethodHandles for field reads (static and instance).
-     * Key: declaringClassName + "#get#" + fieldName
+     * Keyed by Field identity — no string allocation on the hot path.
      */
-    private static final ConcurrentHashMap<String, MethodHandle> FIELD_GET_CACHE =
+    private static final ConcurrentHashMap<Field, MethodHandle> FIELD_GET_CACHE =
             new ConcurrentHashMap<>();
 
     /**
      * MethodHandles for field writes (used for {@code __handler__} injection).
-     * Key: declaringClassName + "#set#" + fieldName
+     * Keyed by Field identity — no string allocation on the hot path.
      */
-    private static final ConcurrentHashMap<String, MethodHandle> FIELD_SET_CACHE =
+    private static final ConcurrentHashMap<Field, MethodHandle> FIELD_SET_CACHE =
             new ConcurrentHashMap<>();
 
     /**
@@ -294,7 +295,7 @@ public final class NashornJavaCompat {
             Constructor<?> ctor = findCheapestConstructor(subclass);
             MethodHandle ctorHandle = LOOKUP.unreflectConstructor(ctor);
             Object[] dummyArgs = dummyArgs(ctor.getParameterTypes());
-            Object instance = ctorHandle.invokeWithArguments(dummyArgs);
+            Object instance = invoke(ctorHandle, dummyArgs);
 
             // Inject handler via cached MethodHandle setter
             Field handlerField = subclass.getDeclaredField("__handler__");
@@ -411,7 +412,7 @@ public final class NashornJavaCompat {
                 if (superHandle != null) {
                     MethodHandle bound = superHandle.bindTo(proxy);
                     Object[] callArgs = methodArgs != null ? methodArgs : new Object[0];
-                    return bound.invokeWithArguments(callArgs);
+                    return invoke(bound, callArgs);
                 }
             }
 
@@ -494,7 +495,7 @@ public final class NashornJavaCompat {
                             MethodHandle bound = handle.bindTo(proxy);
                             Object[] javaArgs = coerce(
                                     rawArgs, resolved.getParameterTypes(), registry);
-                            Object result = bound.invokeWithArguments(javaArgs);
+                            Object result = invoke(bound, javaArgs);
                             return toJSValue(ctx, registry, result);
                         } catch (Throwable e) {
                             return context.throwError(
@@ -693,7 +694,7 @@ public final class NashornJavaCompat {
      * and needs to hand it back to a specific script context.
      */
     public static JSObject wrapJavaObject(String declaringClass, Object javaObj) {
-        ScriptManager scriptManager = ObbyLang.get().getInstance(ScriptManager.class);
+        ScriptManager scriptManager = ObbyLang.get().getScriptManager();
         JSContext context = scriptManager.getScript(declaringClass);
         JavaObjectRegistry registry = scriptManager.getRegistry(declaringClass);
         return wrapJavaObject(context, registry, javaObj);
@@ -709,7 +710,7 @@ public final class NashornJavaCompat {
             Constructor<?> ctor = findConstructor(clazz, args.length);
             MethodHandle mh = ctorHandle(ctor);
             Object[] javaArgs = coerce(fromJSArgs(args), ctor.getParameterTypes(), registry);
-            Object instance = mh.invokeWithArguments(javaArgs);
+            Object instance = invoke(mh, javaArgs);
             return wrapJavaObject(context, registry, instance);
         } catch (InvocationTargetException e) {
             return context.throwError("Java constructor threw: " + unwrap(e).getMessage());
@@ -725,7 +726,7 @@ public final class NashornJavaCompat {
             Method m = findMethod(clazz, name, rawArgs, true, registry);
             MethodHandle mh = methodHandle(m);
             Object[] javaArgs = coerce(rawArgs, m.getParameterTypes(), registry);
-            Object result = mh.invokeWithArguments(javaArgs);
+            Object result = invoke(mh, javaArgs);
             return toJSValue(context, registry, result);
         } catch (InvocationTargetException e) {
             return context.throwError(clazz.getSimpleName() + "." + name + "() threw: "
@@ -743,8 +744,8 @@ public final class NashornJavaCompat {
             MethodHandle mh = methodHandle(m);
             // For instance handles the first argument is the receiver
             Object[] javaArgs = coerce(rawArgs, m.getParameterTypes(), registry);
-            Object[] withReceiver = prepend(target, javaArgs);
-            Object result = mh.invokeWithArguments(withReceiver);
+            // bindTo eliminates the receiver slot — no extra array allocation needed
+            Object result = invoke(mh.bindTo(target), javaArgs);
             return toJSValue(context, registry, result);
         } catch (InvocationTargetException e) {
             return context.throwError(name + "() threw: " + unwrap(e).getMessage());
@@ -758,25 +759,19 @@ public final class NashornJavaCompat {
     // ─────────────────────────────────────────────────────────────────────────
 
     private static MethodHandle ctorHandle(Constructor<?> ctor) {
-        String key = ctor.getDeclaringClass().getName() + "#" + ctor.getParameterCount();
-        return CTOR_CACHE.computeIfAbsent(key, k -> lookupCtor(ctor));
+        return CTOR_CACHE.computeIfAbsent(ctor, k -> lookupCtor(ctor));
     }
 
     private static MethodHandle methodHandle(Method m) {
-        boolean isStatic = Modifier.isStatic(m.getModifiers());
-        String key = m.getDeclaringClass().getName() + "." + m.getName()
-                + "#" + m.getParameterCount() + (isStatic ? "S" : "I");
-        return METHOD_CACHE.computeIfAbsent(key, k -> lookupMethod(m));
+        return METHOD_CACHE.computeIfAbsent(m, k -> lookupMethod(m));
     }
 
     private static MethodHandle fieldGetHandle(Field f) {
-        String key = f.getDeclaringClass().getName() + "#get#" + f.getName();
-        return FIELD_GET_CACHE.computeIfAbsent(key, k -> lookupFieldGet(f));
+        return FIELD_GET_CACHE.computeIfAbsent(f, k -> lookupFieldGet(f));
     }
 
     private static MethodHandle fieldSetHandle(Field f) {
-        String key = f.getDeclaringClass().getName() + "#set#" + f.getName();
-        return FIELD_SET_CACHE.computeIfAbsent(key, k -> lookupFieldSet(f));
+        return FIELD_SET_CACHE.computeIfAbsent(f, k -> lookupFieldSet(f));
     }
 
     /**
@@ -1259,12 +1254,25 @@ public final class NashornJavaCompat {
         };
     }
 
-    /** Prepends {@code receiver} to {@code args} for instance MethodHandle invocation. */
-    private static Object[] prepend(Object receiver, Object[] args) {
-        Object[] out = new Object[args.length + 1];
-        out[0] = receiver;
-        System.arraycopy(args, 0, out, 1, args.length);
-        return out;
+    /**
+     * Invokes {@code mh} with {@code args} using direct typed {@code invoke()} calls
+     * for 0–4 arguments to avoid the boxing overhead of
+     * {@link MethodHandle#invokeWithArguments}. Falls back for 5+ args.
+     *
+     * <p>The explicit {@code (Object)} casts are required: {@code invoke()} is
+     * signature-polymorphic, so without them the compiler emits the wrong descriptor.
+     * For instance methods, callers should use {@code mh.bindTo(receiver)} before
+     * calling this so the receiver is not an extra array slot.
+     */
+    private static Object invoke(MethodHandle mh, Object[] args) throws Throwable {
+        return switch (args.length) {
+            case 0 -> mh.invoke();
+            case 1 -> mh.invoke(args[0]);
+            case 2 -> mh.invoke(args[0], args[1]);
+            case 3 -> mh.invoke(args[0], args[1], args[2]);
+            case 4 -> mh.invoke(args[0], args[1], args[2], args[3]);
+            default -> mh.invokeWithArguments(args);
+        };
     }
 
     private static Object[] dummyArgs(Class<?>[] types) {
