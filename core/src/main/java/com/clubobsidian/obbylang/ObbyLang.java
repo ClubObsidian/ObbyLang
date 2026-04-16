@@ -67,6 +67,10 @@ public class ObbyLang {
         return this.injector.getInstance(clazz);
     }
 
+    public ScriptManager getScriptManager() {
+        return this.scriptManager;
+    }
+
     public void onEnable() {
         File dataFolder = this.plugin.getDataFolder();
         this.plugin.getLogger().info("Datafolder:" + dataFolder.getPath());
