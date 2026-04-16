@@ -10,25 +10,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * exists for them, provides reverse lookups in both directions, and caches wrappers
  * so the same Java object is never wrapped more than once per context.
  *
- * <p>Three maps are maintained:
+ * <p>Two maps are maintained:
  * <ul>
- *   <li>{@code live} — identity-hash → Java object, prevents GC.</li>
- *   <li>{@code wrapperToJava} — JSObject identity → Java object, for unwrapping
- *       JS-wrapped values back to Java at call sites.</li>
- *   <li>{@code javaToWrapper} — Java object identity → JSObject, so that the same
- *       Java object is never wrapped twice. This is the primary performance
- *       optimisation: fluent builder chains that return {@code this} hit this cache
- *       on every call and skip the full {@link NashornJavaCompat#wrapJavaObject}
- *       enumeration.</li>
+ *   <li>{@code wrapperToJava} — JSObject identity → Java object, used by
+ *       {@link NashornJavaCompat#coerceOne} to unwrap wrapped values at call sites.</li>
+ *   <li>{@code javaToWrapper} — Java object identity → JSObject, used by
+ *       {@link NashornJavaCompat#wrapJavaObject} to return the existing wrapper
+ *       when the same Java object is encountered again (avoids re-wrapping).</li>
  * </ul>
  *
  * <p>Call {@link #clear()} when the owning {@link com.caoccao.qjs4j.core.JSContext}
  * is closed to release all references.
  */
 public final class JavaObjectRegistry {
-
-    /** identity(javaObj) → javaObj — keeps objects strongly reachable. */
-    private final Map<Integer, Object> live = new ConcurrentHashMap<>();
 
     /** identity(wrapper) → javaObj — used by coerceOne to unwrap. */
     private final Map<Integer, Object> wrapperToJava = new ConcurrentHashMap<>();
@@ -37,20 +31,16 @@ public final class JavaObjectRegistry {
     private final Map<Integer, JSObject> javaToWrapper = new ConcurrentHashMap<>();
 
     /**
-     * Pins {@code javaObj}, records the wrapper↔java mapping in both directions.
+     * Pins {@code javaObj} and records the wrapper↔java mapping in both directions.
      */
     public void register(JSObject wrapper, Object javaObj) {
-        int javaId = System.identityHashCode(javaObj);
-        int wrapperId = System.identityHashCode(wrapper);
-        live.put(javaId, javaObj);
-        wrapperToJava.put(wrapperId, javaObj);
-        javaToWrapper.put(javaId, wrapper);
+        wrapperToJava.put(System.identityHashCode(wrapper), javaObj);
+        javaToWrapper.put(System.identityHashCode(javaObj), wrapper);
     }
 
     /**
      * Returns the existing {@link JSObject} wrapper for {@code javaObj}, or
      * {@code null} if this object has not been wrapped in this context yet.
-     * Used by {@link NashornJavaCompat#wrapJavaObject} to skip re-wrapping.
      */
     public JSObject existingWrapper(Object javaObj) {
         return javaToWrapper.get(System.identityHashCode(javaObj));
@@ -66,22 +56,18 @@ public final class JavaObjectRegistry {
 
     /** Releases a single object and all its mappings. */
     public void unregister(JSObject wrapper, Object javaObj) {
-        int javaId = System.identityHashCode(javaObj);
-        int wrapperId = System.identityHashCode(wrapper);
-        live.remove(javaId);
-        wrapperToJava.remove(wrapperId);
-        javaToWrapper.remove(javaId);
+        wrapperToJava.remove(System.identityHashCode(wrapper));
+        javaToWrapper.remove(System.identityHashCode(javaObj));
     }
 
     /** Releases all objects pinned by this registry. Call on context close. */
     public void clear() {
-        live.clear();
         wrapperToJava.clear();
         javaToWrapper.clear();
     }
 
     /** Returns the number of Java objects currently pinned by this registry. */
     public int size() {
-        return live.size();
+        return javaToWrapper.size();
     }
 }

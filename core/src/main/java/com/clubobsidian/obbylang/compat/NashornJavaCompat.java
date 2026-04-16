@@ -118,6 +118,26 @@ public final class NashornJavaCompat {
     private static final ConcurrentHashMap<Class<?>, Method[]> INSTANCE_METHOD_CACHE =
             new ConcurrentHashMap<>();
 
+    /**
+     * Method resolution cache keyed by (className|methodName|argTypes|S/I).
+     * argTypes encodes the actual Java type of each argument so overloads with the
+     * same arity but different parameter types (e.g. sendMessage(String) vs
+     * sendMessage(Component)) are cached under distinct keys.
+     * A {@code null} sentinel indicates "no method found" for that combination.
+     */
+    private static final ConcurrentHashMap<String, Method> METHOD_LOOKUP_CACHE =
+            new ConcurrentHashMap<>();
+
+    /** Sentinel stored in METHOD_LOOKUP_CACHE to represent "no matching method". */
+    private static final Method NO_METHOD_SENTINEL;
+    static {
+        try {
+            NO_METHOD_SENTINEL = Object.class.getDeclaredMethod("hashCode");
+        } catch (NoSuchMethodException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     private NashornJavaCompat() {}
@@ -678,16 +698,45 @@ public final class NashornJavaCompat {
      * <p>If this exact object (by identity) has already been wrapped in this context,
      * the existing wrapper is returned immediately.
      */
+    /**
+     * Wraps a live Java object in a {@link JSObject}, exposing all public instance
+     * methods (via cached MethodHandles) and readable fields as own properties.
+     *
+     * <p>The method list for each class is computed once and cached statically so
+     * {@link Class#getMethods()} is called at most once per class across all contexts.
+     * The same object (by identity) is never wrapped twice in the same context —
+     * the existing wrapper is returned immediately from the registry.
+     *
+     * <p>We use a plain JSObject rather than JSProxy so that the wrapper identity
+     * is stable when passed as a function argument through JS code. JSProxy values
+     * can be surfaced as their inner target by the qjs4j VM, breaking registry
+     * lookups by identity hash.
+     */
+    /**
+     * Wraps a live Java object in a {@link JSObject} with lazy method population.
+     *
+     * <p>Methods are installed as configurable accessor properties (getter-only).
+     * On first access the getter fires, creates the real {@link JSNativeFunction},
+     * replaces itself with a plain data property, and returns the function — so
+     * subsequent accesses hit the data property directly with no getter overhead.
+     *
+     * <p>This gives lazy allocation (only methods actually called get a function
+     * object) while keeping a stable plain {@link JSObject} identity so the
+     * registry lookup by {@link System#identityHashCode} always works correctly.
+     *
+     * <p>Fields are also lazy: a getter-only accessor is defined that reads the
+     * field on access and replaces itself with the value.
+     */
     public static JSObject wrapJavaObject(JSContext context, JavaObjectRegistry registry,
                                           Object javaObj) {
         // Fast path: same object wrapped before in this context
         JSObject existing = registry.existingWrapper(javaObj);
         if (existing != null) return existing;
 
+        JSObject wrapper = context.createJSObject();
         Class<?> clazz = javaObj.getClass();
 
-        // Ensure the method name set is cached — O(1) after first call per class
-        INSTANCE_METHOD_CACHE.computeIfAbsent(clazz, c -> {
+        Method[] methods = INSTANCE_METHOD_CACHE.computeIfAbsent(clazz, c -> {
             List<Method> list = new ArrayList<>();
             java.util.Set<String> seen = new java.util.HashSet<>();
             for (Method m : c.getMethods()) {
@@ -698,89 +747,50 @@ public final class NashornJavaCompat {
             return list.toArray(new Method[0]);
         });
 
-        // The target object holds cached method functions once created.
-        // Fields are also written here lazily on first access.
-        JSObject target = context.createJSObject();
-
-        // Handler object with a 'get' trap — property access is intercepted
-        JSObject handler = context.createJSObject();
-        handler.set("get", fn(context, "get", 3, (ctx, $this, trapArgs) -> {
-            // trapArgs: [target, propertyName, receiver]
-            if (trapArgs.length < 2 || !(trapArgs[1] instanceof JSString propKey)) {
-                return JSUndefined.INSTANCE;
-            }
-            String propName = propKey.value();
-
-            // If already cached on the target object, return it directly
-            JSValue cached = target.get(propName);
-            if (!(cached instanceof JSUndefined)) return cached;
-
-            // Check instance methods
-            for (Method m : INSTANCE_METHOD_CACHE.get(clazz)) {
-                if (!m.getName().equals(propName)) continue;
-                JSNativeFunction methodFn = fn(ctx, propName, m.getParameterCount(),
-                        (mCtx, mThis, mArgs) -> invokeInstance(mCtx, registry, javaObj, propName, mArgs));
-                // Cache on target so future accesses bypass this trap
-                target.set(propName, methodFn);
+        for (Method m : methods) {
+            final String name = m.getName();
+            final int arity = m.getParameterCount();
+            // Configurable getter: fires once, installs a data property, replaces itself
+            JSNativeFunction getter = fn(context, name, 0, (ctx, $this, ignored) -> {
+                JSNativeFunction methodFn = fn(ctx, name, arity,
+                        (mCtx, mThis, mArgs) -> invokeInstance(mCtx, registry, javaObj, name, mArgs));
+                // Replace the accessor with a plain data property so future accesses
+                // bypass this getter entirely — O(1) property read from here on
+                wrapper.defineProperty(
+                        PropertyKey.fromString(name),
+                        PropertyDescriptor.dataDescriptor(methodFn,
+                                PropertyDescriptor.DataState.ConfigurableWritable));
                 return methodFn;
-            }
+            });
+            wrapper.defineProperty(
+                    PropertyKey.fromString(name),
+                    PropertyDescriptor.accessorDescriptor(getter, null,
+                            PropertyDescriptor.AccessorState.Configurable));
+        }
 
-            // Check instance fields
-            try {
-                Field f = clazz.getField(propName);
-                if (!Modifier.isStatic(f.getModifiers())) {
-                    JSValue fieldVal = toJSValue(ctx, registry, fieldGetHandle(f).invoke(javaObj));
-                    target.set(propName, fieldVal);
-                    return fieldVal;
+        for (Field f : clazz.getFields()) {
+            if (Modifier.isStatic(f.getModifiers())) continue;
+            final Field capturedField = f;
+            JSNativeFunction getter = fn(context, f.getName(), 0, (ctx, $this, ignored) -> {
+                try {
+                    JSValue val = toJSValue(ctx, registry, fieldGetHandle(capturedField).invoke(javaObj));
+                    wrapper.defineProperty(
+                            PropertyKey.fromString(capturedField.getName()),
+                            PropertyDescriptor.dataDescriptor(val,
+                                    PropertyDescriptor.DataState.ConfigurableWritable));
+                    return val;
+                } catch (Throwable e) {
+                    return ctx.throwError(capturedField.getName() + " field read failed: " + e.getMessage());
                 }
-            } catch (NoSuchFieldException ignored) {
-            } catch (Throwable e) {
-                return ctx.throwError(propName + " field read failed: " + e.getMessage());
-            }
+            });
+            wrapper.defineProperty(
+                    PropertyKey.fromString(f.getName()),
+                    PropertyDescriptor.accessorDescriptor(getter, null,
+                            PropertyDescriptor.AccessorState.Configurable));
+        }
 
-            return JSUndefined.INSTANCE;
-        }));
-
-        // 'set' trap — allow writing back to fields
-        handler.set("set", fn(context, "set", 4, (ctx, $this, trapArgs) -> {
-            // trapArgs: [target, propertyName, value, receiver]
-            if (trapArgs.length < 3 || !(trapArgs[1] instanceof JSString propKey)) {
-                return JSBoolean.FALSE;
-            }
-            String propName = propKey.value();
-            try {
-                Field f = clazz.getField(propName);
-                if (!Modifier.isStatic(f.getModifiers())) {
-                    Object javaVal = fromJSValue(trapArgs[2], f.getType(), registry);
-                    fieldSetHandle(f).invoke(javaObj, javaVal);
-                    return JSBoolean.TRUE;
-                }
-            } catch (NoSuchFieldException ignored) {
-            } catch (Throwable e) {
-                return ctx.throwError(propName + " field write failed: " + e.getMessage());
-            }
-            return JSBoolean.FALSE;
-        }));
-
-        // 'has' trap — lets `in` operator work correctly
-        handler.set("has", fn(context, "has", 2, (ctx, $this, trapArgs) -> {
-            if (trapArgs.length < 2 || !(trapArgs[1] instanceof JSString propKey)) {
-                return JSBoolean.FALSE;
-            }
-            String propName = propKey.value();
-            for (Method m : INSTANCE_METHOD_CACHE.get(clazz)) {
-                if (m.getName().equals(propName)) return JSBoolean.TRUE;
-            }
-            try {
-                clazz.getField(propName);
-                return JSBoolean.TRUE;
-            } catch (NoSuchFieldException ignored) {}
-            return JSBoolean.FALSE;
-        }));
-
-        JSProxy proxy = new JSProxy(context, target, handler);
-        registry.register(proxy, javaObj);
-        return proxy;
+        registry.register(wrapper, javaObj);
+        return wrapper;
     }
 
     /**
@@ -835,9 +845,10 @@ public final class NashornJavaCompat {
     private static JSValue invokeInstance(JSContext context, JavaObjectRegistry registry,
                                           Object target, String name, JSValue[] args) {
         try {
+            Class<?> concreteClass = target.getClass();
             Object[] rawArgs = fromJSArgs(args);
-            Method m = findMethod(target.getClass(), name, rawArgs, false, registry);
-            MethodHandle mh = methodHandle(m);
+            Method m = findMethod(concreteClass, name, rawArgs, false, registry);
+            MethodHandle mh = methodHandle(m, concreteClass);
             Object[] javaArgs = coerce(rawArgs, m.getParameterTypes(), registry);
             // Pass receiver inline — avoids bindTo() allocating a new handle each call
             Object result = invokeWithReceiver(mh, target, javaArgs);
@@ -858,7 +869,20 @@ public final class NashornJavaCompat {
     }
 
     private static MethodHandle methodHandle(Method m) {
-        return METHOD_CACHE.computeIfAbsent(m, k -> lookupMethod(m));
+        return METHOD_CACHE.computeIfAbsent(m, k -> lookupMethod(m, m.getDeclaringClass()));
+    }
+
+    /**
+     * Variant used by {@link #invokeInstance} that passes the concrete runtime class
+     * so that {@link #lookupMethod} can search from the actual object type rather than
+     * the (possibly package-private) declaring class.
+     * <p>
+     * Keyed by the method itself — the concrete class only affects the lookup path, not
+     * the resulting handle, since {@code findVirtual} dispatches on receiver type at
+     * call time regardless of which interface the handle was obtained through.
+     */
+    private static MethodHandle methodHandle(Method m, Class<?> concreteClass) {
+        return METHOD_CACHE.computeIfAbsent(m, k -> lookupMethod(m, concreteClass));
     }
 
     private static MethodHandle fieldGetHandle(Field f) {
@@ -875,22 +899,31 @@ public final class NashornJavaCompat {
      * <ol>
      *   <li>Try {@link MethodHandles#privateLookupIn} — works for classes in modules
      *       that are open to us (e.g. application classes, qjs4j itself).</li>
-     *   <li>Fall back to {@code setAccessible(true)} + {@link MethodHandles#lookup()}
-     *       — works for public members of non-open JDK modules (java.util, java.lang,
-     *       etc.) where {@code privateLookupIn} is denied but the member itself is
-     *       public.</li>
+     *   <li>Fall back to {@link MethodHandles#publicLookup()} — works for any genuinely
+     *       public member of any public class in any module, including non-open JDK modules
+     *       like {@code java.util}. Does not require {@code setAccessible} and will not
+     *       throw an {@code InaccessibleObjectException}.</li>
+     *   <li>Last resort: {@code setAccessible(true)} + {@link MethodHandles#lookup()} —
+     *       for non-public members that the caller legitimately needs to reach.</li>
      * </ol>
      *
-     * This covers the full space: open modules get private lookup, non-open JDK modules
-     * get accessible-public lookup. The only case that fails legitimately is a
-     * non-public member of a non-open module, which nothing outside that module
-     * should be calling anyway.
+     * Strategy 2 is the fix for errors like "Unable to make iterator() accessible:
+     * module java.base does not open java.util" — {@code publicLookup()} needs no
+     * open declaration, only that the member itself is public.
      */
     private static MethodHandle lookupCtor(Constructor<?> ctor) {
+        // Strategy 1: private lookup (open modules / app classes)
         try {
             return MethodHandles.privateLookupIn(ctor.getDeclaringClass(), LOOKUP)
                     .unreflectConstructor(ctor);
         } catch (IllegalAccessException ignored) {}
+        // Strategy 2: public lookup — works for any genuinely public constructor in
+        // any module without requiring the module to be open. setAccessible is not
+        // needed and will fail on non-open JDK modules (e.g. java.util).
+        try {
+            return MethodHandles.publicLookup().unreflectConstructor(ctor);
+        } catch (IllegalAccessException ignored) {}
+        // Strategy 3: force-accessible last resort (non-public members)
         try {
             ctor.setAccessible(true);
             return MethodHandles.lookup().unreflectConstructor(ctor);
@@ -900,11 +933,34 @@ public final class NashornJavaCompat {
         }
     }
 
-    private static MethodHandle lookupMethod(Method m) {
+    private static MethodHandle lookupMethod(Method m, Class<?> concreteClass) {
+        // Strategy 1: private lookup (open modules / app classes)
         try {
             return MethodHandles.privateLookupIn(m.getDeclaringClass(), LOOKUP)
                     .unreflect(m);
         } catch (IllegalAccessException ignored) {}
+        // Strategy 2: public lookup on the declaring class.
+        // Works for public methods on public classes in non-open JDK modules.
+        try {
+            return MethodHandles.publicLookup().unreflect(m);
+        } catch (IllegalAccessException ignored) {}
+        // Strategy 3: declaring class is non-public (e.g. HashMap$EntrySet).
+        // Search from the declaring class upward for a public supertype.
+        Method publicMethod = findViaPublicSupertype(m);
+        if (publicMethod != null && publicMethod != m) {
+            try {
+                return MethodHandles.publicLookup().unreflect(publicMethod);
+            } catch (IllegalAccessException ignored) {}
+        }
+        // Strategy 4: search from the concrete runtime class upward. This covers the
+        // case where the declaring class (e.g. HashMap$HashIterator) is in the middle
+        // of a package-private hierarchy and doesn't directly implement the public
+        // interface — but the concrete class (e.g. HashMap$EntryIterator) does via
+        // Iterator. findVirtual dispatches on receiver type at call time so it always
+        // calls the right implementation.
+        MethodHandle virtualHandle = findVirtualViaInterfaces(m, concreteClass);
+        if (virtualHandle != null) return virtualHandle;
+        // Strategy 5: force-accessible last resort
         try {
             m.setAccessible(true);
             return MethodHandles.lookup().unreflect(m);
@@ -914,11 +970,115 @@ public final class NashornJavaCompat {
         }
     }
 
+    /**
+     * For methods declared on package-private classes that sit in the middle of a
+     * hierarchy (e.g. {@code HashMap$HashIterator} which is the abstract base for
+     * concrete iterators but doesn't itself implement {@code Iterator}), we walk the
+     * full superclass chain collecting all public interfaces and try
+     * {@code publicLookup().findVirtual(iface, name, type)} on each one.
+     *
+     * <p>{@code findVirtual} on an interface produces a handle that dispatches
+     * virtually on the concrete receiver at call time, so the right implementation
+     * is always invoked even though the handle was obtained through the interface.
+     */
+    private static MethodHandle findVirtualViaInterfaces(Method m, Class<?> concreteClass) {
+        String name = m.getName();
+        MethodType type = MethodType.methodType(m.getReturnType(), m.getParameterTypes());
+        // Start from concrete class — it may implement interfaces the declaring class doesn't
+        Class<?> cursor = concreteClass;
+        while (cursor != null) {
+            for (Class<?> iface : cursor.getInterfaces()) {
+                if (!Modifier.isPublic(iface.getModifiers())) continue;
+                try {
+                    return MethodHandles.publicLookup().findVirtual(iface, name, type);
+                } catch (NoSuchMethodException | IllegalAccessException ignored) {}
+                // Also check superinterfaces recursively
+                MethodHandle fromSuper = findVirtualInSuperInterfaces(iface, name, type);
+                if (fromSuper != null) return fromSuper;
+            }
+            cursor = cursor.getSuperclass();
+        }
+        return null;
+    }
+
+    private static MethodHandle findVirtualInSuperInterfaces(Class<?> iface, String name,
+                                                             MethodType type) {
+        for (Class<?> superIface : iface.getInterfaces()) {
+            if (!Modifier.isPublic(superIface.getModifiers())) continue;
+            try {
+                return MethodHandles.publicLookup().findVirtual(superIface, name, type);
+            } catch (NoSuchMethodException | IllegalAccessException ignored) {}
+            MethodHandle h = findVirtualInSuperInterfaces(superIface, name, type);
+            if (h != null) return h;
+        }
+        return null;
+    }
+
+    /**
+     * When a method is declared on a non-public class (e.g. {@code HashMap$EntrySet},
+     * {@code HashMap$HashIterator}), {@link MethodHandles#publicLookup()} cannot
+     * unreflect it even if the method itself is public. This walks the entire type
+     * hierarchy — from the declaring class upward — looking for the same method
+     * signature declared on a public type (interface or class) so the handle can be
+     * obtained through that type instead.
+     *
+     * <p>Note: we walk the full hierarchy including superclasses' interfaces, because
+     * some JDK classes implement interfaces via a non-public intermediary
+     * (e.g. {@code HashMap$EntryIterator} extends {@code HashMap$HashIterator}
+     * and {@code HashMap$HashIterator} doesn't directly implement {@code Iterator} —
+     * the subclass does). {@link Class#getMethods()} returns inherited interface
+     * methods with their declaring class set to the non-public abstract class, so
+     * we must search the full hierarchy from the concrete class downward.
+     */
+    private static Method findViaPublicSupertype(Method m) {
+        return findViaPublicSupertypeFrom(m.getDeclaringClass(), m.getName(), m.getParameterTypes());
+    }
+
+    /**
+     * Searches {@code startClass} and all its supertypes for a public declaration of
+     * {@code name(params)}. Used both by {@link #findViaPublicSupertype(Method)} and
+     * directly from {@link #lookupMethod} when we need to search from the concrete
+     * runtime class rather than the (possibly non-public) declaring class.
+     */
+    private static Method findViaPublicSupertypeFrom(Class<?> startClass, String name,
+                                                     Class<?>[] params) {
+        Class<?> cursor = startClass;
+        while (cursor != null) {
+            // Check this class itself if it's public
+            if (Modifier.isPublic(cursor.getModifiers())) {
+                try {
+                    Method found = cursor.getMethod(name, params);
+                    if (Modifier.isPublic(found.getDeclaringClass().getModifiers())) {
+                        return found;
+                    }
+                } catch (NoSuchMethodException ignored) {}
+            }
+            // Check all interfaces of this class
+            for (Class<?> iface : cursor.getInterfaces()) {
+                if (!Modifier.isPublic(iface.getModifiers())) continue;
+                try {
+                    return iface.getMethod(name, params);
+                } catch (NoSuchMethodException ignored) {}
+                // Also check superinterfaces
+                Method fromSuper = findViaPublicSupertypeFrom(iface, name, params);
+                if (fromSuper != null) return fromSuper;
+            }
+            cursor = cursor.getSuperclass();
+        }
+        return null;
+    }
+
     private static MethodHandle lookupFieldGet(Field f) {
+        // Strategy 1: private lookup
         try {
             return MethodHandles.privateLookupIn(f.getDeclaringClass(), LOOKUP)
                     .unreflectGetter(f);
         } catch (IllegalAccessException ignored) {}
+        // Strategy 2: public lookup (public fields in non-open modules)
+        try {
+            return MethodHandles.publicLookup().unreflectGetter(f);
+        } catch (IllegalAccessException ignored) {}
+        // Strategy 3: force-accessible
         try {
             f.setAccessible(true);
             return MethodHandles.lookup().unreflectGetter(f);
@@ -929,10 +1089,16 @@ public final class NashornJavaCompat {
     }
 
     private static MethodHandle lookupFieldSet(Field f) {
+        // Strategy 1: private lookup
         try {
             return MethodHandles.privateLookupIn(f.getDeclaringClass(), LOOKUP)
                     .unreflectSetter(f);
         } catch (IllegalAccessException ignored) {}
+        // Strategy 2: public lookup (public fields in non-open modules)
+        try {
+            return MethodHandles.publicLookup().unreflectGetter(f);
+        } catch (IllegalAccessException ignored) {}
+        // Strategy 3: force-accessible
         try {
             f.setAccessible(true);
             return MethodHandles.lookup().unreflectSetter(f);
@@ -997,9 +1163,24 @@ public final class NashornJavaCompat {
                                      boolean isStatic,
                                      JavaObjectRegistry registry) throws NoSuchMethodException {
         int argCount = rawArgs.length;
-        Method anyExact = null;      // non-varargs, right arity, not type-compatible
-        Method varargExact = null;   // varargs, declared count == argCount
-        Method varargFallback = null;// varargs, accepts via spreading
+        // Build a cache key that encodes the actual argument types so that overloads
+        // with the same arity but different parameter types (e.g. sendMessage(String)
+        // vs sendMessage(Component)) resolve to distinct cache entries.
+        String cacheKey = buildMethodCacheKey(clazz, name, rawArgs, isStatic, registry);
+
+        Method cached = METHOD_LOOKUP_CACHE.get(cacheKey);
+        if (cached != null) {
+            if (cached == NO_METHOD_SENTINEL) {
+                throw new NoSuchMethodException((isStatic ? "Static" : "Instance")
+                        + " method " + clazz.getName() + "." + name
+                        + "(" + argCount + " args) not found");
+            }
+            return cached;
+        }
+
+        Method anyExact = null;
+        Method varargExact = null;
+        Method varargFallback = null;
 
         for (Method m : clazz.getMethods()) {
             if (!m.getName().equals(name)) continue;
@@ -1007,7 +1188,7 @@ public final class NashornJavaCompat {
 
             if (m.getParameterCount() == argCount && !m.isVarArgs()) {
                 if (isCompatible(m.getParameterTypes(), rawArgs, registry)) {
-                    // Fully compatible non-varargs — best possible match
+                    METHOD_LOOKUP_CACHE.put(cacheKey, m);
                     return m;
                 }
                 if (anyExact == null) anyExact = m;
@@ -1018,12 +1199,51 @@ public final class NashornJavaCompat {
             }
         }
 
-        if (anyExact != null) return anyExact;
-        if (varargExact != null) return varargExact;
-        if (varargFallback != null) return varargFallback;
-        throw new NoSuchMethodException(
-                (isStatic ? "Static" : "Instance") + " method "
-                        + clazz.getName() + "." + name + "(" + argCount + " args) not found");
+        Method result = anyExact != null ? anyExact
+                : varargExact != null ? varargExact
+                : varargFallback;
+
+        if (result != null) {
+            METHOD_LOOKUP_CACHE.put(cacheKey, result);
+            return result;
+        }
+        METHOD_LOOKUP_CACHE.put(cacheKey, NO_METHOD_SENTINEL);
+        throw new NoSuchMethodException((isStatic ? "Static" : "Instance")
+                + " method " + clazz.getName() + "." + name
+                + "(" + argCount + " args) not found");
+    }
+
+    /**
+     * Builds a cache key for {@link #METHOD_LOOKUP_CACHE} that encodes the actual
+     * resolved Java type of each argument, not just the count.
+     *
+     * <p>For {@link JSObject} args the registry is consulted to find the underlying
+     * Java class (e.g. {@code TextComponentImpl}), so
+     * {@code sendMessage(component)} and {@code sendMessage("string")} produce
+     * different keys and are cached independently.
+     *
+     * <p>For args with no known Java type (plain JS objects, unregistered wrappers),
+     * the type token {@code "?"} is used, allowing those calls to be cached too —
+     * they will always fall back to the "any non-primitive" compatible path.
+     */
+    private static String buildMethodCacheKey(Class<?> clazz, String name, Object[] rawArgs,
+                                              boolean isStatic, JavaObjectRegistry registry) {
+        StringBuilder sb = new StringBuilder(64);
+        sb.append(clazz.getName()).append('|').append(name).append('|');
+        for (int i = 0; i < rawArgs.length; i++) {
+            if (i > 0) sb.append(',');
+            Object val = rawArgs[i];
+            if (val == null) {
+                sb.append("null");
+            } else if (val instanceof JSObject jsObj) {
+                Object underlying = unwrapJSObject(jsObj, registry);
+                sb.append(underlying != null ? underlying.getClass().getName() : "?");
+            } else {
+                sb.append(val.getClass().getName());
+            }
+        }
+        sb.append('|').append(isStatic ? 'S' : 'I');
+        return sb.toString();
     }
 
     /**
@@ -1045,7 +1265,7 @@ public final class NashornJavaCompat {
             if (val == null) continue;
             if (target.isInstance(val)) continue;
             if (val instanceof JSObject jsObj) {
-                Object underlying = registry.unwrap(jsObj);
+                Object underlying = unwrapJSObject(jsObj, registry);
                 if (underlying != null) {
                     // We know the real type — use it for an exact compatibility check
                     if (target.isInstance(underlying)) continue;
@@ -1222,7 +1442,7 @@ public final class NashornJavaCompat {
         // Unwrap JS-wrapped Java objects back to their original type.
         // Check both exact match and broad Object target.
         if (val instanceof JSObject jsObj) {
-            Object underlying = registry.unwrap(jsObj);
+            Object underlying = unwrapJSObject(jsObj, registry);
             if (underlying != null) {
                 if (target.isInstance(underlying)) return underlying;
                 // target is Object or some supertype — return unwrapped regardless
@@ -1330,6 +1550,16 @@ public final class NashornJavaCompat {
     // ─────────────────────────────────────────────────────────────────────────
     // Utility
     // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Unwraps a {@link JSObject} to its underlying Java object via the registry.
+     * If the object is a {@link JSProxy}, also tries the proxy's inner target,
+     * since qjs4j may surface either the proxy or the target depending on context.
+     * Returns {@code null} if no Java object is registered for either.
+     */
+    private static Object unwrapJSObject(JSObject jsObj, JavaObjectRegistry registry) {
+        return registry.unwrap(jsObj);
+    }
 
     private static JSNativeFunction fn(JSContext context, String name, int length,
                                        JSNativeCallback cb) {
