@@ -159,6 +159,36 @@ public final class NashornJavaCompat {
                 (ctx, $this, args) -> javaTo(ctx, registry, args)));
 
         context.getGlobalObject().set("Java", javaNamespace);
+
+        // print(...) — joins arguments with spaces and writes to stdout, matching Nashorn
+        context.getGlobalObject().set("print", fn(context, "print", 1,
+                (ctx, $this, args) -> {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < args.length; i++) {
+                        if (i > 0) sb.append(' ');
+                        sb.append(args[i].toString());
+                    }
+                    System.out.println(sb);
+                    return JSUndefined.INSTANCE;
+                }));
+
+        // load(path) — reads a JS file and evaluates it in the current context,
+        // leaking its globals into the calling script's scope (same as Nashorn)
+        context.getGlobalObject().set("load", fn(context, "load", 1,
+                (ctx, $this, args) -> {
+                    if (args.length < 1 || !(args[0] instanceof JSString pathArg)) {
+                        return ctx.throwTypeError("load() requires a string path");
+                    }
+                    try {
+                        String code = java.nio.file.Files.readString(
+                                java.nio.file.Path.of(pathArg.value()));
+                        return ctx.eval(code);
+                    } catch (java.io.IOException e) {
+                        return ctx.throwError("load(): could not read file '"
+                                + pathArg.value() + "': " + e.getMessage());
+                    }
+                }));
+
         return registry;
     }
 
