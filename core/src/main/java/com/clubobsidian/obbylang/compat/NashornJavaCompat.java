@@ -410,9 +410,8 @@ public final class NashornJavaCompat {
             if (!Modifier.isAbstract(method.getModifiers())) {
                 MethodHandle superHandle = superMethodHandle(proxy.getClass(), method);
                 if (superHandle != null) {
-                    MethodHandle bound = superHandle.bindTo(proxy);
                     Object[] callArgs = methodArgs != null ? methodArgs : new Object[0];
-                    return invoke(bound, callArgs);
+                    return invokeWithReceiver(superHandle, proxy, callArgs);
                 }
             }
 
@@ -492,10 +491,9 @@ public final class NashornJavaCompat {
                                 return context.throwError(
                                         "$super." + mName + ": no accessible super method");
                             }
-                            MethodHandle bound = handle.bindTo(proxy);
                             Object[] javaArgs = coerce(
                                     rawArgs, resolved.getParameterTypes(), registry);
-                            Object result = invoke(bound, javaArgs);
+                            Object result = invokeWithReceiver(handle, proxy, javaArgs);
                             return toJSValue(ctx, registry, result);
                         } catch (Throwable e) {
                             return context.throwError(
@@ -637,16 +635,18 @@ public final class NashornJavaCompat {
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Wraps a live Java object in a {@link JSObject}, exposing all public instance
-     * methods (via cached MethodHandles) and readable fields as own properties.
+     * Wraps a live Java object in a lazy {@link JSProxy}, so that method
+     * {@link JSNativeFunction} objects and field values are only created when JS
+     * actually accesses a property — not upfront on every wrap.
+     *
+     * <p>This eliminates the recursive {@code wrapJavaObject → toJSValue → wrapJavaObject}
+     * chain that appeared in profiler output: return values from method calls are now
+     * wrapped in O(1) with zero method enumeration, and the per-method function objects
+     * are only created on first property access, then cached on the target object so
+     * subsequent accesses are a plain property read.
      *
      * <p>If this exact object (by identity) has already been wrapped in this context,
-     * the existing wrapper is returned immediately — no allocation, no method
-     * enumeration. This makes fluent builder chains cheap: each chained call that
-     * returns {@code this} hits the cache rather than re-wrapping.
-     *
-     * <p>The method list for each class is computed once and cached statically so
-     * {@link Class#getMethods()} is called at most once per class across all contexts.
+     * the existing wrapper is returned immediately.
      */
     public static JSObject wrapJavaObject(JSContext context, JavaObjectRegistry registry,
                                           Object javaObj) {
@@ -654,37 +654,103 @@ public final class NashornJavaCompat {
         JSObject existing = registry.existingWrapper(javaObj);
         if (existing != null) return existing;
 
-        JSObject wrapper = context.createJSObject();
         Class<?> clazz = javaObj.getClass();
 
-        // Use cached method list — computed once per class, never again
-        Method[] methods = INSTANCE_METHOD_CACHE.computeIfAbsent(clazz, c -> {
+        // Ensure the method name set is cached — O(1) after first call per class
+        INSTANCE_METHOD_CACHE.computeIfAbsent(clazz, c -> {
             List<Method> list = new ArrayList<>();
             java.util.Set<String> seen = new java.util.HashSet<>();
             for (Method m : c.getMethods()) {
                 if (Modifier.isStatic(m.getModifiers())) continue;
                 if (isNoisyObjectMethod(m)) continue;
-                if (seen.add(m.getName())) list.add(m); // first overload per name
+                if (seen.add(m.getName())) list.add(m);
             }
             return list.toArray(new Method[0]);
         });
 
-        for (Method m : methods) {
-            final String name = m.getName();
-            wrapper.set(name, fn(context, name, m.getParameterCount(),
-                    (ctx, $this, mArgs) -> invokeInstance(ctx, registry, javaObj, name, mArgs)));
-        }
+        // The target object holds cached method functions once created.
+        // Fields are also written here lazily on first access.
+        JSObject target = context.createJSObject();
 
-        for (Field f : clazz.getFields()) {
-            if (Modifier.isStatic(f.getModifiers())) continue;
+        // Handler object with a 'get' trap — property access is intercepted
+        JSObject handler = context.createJSObject();
+        handler.set("get", fn(context, "get", 3, (ctx, $this, trapArgs) -> {
+            // trapArgs: [target, propertyName, receiver]
+            if (trapArgs.length < 2 || !(trapArgs[1] instanceof JSString propKey)) {
+                return JSUndefined.INSTANCE;
+            }
+            String propName = propKey.value();
+
+            // If already cached on the target object, return it directly
+            JSValue cached = target.get(propName);
+            if (!(cached instanceof JSUndefined)) return cached;
+
+            // Check instance methods
+            for (Method m : INSTANCE_METHOD_CACHE.get(clazz)) {
+                if (!m.getName().equals(propName)) continue;
+                JSNativeFunction methodFn = fn(ctx, propName, m.getParameterCount(),
+                        (mCtx, mThis, mArgs) -> invokeInstance(mCtx, registry, javaObj, propName, mArgs));
+                // Cache on target so future accesses bypass this trap
+                target.set(propName, methodFn);
+                return methodFn;
+            }
+
+            // Check instance fields
             try {
-                MethodHandle getter = fieldGetHandle(f);
-                wrapper.set(f.getName(), toJSValue(context, registry, getter.invoke(javaObj)));
-            } catch (Throwable ignored) {}
-        }
+                Field f = clazz.getField(propName);
+                if (!Modifier.isStatic(f.getModifiers())) {
+                    JSValue fieldVal = toJSValue(ctx, registry, fieldGetHandle(f).invoke(javaObj));
+                    target.set(propName, fieldVal);
+                    return fieldVal;
+                }
+            } catch (NoSuchFieldException ignored) {
+            } catch (Throwable e) {
+                return ctx.throwError(propName + " field read failed: " + e.getMessage());
+            }
 
-        registry.register(wrapper, javaObj);
-        return wrapper;
+            return JSUndefined.INSTANCE;
+        }));
+
+        // 'set' trap — allow writing back to fields
+        handler.set("set", fn(context, "set", 4, (ctx, $this, trapArgs) -> {
+            // trapArgs: [target, propertyName, value, receiver]
+            if (trapArgs.length < 3 || !(trapArgs[1] instanceof JSString propKey)) {
+                return JSBoolean.FALSE;
+            }
+            String propName = propKey.value();
+            try {
+                Field f = clazz.getField(propName);
+                if (!Modifier.isStatic(f.getModifiers())) {
+                    Object javaVal = fromJSValue(trapArgs[2], f.getType(), registry);
+                    fieldSetHandle(f).invoke(javaObj, javaVal);
+                    return JSBoolean.TRUE;
+                }
+            } catch (NoSuchFieldException ignored) {
+            } catch (Throwable e) {
+                return ctx.throwError(propName + " field write failed: " + e.getMessage());
+            }
+            return JSBoolean.FALSE;
+        }));
+
+        // 'has' trap — lets `in` operator work correctly
+        handler.set("has", fn(context, "has", 2, (ctx, $this, trapArgs) -> {
+            if (trapArgs.length < 2 || !(trapArgs[1] instanceof JSString propKey)) {
+                return JSBoolean.FALSE;
+            }
+            String propName = propKey.value();
+            for (Method m : INSTANCE_METHOD_CACHE.get(clazz)) {
+                if (m.getName().equals(propName)) return JSBoolean.TRUE;
+            }
+            try {
+                clazz.getField(propName);
+                return JSBoolean.TRUE;
+            } catch (NoSuchFieldException ignored) {}
+            return JSBoolean.FALSE;
+        }));
+
+        JSProxy proxy = new JSProxy(context, target, handler);
+        registry.register(proxy, javaObj);
+        return proxy;
     }
 
     /**
@@ -742,10 +808,9 @@ public final class NashornJavaCompat {
             Object[] rawArgs = fromJSArgs(args);
             Method m = findMethod(target.getClass(), name, rawArgs, false, registry);
             MethodHandle mh = methodHandle(m);
-            // For instance handles the first argument is the receiver
             Object[] javaArgs = coerce(rawArgs, m.getParameterTypes(), registry);
-            // bindTo eliminates the receiver slot — no extra array allocation needed
-            Object result = invoke(mh.bindTo(target), javaArgs);
+            // Pass receiver inline — avoids bindTo() allocating a new handle each call
+            Object result = invokeWithReceiver(mh, target, javaArgs);
             return toJSValue(context, registry, result);
         } catch (InvocationTargetException e) {
             return context.throwError(name + "() threw: " + unwrap(e).getMessage());
@@ -1258,11 +1323,6 @@ public final class NashornJavaCompat {
      * Invokes {@code mh} with {@code args} using direct typed {@code invoke()} calls
      * for 0–4 arguments to avoid the boxing overhead of
      * {@link MethodHandle#invokeWithArguments}. Falls back for 5+ args.
-     *
-     * <p>The explicit {@code (Object)} casts are required: {@code invoke()} is
-     * signature-polymorphic, so without them the compiler emits the wrong descriptor.
-     * For instance methods, callers should use {@code mh.bindTo(receiver)} before
-     * calling this so the receiver is not an extra array slot.
      */
     private static Object invoke(MethodHandle mh, Object[] args) throws Throwable {
         return switch (args.length) {
@@ -1272,6 +1332,29 @@ public final class NashornJavaCompat {
             case 3 -> mh.invoke(args[0], args[1], args[2]);
             case 4 -> mh.invoke(args[0], args[1], args[2], args[3]);
             default -> mh.invokeWithArguments(args);
+        };
+    }
+
+    /**
+     * Invokes an instance {@link MethodHandle} passing the receiver directly in the
+     * first slot, avoiding {@link MethodHandle#bindTo} which allocates a new bound
+     * handle object on every call. Covers 0–4 method parameters (1–5 handle slots
+     * including the receiver). Falls back for 5+ parameters.
+     */
+    private static Object invokeWithReceiver(MethodHandle mh, Object receiver,
+                                             Object[] args) throws Throwable {
+        return switch (args.length) {
+            case 0 -> mh.invoke(receiver);
+            case 1 -> mh.invoke(receiver, args[0]);
+            case 2 -> mh.invoke(receiver, args[0], args[1]);
+            case 3 -> mh.invoke(receiver, args[0], args[1], args[2]);
+            case 4 -> mh.invoke(receiver, args[0], args[1], args[2], args[3]);
+            default -> {
+                Object[] full = new Object[args.length + 1];
+                full[0] = receiver;
+                System.arraycopy(args, 0, full, 1, args.length);
+                yield mh.invokeWithArguments(full);
+            }
         };
     }
 
