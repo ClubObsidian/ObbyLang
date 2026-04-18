@@ -587,7 +587,11 @@ public final class NashornJavaCompat {
                             PropertyDescriptor.AccessorState.Configurable));
         }
 
-        registry.register(wrapper, javaObj);
+        //Classes are very short-lived so they create a bunch of garbage, and we don't want to register them
+        //since they will ALWAYS be a cache miss anyway
+        if (!ObbyLang.get().getMappingsManager().isClassMapped(className)) {
+            registry.register(wrapper, javaObj);
+        }
         return wrapper;
     }
 
@@ -1279,7 +1283,9 @@ public final class NashornJavaCompat {
     static Object fromJSValue(JSValue value, Class<?> target, JavaObjectRegistry registry) {
         if (value instanceof JSObject obj) {
             Object underlying = registry.unwrap(obj);
-            if (underlying != null) return underlying;
+            if (underlying != null) {
+                return underlying;
+            }
             // Fall through to toJavaObject() only if no registry entry exists
             return obj.toJavaObject();
         }
@@ -1396,7 +1402,8 @@ public final class NashornJavaCompat {
      * as arguments (e.g. captured constants like {@code ITALIC} or {@code FALSE})
      * can be unwrapped correctly when the JS function calls methods on them.
      */
-    private static Object autoProxyFunction(JSFunction jsFn, Class<?> functionalInterface,
+    private static Object autoProxyFunction(JSFunction jsFn,
+                                            Class<?> functionalInterface,
                                             JavaObjectRegistry registry) {
         Method sam = null;
         for (Method m : functionalInterface.getMethods()) {

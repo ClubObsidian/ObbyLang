@@ -55,12 +55,14 @@ public class ObbyLang {
     private final Injector injector;
     private final ObbyLangPlugin plugin;
     private final ScriptManager scriptManager;
+    private final MappingsManager mappingsManager;
 
     @Inject
     private ObbyLang(InjectorWrapper wrapper, ObbyLangPlugin plugin) {
         this.injector = wrapper.getInjector();
         this.plugin = plugin;
         this.scriptManager = this.injector.getInstance(ScriptManager.class);
+        this.mappingsManager = this.injector.getInstance(MappingsManager.class);
     }
 
     public <T> T getInstance(Class<? extends T> clazz) {
@@ -69,6 +71,10 @@ public class ObbyLang {
 
     public ScriptManager getScriptManager() {
         return this.scriptManager;
+    }
+
+    public MappingsManager getMappingsManager() {
+        return this.mappingsManager;
     }
 
     public void onEnable() {
