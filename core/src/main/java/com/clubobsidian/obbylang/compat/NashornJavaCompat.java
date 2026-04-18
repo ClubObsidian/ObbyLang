@@ -46,7 +46,9 @@ public final class NashornJavaCompat {
                 (ctx, $this, args) -> {
                     StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < args.length; i++) {
-                        if (i > 0) sb.append(' ');
+                        if (i > 0) {
+                            sb.append(' ');
+                        }
                         sb.append(args[i].toString());
                     }
                     System.out.println(sb);
@@ -174,8 +176,7 @@ public final class NashornJavaCompat {
             return Proxy.newProxyInstance(classLoader(base), new Class<?>[]{ base }, handler);
         }
 
-        Class<?> subclass = SUBCLASS_CACHE.computeIfAbsent(base,
-                NashornJavaCompat::generateSubclass);
+        Class<?> subclass = SUBCLASS_CACHE.computeIfAbsent(base, NashornJavaCompat::generateSubclass);
 
         try {
             // Use the cheapest available constructor, passing dummy args
@@ -204,15 +205,14 @@ public final class NashornJavaCompat {
     @SuppressWarnings("unchecked")
     private static Class<?> generateSubclass(Class<?> base) {
         try {
-            return (Class<?>) new ByteBuddy()
+            return new ByteBuddy()
                     .subclass(base)
                     .defineField("__handler__", InvocationHandler.class, Modifier.PUBLIC)
                     .method(
                             ElementMatchers.not(ElementMatchers.isFinal())
                                     .and(ElementMatchers.not(ElementMatchers.isStatic()))
                                     .and(ElementMatchers.not(ElementMatchers.isPrivate()))
-                                    .and(
-                                            ElementMatchers.not(ElementMatchers.isDeclaredBy(Object.class))
+                                    .and(ElementMatchers.not(ElementMatchers.isDeclaredBy(Object.class))
                                                     .or(ElementMatchers.named("toString"))
                                                     .or(ElementMatchers.named("equals"))
                                                     .or(ElementMatchers.named("hashCode"))
@@ -516,7 +516,7 @@ public final class NashornJavaCompat {
             return context.throwError("Java.to: class not found: " + args[1]);
         }
     }
-    
+
     public static JSObject wrapJavaObject(JSContext context, JavaObjectRegistry registry,
                                           Object javaObj) {
         // Fast path: same object wrapped before in this context
