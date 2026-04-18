@@ -516,54 +516,7 @@ public final class NashornJavaCompat {
             return context.throwError("Java.to: class not found: " + args[1]);
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // wrapJavaObject
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /**
-     * Wraps a live Java object in a lazy {@link JSProxy}, so that method
-     * {@link JSNativeFunction} objects and field values are only created when JS
-     * actually accesses a property — not upfront on every wrap.
-     *
-     * <p>This eliminates the recursive {@code wrapJavaObject → toJSValue → wrapJavaObject}
-     * chain that appeared in profiler output: return values from method calls are now
-     * wrapped in O(1) with zero method enumeration, and the per-method function objects
-     * are only created on first property access, then cached on the target object so
-     * subsequent accesses are a plain property read.
-     *
-     * <p>If this exact object (by identity) has already been wrapped in this context,
-     * the existing wrapper is returned immediately.
-     */
-    /**
-     * Wraps a live Java object in a {@link JSObject}, exposing all public instance
-     * methods (via cached MethodHandles) and readable fields as own properties.
-     *
-     * <p>The method list for each class is computed once and cached statically so
-     * {@link Class#getMethods()} is called at most once per class across all contexts.
-     * The same object (by identity) is never wrapped twice in the same context —
-     * the existing wrapper is returned immediately from the registry.
-     *
-     * <p>We use a plain JSObject rather than JSProxy so that the wrapper identity
-     * is stable when passed as a function argument through JS code. JSProxy values
-     * can be surfaced as their inner target by the qjs4j VM, breaking registry
-     * lookups by identity hash.
-     */
-    /**
-     * Wraps a live Java object in a {@link JSObject} with lazy method population.
-     *
-     * <p>Methods are installed as configurable accessor properties (getter-only).
-     * On first access the getter fires, creates the real {@link JSNativeFunction},
-     * replaces itself with a plain data property, and returns the function — so
-     * subsequent accesses hit the data property directly with no getter overhead.
-     *
-     * <p>This gives lazy allocation (only methods actually called get a function
-     * object) while keeping a stable plain {@link JSObject} identity so the
-     * registry lookup by {@link System#identityHashCode} always works correctly.
-     *
-     * <p>Fields are also lazy: a getter-only accessor is defined that reads the
-     * field on access and replaces itself with the value.
-     */
+    
     public static JSObject wrapJavaObject(JSContext context, JavaObjectRegistry registry,
                                           Object javaObj) {
         // Fast path: same object wrapped before in this context
@@ -1083,51 +1036,115 @@ public final class NashornJavaCompat {
         for (int i = 0; i < paramTypes.length; i++) {
             Class<?> target = paramTypes[i];
             Object val = i < rawArgs.length ? rawArgs[i] : null;
-            if (val == null) continue;
-
-            if (val instanceof JSObject jsObj) {
-                Object underlying = unwrapJSObject(jsObj, registry);
-                if (underlying != null) {
-                    if (target == Object.class)             { /* score += 0 */ continue; }
-                    if (target.isInstance(underlying))      { score += 2; continue; }
+            switch (val) {
+                case null -> {
+                    continue;
+                }
+                case JSObject jsObj -> {
+                    Object underlying = unwrapJSObject(jsObj, registry);
+                    if (underlying != null) {
+                        if (target == Object.class) { /* score += 0 */
+                            continue;
+                        }
+                        if (target.isInstance(underlying)) {
+                            score += 2;
+                            continue;
+                        }
+                        return -1;
+                    }
+                    if (!target.isPrimitive()) { /* score += 0 */
+                        continue;
+                    }
                     return -1;
                 }
-                if (!target.isPrimitive()) { /* score += 0 */ continue; }
-                return -1;
-            }
 
-            // Numeric JS values arrive as Double. Primitives score +3 so they beat
-            // Object (+0) and boxed Number supertypes (+1). This makes remove(int)
-            // win over remove(Object) when called with a numeric argument.
-            if (val instanceof Double) {
-                if (target == int.class    || target == Integer.class)   { score += 3; continue; }
-                if (target == long.class   || target == Long.class)      { score += 3; continue; }
-                if (target == double.class || target == Double.class)    { score += 3; continue; }
-                if (target == float.class  || target == Float.class)     { score += 3; continue; }
-                if (target == short.class  || target == Short.class)     { score += 3; continue; }
-                if (target == byte.class   || target == Byte.class)      { score += 3; continue; }
-                if (target == char.class   || target == Character.class) { score += 3; continue; }
-                if (target == boolean.class || target == Boolean.class)  { score += 3; continue; }
-                if (Number.class.isAssignableFrom(target))               { score += 1; continue; }
-                if (target == String.class || target == Object.class)    { /* score += 0 */ continue; }
-                return -1;
-            }
-            if (val instanceof String) {
-                if (target == String.class)                              { score += 3; continue; }
-                if (target == char.class || target == Character.class)   { score += 2; continue; }
-                if (target == CharSequence.class)                        { score += 1; continue; }
-                if (target == Object.class)                              { /* score += 0 */ continue; }
-                return -1;
-            }
-            if (val instanceof Boolean) {
-                if (target == boolean.class || target == Boolean.class)  { score += 3; continue; }
-                if (target == Object.class)                              { /* score += 0 */ continue; }
-                return -1;
+
+                // Numeric JS values arrive as Double. Primitives score +3 so they beat
+                // Object (+0) and boxed Number supertypes (+1). This makes remove(int)
+                // win over remove(Object) when called with a numeric argument.
+                case Double v -> {
+                    if (target == int.class || target == Integer.class) {
+                        score += 3;
+                        continue;
+                    }
+                    if (target == long.class || target == Long.class) {
+                        score += 3;
+                        continue;
+                    }
+                    if (target == double.class || target == Double.class) {
+                        score += 3;
+                        continue;
+                    }
+                    if (target == float.class || target == Float.class) {
+                        score += 3;
+                        continue;
+                    }
+                    if (target == short.class || target == Short.class) {
+                        score += 3;
+                        continue;
+                    }
+                    if (target == byte.class || target == Byte.class) {
+                        score += 3;
+                        continue;
+                    }
+                    if (target == char.class || target == Character.class) {
+                        score += 3;
+                        continue;
+                    }
+                    if (target == boolean.class || target == Boolean.class) {
+                        score += 3;
+                        continue;
+                    }
+                    if (Number.class.isAssignableFrom(target)) {
+                        score += 1;
+                        continue;
+                    }
+                    if (target == String.class || target == Object.class) { /* score += 0 */
+                        continue;
+                    }
+                    return -1;
+                }
+                case String s -> {
+                    if (target == String.class) {
+                        score += 3;
+                        continue;
+                    }
+                    if (target == char.class || target == Character.class) {
+                        score += 2;
+                        continue;
+                    }
+                    if (target == CharSequence.class) {
+                        score += 1;
+                        continue;
+                    }
+                    if (target == Object.class) { /* score += 0 */
+                        continue;
+                    }
+                    return -1;
+                }
+                case Boolean b -> {
+                    if (target == boolean.class || target == Boolean.class) {
+                        score += 3;
+                        continue;
+                    }
+                    if (target == Object.class) { /* score += 0 */
+                        continue;
+                    }
+                    return -1;
+                }
+                default -> {
+                }
             }
 
             // Other Java values: penalise Object target
-            if (target == Object.class) { /* score += 0 */ continue; }
-            if (target.isInstance(val)) { score += 2; continue; }
+            if (target == Object.class) {
+                /* score += 0 */
+                continue;
+            }
+            if (target.isInstance(val)) {
+                score += 2;
+                continue;
+            }
             return -1;
         }
         return score;
@@ -1144,16 +1161,32 @@ public final class NashornJavaCompat {
     // ─────────────────────────────────────────────────────────────────────────
 
     static JSValue toJSValue(JSContext context, JavaObjectRegistry registry, Object value) {
-        if (value == null)                     return JSNull.INSTANCE;
-        if (value instanceof JSValue already)  return already;
-        if (value instanceof Boolean b)        return JSBoolean.valueOf(b);
-        if (value instanceof Number n)         return JSNumber.of(n.doubleValue());
-        if (value instanceof String s)         return new JSString(s);
-        if (value instanceof Character c)      return new JSString(String.valueOf(c));
-        if (value instanceof boolean[] arr) {
-            JSArray out = context.createJSArray(arr.length);
-            for (int i = 0; i < arr.length; i++) out.set(i, JSBoolean.valueOf(arr[i]));
-            return out;
+        switch (value) {
+            case null -> {
+                return JSNull.INSTANCE;
+            }
+            case JSValue already -> {
+                return already;
+            }
+            case Boolean b -> {
+                return JSBoolean.valueOf(b);
+            }
+            case Number n -> {
+                return JSNumber.of(n.doubleValue());
+            }
+            case String s -> {
+                return new JSString(s);
+            }
+            case Character c -> {
+                return new JSString(String.valueOf(c));
+            }
+            case boolean[] arr -> {
+                JSArray out = context.createJSArray(arr.length);
+                for (int i = 0; i < arr.length; i++) out.set(i, JSBoolean.valueOf(arr[i]));
+                return out;
+            }
+            default -> {
+            }
         }
         if (value.getClass().isArray()) {
             int len = Array.getLength(value);
@@ -1203,29 +1236,35 @@ public final class NashornJavaCompat {
         if (value == null || value instanceof JSNull || value instanceof JSUndefined) {
             return primitiveDefault(target);
         }
-        if (value instanceof JSBoolean b) {
-            if (target == boolean.class || target == Boolean.class) return b.value();
-            return b.value();
-        }
-        if (value instanceof JSNumber n) {
-            double d = n.value();
-            if (target == int.class    || target == Integer.class)   return (int) d;
-            if (target == long.class   || target == Long.class)      return (long) d;
-            if (target == float.class  || target == Float.class)     return (float) d;
-            if (target == double.class || target == Double.class)    return d;
-            if (target == short.class  || target == Short.class)     return (short) d;
-            if (target == byte.class   || target == Byte.class)      return (byte) d;
-            if (target == char.class   || target == Character.class) return (char)(int) d;
-            if (target == String.class)                              return Double.toString(d);
-            return d;
-        }
-        if (value instanceof JSString s) {
-            if (target == char.class || target == Character.class) {
-                return s.value().isEmpty() ? '\0' : s.value().charAt(0);
+        switch (value) {
+            case JSBoolean b -> {
+                if (target == boolean.class || target == Boolean.class) return b.value();
+                return b.value();
             }
-            return s.value();
+            case JSNumber n -> {
+                double d = n.value();
+                if (target == int.class || target == Integer.class) return (int) d;
+                if (target == long.class || target == Long.class) return (long) d;
+                if (target == float.class || target == Float.class) return (float) d;
+                if (target == double.class || target == Double.class) return d;
+                if (target == short.class || target == Short.class) return (short) d;
+                if (target == byte.class || target == Byte.class) return (byte) d;
+                if (target == char.class || target == Character.class) return (char) (int) d;
+                if (target == String.class) return Double.toString(d);
+                return d;
+            }
+            case JSString s -> {
+                if (target == char.class || target == Character.class) {
+                    return s.value().isEmpty() ? '\0' : s.value().charAt(0);
+                }
+                return s.value();
+            }
+            case JSObject obj -> {
+                return obj.toJavaObject();
+            }
+            default -> {
+            }
         }
-        if (value instanceof JSObject obj) return obj.toJavaObject();
         return value.toJavaObject();
     }
 
