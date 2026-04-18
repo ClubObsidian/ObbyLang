@@ -18,13 +18,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class NashornJavaCompat {
 
-    private static final Map<Class<?>, Class<?>> SUBCLASS_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Class<?>> SUBCLASS_CACHE = new ConcurrentHashMap<>();
     private static final Map<Constructor<?>, MethodHandle> CTOR_CACHE = new ConcurrentHashMap<>();
     private static final Map<Method, MethodHandle> METHOD_CACHE = new ConcurrentHashMap<>();
     private static final Map<String, MethodHandle> SUPER_CACHE = new ConcurrentHashMap<>();
     private static final Map<Field, MethodHandle> FIELD_GET_CACHE = new ConcurrentHashMap<>();
     private static final Map<Field, MethodHandle> FIELD_SET_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Class<?>, Method[]> INSTANCE_METHOD_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Method[]> INSTANCE_METHOD_CACHE = new ConcurrentHashMap<>();
     private static final Map<MethodCacheKey, Method> METHOD_LOOKUP_CACHE = new ConcurrentHashMap<>();
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
@@ -176,7 +176,7 @@ public final class NashornJavaCompat {
             return Proxy.newProxyInstance(classLoader(base), new Class<?>[]{ base }, handler);
         }
 
-        Class<?> subclass = SUBCLASS_CACHE.computeIfAbsent(base, NashornJavaCompat::generateSubclass);
+        Class<?> subclass = SUBCLASS_CACHE.computeIfAbsent(base.getName(), (k) -> generateSubclass(base));
 
         try {
             // Use the cheapest available constructor, passing dummy args
@@ -517,19 +517,21 @@ public final class NashornJavaCompat {
         }
     }
 
-    public static JSObject wrapJavaObject(JSContext context, JavaObjectRegistry registry,
+    public static JSObject wrapJavaObject(JSContext context,
+                                          JavaObjectRegistry registry,
                                           Object javaObj) {
         // Fast path: same object wrapped before in this context
         JSObject existing = registry.existingWrapper(javaObj);
-        if (existing != null) return existing;
-
+        if (existing != null) {
+            return existing;
+        }
         JSObject wrapper = context.createJSObject();
         Class<?> clazz = javaObj.getClass();
-
-        Method[] methods = INSTANCE_METHOD_CACHE.computeIfAbsent(clazz, c -> {
+        String className = clazz.getName();
+        Method[] methods = INSTANCE_METHOD_CACHE.computeIfAbsent(className, c -> {
             List<Method> list = new ArrayList<>();
             java.util.Set<String> seen = new java.util.HashSet<>();
-            for (Method m : c.getMethods()) {
+            for (Method m : clazz.getMethods()) {
                 if (Modifier.isStatic(m.getModifiers())) {
                     continue;
                 }
@@ -956,7 +958,6 @@ public final class NashornJavaCompat {
                                      JavaObjectRegistry registry) throws NoSuchMethodException {
         int argCount = rawArgs.length;
         MethodCacheKey cacheKey = new MethodCacheKey(clazz, name, rawArgs, isStatic);
-
         Method cached = METHOD_LOOKUP_CACHE.get(cacheKey);
         if (cached != null) {
             return cached;

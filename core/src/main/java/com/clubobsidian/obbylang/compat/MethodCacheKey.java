@@ -1,6 +1,5 @@
 package com.clubobsidian.obbylang.compat;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 public class MethodCacheKey {
@@ -27,8 +26,8 @@ public class MethodCacheKey {
         }
         MethodCacheKey that = (MethodCacheKey) o;
         return this.isStatic == that.isStatic
-                && Objects.equals(this.clazz, that.clazz)
-                && Objects.equals(this.name, that.name)
+                && this.clazz.getName().equals(that.clazz.getName())
+                && this.name.equals(that.name)
                 && arraysEquals(this.rawArgs, that.rawArgs);
     }
 
@@ -50,8 +49,16 @@ public class MethodCacheKey {
         return true;
     }
 
+    private int arrayHashCode(Object[] args) {
+        int hash = 0;
+        for (Object obj : args) {
+            hash += obj.getClass().getName().hashCode();
+        }
+        return hash;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(clazz, name, Arrays.hashCode(rawArgs), isStatic);
+        return Objects.hash(this.clazz.getName(), this.name, arrayHashCode(this.rawArgs), this.isStatic);
     }
 }
