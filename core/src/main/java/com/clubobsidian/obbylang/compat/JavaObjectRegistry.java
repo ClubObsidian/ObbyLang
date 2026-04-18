@@ -9,12 +9,10 @@ import java.time.Duration;
 public final class JavaObjectRegistry {
 
     private final Cache<Integer, Object> wrapperToJava = Caffeine.newBuilder().maximumSize(10_000)
-            .expireAfterWrite(Duration.ofMinutes(1))
-            .refreshAfterWrite(Duration.ofMinutes(1))
+            .expireAfterAccess(Duration.ofMinutes(1))
             .build();
     private final Cache<Integer, JSObject> javaToWrapper = Caffeine.newBuilder().maximumSize(10_000)
-            .expireAfterWrite(Duration.ofMinutes(1))
-            .refreshAfterWrite(Duration.ofMinutes(1))
+            .expireAfterAccess(Duration.ofMinutes(1))
             .build();
 
     public void register(JSObject wrapper, Object javaObj) {
