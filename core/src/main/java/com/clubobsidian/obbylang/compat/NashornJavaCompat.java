@@ -861,14 +861,12 @@ public final class NashornJavaCompat {
     }
 
     private static MethodHandle lookupFieldGet(Field f) {
-        // Strategy 1: private lookup
-        try {
+        try { //Public
+            return LOOKUP.unreflectGetter(f);
+        } catch (IllegalAccessException ignored) {}
+        try { //Private
             return MethodHandles.privateLookupIn(f.getDeclaringClass(), LOOKUP)
                     .unreflectGetter(f);
-        } catch (IllegalAccessException ignored) {}
-        // Strategy 2: public lookup (public fields in non-open modules)
-        try {
-            return MethodHandles.publicLookup().unreflectGetter(f);
         } catch (IllegalAccessException ignored) {}
         // Strategy 3: force-accessible
         try {
