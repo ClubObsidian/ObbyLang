@@ -1,33 +1,3 @@
-/*
- * NashornJavaCompat.java
- *
- * Provides Nashorn-compatible Java.type() and Java.extend() for qjs4j.
- *
- * Supports:
- *   - Interfaces            (via java.lang.reflect.Proxy)
- *   - Abstract classes      (via ByteBuddy subclass + InvocationHandlerAdapter)
- *   - Concrete classes      (via ByteBuddy subclass + InvocationHandlerAdapter)
- *
- * Invocation uses MethodHandles throughout (no reflective Method.invoke / Field.get
- * on hot paths). Reflection is used only during one-time discovery and handle lookup,
- * which is then cached.
- *
- * Install once per JSContext:
- *
- *   try (JSContext context = new JSRuntime().createContext()) {
- *       NashornJavaCompat.install(context);
- *       context.eval("""
- *           var ArrayList = Java.type('java.util.ArrayList');
- *           var list = new ArrayList();
- *           list.add('hello');
- *           list.size();   // 1
- *
- *           var Runnable = Java.type('java.lang.Runnable');
- *           var r = Java.extend(Runnable, { run: function() { print('hi'); } });
- *           new (Java.type('java.lang.Thread'))(r).start();
- *       """);
- *   }
- */
 package com.clubobsidian.obbylang.compat;
 
 import com.caoccao.qjs4j.core.*;
@@ -1100,7 +1070,8 @@ public final class NashornJavaCompat {
      * they will always fall back to the "any non-primitive" compatible path.
      */
     private static String buildMethodCacheKey(Class<?> clazz, String name, Object[] rawArgs,
-                                              boolean isStatic, JavaObjectRegistry registry) {
+                                              boolean isStatic,
+                                              JavaObjectRegistry registry) {
         StringBuilder sb = new StringBuilder(64);
         sb.append(clazz.getName()).append('|').append(name).append('|');
         for (int i = 0; i < rawArgs.length; i++) {
