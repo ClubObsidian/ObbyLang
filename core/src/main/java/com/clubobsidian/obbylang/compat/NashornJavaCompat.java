@@ -6,7 +6,6 @@ import com.clubobsidian.obbylang.ObbyLang;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.InvocationHandlerAdapter;
-import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.matcher.ElementMatchers;
 
 import java.lang.invoke.*;
@@ -26,7 +25,7 @@ public final class NashornJavaCompat {
     private static final Map<Field, MethodHandle> FIELD_GET_CACHE = new ConcurrentHashMap<>();
     private static final Map<Field, MethodHandle> FIELD_SET_CACHE = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Method[]> INSTANCE_METHOD_CACHE = new ConcurrentHashMap<>();
-    private static final Map<String, Method> METHOD_LOOKUP_CACHE = new ConcurrentHashMap<>();
+    private static final Map<MethodCacheKey, Method> METHOD_LOOKUP_CACHE = new ConcurrentHashMap<>();
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     private NashornJavaCompat() {}
@@ -1006,7 +1005,7 @@ public final class NashornJavaCompat {
         // Build a cache key that encodes the actual argument types so that overloads
         // with the same arity but different parameter types (e.g. sendMessage(String)
         // vs sendMessage(Component)) resolve to distinct cache entries.
-        String cacheKey = buildMethodCacheKey(clazz, name, rawArgs, isStatic, registry);
+        MethodCacheKey cacheKey = new MethodCacheKey(clazz, name, rawArgs, isStatic);
 
         Method cached = METHOD_LOOKUP_CACHE.get(cacheKey);
         if (cached != null) {
@@ -1054,40 +1053,6 @@ public final class NashornJavaCompat {
         throw new NoSuchMethodException((isStatic ? "Static" : "Instance")
                 + " method " + clazz.getName() + "." + name
                 + "(" + argCount + " args) not found");
-    }
-
-    /**
-     * Builds a cache key for {@link #METHOD_LOOKUP_CACHE} that encodes the actual
-     * resolved Java type of each argument, not just the count.
-     *
-     * <p>For {@link JSObject} args the registry is consulted to find the underlying
-     * Java class (e.g. {@code TextComponentImpl}), so
-     * {@code sendMessage(component)} and {@code sendMessage("string")} produce
-     * different keys and are cached independently.
-     *
-     * <p>For args with no known Java type (plain JS objects, unregistered wrappers),
-     * the type token {@code "?"} is used, allowing those calls to be cached too —
-     * they will always fall back to the "any non-primitive" compatible path.
-     */
-    private static String buildMethodCacheKey(Class<?> clazz, String name, Object[] rawArgs,
-                                              boolean isStatic,
-                                              JavaObjectRegistry registry) {
-        StringBuilder sb = new StringBuilder(64);
-        sb.append(clazz.getName()).append('|').append(name).append('|');
-        for (int i = 0; i < rawArgs.length; i++) {
-            if (i > 0) sb.append(',');
-            Object val = rawArgs[i];
-            if (val == null) {
-                sb.append("null");
-            } else if (val instanceof JSObject jsObj) {
-                Object underlying = unwrapJSObject(jsObj, registry);
-                sb.append(underlying != null ? underlying.getClass().getName() : "?");
-            } else {
-                sb.append(val.getClass().getName());
-            }
-        }
-        sb.append('|').append(isStatic ? 'S' : 'I');
-        return sb.toString();
     }
 
     /**
