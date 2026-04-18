@@ -1002,9 +1002,6 @@ public final class NashornJavaCompat {
                                      boolean isStatic,
                                      JavaObjectRegistry registry) throws NoSuchMethodException {
         int argCount = rawArgs.length;
-        // Build a cache key that encodes the actual argument types so that overloads
-        // with the same arity but different parameter types (e.g. sendMessage(String)
-        // vs sendMessage(Component)) resolve to distinct cache entries.
         MethodCacheKey cacheKey = new MethodCacheKey(clazz, name, rawArgs, isStatic);
 
         Method cached = METHOD_LOOKUP_CACHE.get(cacheKey);
@@ -1019,8 +1016,12 @@ public final class NashornJavaCompat {
         Method varargFallback = null;
 
         for (Method m : clazz.getMethods()) {
-            if (!m.getName().equals(name)) continue;
-            if (Modifier.isStatic(m.getModifiers()) != isStatic) continue;
+            if (!m.getName().equals(name)) {
+                continue;
+            }
+            if (Modifier.isStatic(m.getModifiers()) != isStatic) {
+                continue;
+            }
 
             if (m.getParameterCount() == argCount && !m.isVarArgs()) {
                 int score = compatibilityScore(m.getParameterTypes(), rawArgs, registry);
@@ -1031,12 +1032,18 @@ public final class NashornJavaCompat {
                         bestCompatible = m;
                     }
                 } else {
-                    if (anyExact == null) anyExact = m;
+                    if (anyExact == null) {
+                        anyExact = m;
+                    }
                 }
-            } else if (m.getParameterCount() == argCount && m.isVarArgs()) {
-                if (varargExact == null) varargExact = m;
+            } else if (m.getParameterCount() == argCount) {
+                if (varargExact == null) {
+                    varargExact = m;
+                }
             } else if (m.isVarArgs() && argCount >= m.getParameterCount() - 1) {
-                if (varargFallback == null) varargFallback = m;
+                if (varargFallback == null) {
+                    varargFallback = m;
+                }
             }
         }
 
