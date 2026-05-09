@@ -274,21 +274,27 @@ public class ScriptManager {
     }
 
     public boolean unloadProject(String projectName, Pipe pipe) {
-        String key = projectName.toLowerCase();
-        for(Object addon : this.addonManager.getAddons().values()) {
-            if(addon instanceof RegisteredManager registeredManager) {
-                registeredManager.unregister(key);
+        try {
+            String key = projectName.toLowerCase();
+            for(Object addon : this.addonManager.getAddons().values()) {
+                if(addon instanceof RegisteredManager registeredManager) {
+                    registeredManager.unregister(key);
+                }
             }
+            JSContext removed = this.projects.remove(key);
+            if(removed != null) {
+                removed.close();
+            }
+            JavaObjectRegistry registry = this.projectRegistries.remove(key);
+            if(registry != null) {
+                registry.clear();
+            }
+            return removed != null;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            this.sendStacktrace(ex, pipe);
         }
-        JSContext removed = this.projects.remove(key);
-        if(removed != null) {
-            removed.close();
-        }
-        JavaObjectRegistry registry = this.projectRegistries.remove(key);
-        if(registry != null) {
-            registry.clear();
-        }
-        return removed != null;
+        return false;
     }
 
     public boolean reloadProject(String projectName) {
@@ -543,7 +549,7 @@ public class ScriptManager {
             try {
                 this.unloadScript(location, pipe);
                 Files.copy(Paths.get(file.toURI()), Paths.get(toCopy.toURI()));
-            } catch(IOException ex) {
+            } catch(Exception ex) {
                 ex.printStackTrace();
                 this.sendStacktrace(ex, pipe);
                 return false;
