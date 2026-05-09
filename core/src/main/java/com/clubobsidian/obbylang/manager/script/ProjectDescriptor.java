@@ -16,22 +16,37 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.clubobsidian.obbylang.project;
+package com.clubobsidian.obbylang.manager.script;
 
-import com.clubobsidian.wrappy.inject.Node;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-public class ProjectPackage {
+public class ProjectDescriptor {
 
-    @Node("name")
     private String name;
-    @Node("version")
+    private String description;
     private String version;
+    private String main;
+    private final List<String> dependencies = new ArrayList<>();
 
     public String getName() {
         return this.name;
     }
 
+    public String getDescription() {
+        return this.description;
+    }
+
     public String getVersion() {
         return this.version;
+    }
+
+    public String getMain() {
+        return this.main != null && !this.main.isBlank() ? this.main : "index.js";
+    }
+
+    public List<String> getDependencies() {
+        return this.dependencies;
     }
 }

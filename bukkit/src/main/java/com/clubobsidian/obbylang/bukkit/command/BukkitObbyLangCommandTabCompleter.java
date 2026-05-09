@@ -46,7 +46,11 @@ public class BukkitObbyLangCommandTabCompleter implements TabCompleter {
                 return StringUtil.copyPartialMatches(args[args.length - 1], this.obbyLangArgs, Lists.newArrayList());
             } else if(args.length == 2 && !args[0].equalsIgnoreCase("list")) {
                 if(this.obbyLangArgs.contains(args[0])) {
-                    return StringUtil.copyPartialMatches(args[args.length - 1], this.scriptManager.getScriptNames(), Lists.newArrayList());
+                    List<String> names = new java.util.ArrayList<>(this.scriptManager.getScriptNames());
+                    if(args[0].equalsIgnoreCase("reload")) {
+                        names.addAll(this.scriptManager.getProjectNames());
+                    }
+                    return StringUtil.copyPartialMatches(args[args.length - 1], names, Lists.newArrayList());
                 }
             }
         }

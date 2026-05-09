@@ -59,14 +59,15 @@ public class BukkitObbyLangCommand implements CommandExecutor {
                     boolean reload = this.scriptManager.reloadScript(args[1], pipe);
                     if(reload) {
                         sender.sendMessage("Script has been reloaded");
+                    } else if(this.scriptManager.reloadProject(args[1], pipe)) {
+                        sender.sendMessage("Project has been reloaded");
                     } else {
-                        sender.sendMessage("Script could not be reloaded");
-                        sender.sendMessage("Attemping to load the script");
+                        sender.sendMessage("Could not be reloaded, attempting to load");
                         boolean load = this.scriptManager.loadScript(args[1], pipe);
                         if(load) {
                             sender.sendMessage("Script has been loaded");
                         } else {
-                            sender.sendMessage("Script could not be loaded");
+                            sender.sendMessage("Could not be loaded");
                         }
                     }
                 } else if(args[0].equalsIgnoreCase("enable")) {
@@ -89,7 +90,8 @@ public class BukkitObbyLangCommand implements CommandExecutor {
                 return true;
             } else if(args.length == 1) {
                 if(args[0].equalsIgnoreCase("list")) {
-                    sender.sendMessage(this.scriptManager.getScriptListString());
+                    sender.sendMessage("Scripts: " + this.scriptManager.getScriptListString());
+                    sender.sendMessage("Projects: " + this.scriptManager.getProjectListString());
                     return true;
                 }
             }

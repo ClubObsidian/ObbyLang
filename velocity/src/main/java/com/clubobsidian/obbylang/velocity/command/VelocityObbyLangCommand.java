@@ -61,14 +61,15 @@ public class VelocityObbyLangCommand implements SimpleCommand {
                     boolean reload = this.scriptManager.reloadScript(args[1], pipe);
                     if(reload) {
                         MessageUtil.sendMessage(source, "Script has been reloaded");
+                    } else if(this.scriptManager.reloadProject(args[1], pipe)) {
+                        MessageUtil.sendMessage(source, "Project has been reloaded");
                     } else {
-                        MessageUtil.sendMessage(source, "Script could not be reloaded");
-                        MessageUtil.sendMessage(source, "Attemping to load the script");
+                        MessageUtil.sendMessage(source, "Could not be reloaded, attempting to load");
                         boolean load = this.scriptManager.loadScript(args[1], pipe);
                         if(load) {
                             MessageUtil.sendMessage(source, "Script has been loaded");
                         } else {
-                            MessageUtil.sendMessage(source, "Script could not be loaded");
+                            MessageUtil.sendMessage(source, "Could not be loaded");
                         }
                     }
                 } else if(args[0].equalsIgnoreCase("enable")) {
@@ -91,7 +92,8 @@ public class VelocityObbyLangCommand implements SimpleCommand {
                 return;
             } else if(args.length == 1) {
                 if(args[0].equalsIgnoreCase("list")) {
-                    MessageUtil.sendMessage(source, this.scriptManager.getScriptListString());
+                    MessageUtil.sendMessage(source, "Scripts: " + this.scriptManager.getScriptListString());
+                    MessageUtil.sendMessage(source, "Projects: " + this.scriptManager.getProjectListString());
                     return;
                 }
             }

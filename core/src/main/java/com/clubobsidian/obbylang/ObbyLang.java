@@ -119,6 +119,9 @@ public class ObbyLang {
         for(String script : this.scriptManager.getScriptNamesRaw()) {
             this.scriptManager.unloadScript(script);
         }
+        for(String project : this.scriptManager.getProjectNames()) {
+            this.scriptManager.unloadProject(project);
+        }
     }
 
     private void loadBuiltinManagers() {
