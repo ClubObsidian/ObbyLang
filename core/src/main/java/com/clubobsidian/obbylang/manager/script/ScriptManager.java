@@ -329,12 +329,14 @@ public class ScriptManager {
         return this.directory;
     }
 
-    public JSContext getScript(String script) {
-        return this.scripts.get(script);
+    public JSContext getScript(String name) {
+        JSContext context = this.scripts.get(name);
+        return context != null ? context : this.projects.get(name);
     }
 
-    public JavaObjectRegistry getRegistry(String script) {
-        return this.registries.get(script);
+    public JavaObjectRegistry getRegistry(String name) {
+        JavaObjectRegistry registry = this.registries.get(name);
+        return registry != null ? registry : this.projectRegistries.get(name);
     }
 
     public boolean isScriptLoaded(String script) {
