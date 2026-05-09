@@ -23,7 +23,6 @@ import com.clubobsidian.obbylang.compat.JavaObjectRegistry;
 import com.clubobsidian.obbylang.compat.NashornJavaCompat;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.addon.AddonManager;
-import com.clubobsidian.obbylang.manager.listener.ListenerManager;
 import com.clubobsidian.obbylang.pipe.Pipe;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.obbylang.util.ChatColor;
@@ -35,29 +34,20 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ScriptManager {
+
+    private static final Gson GSON = new Gson();
 
     private boolean loaded;
     private final Path directory;
@@ -108,7 +98,7 @@ public class ScriptManager {
 
         Collection<File> sortedScripts = Arrays.stream(files)
                 .sorted(Comparator.comparing(File::getName))
-                .collect(Collectors.toList());
+                .toList();
 
         for(File file : sortedScripts) {
             try {
@@ -126,36 +116,26 @@ public class ScriptManager {
             e.printStackTrace();
             return;
         }
-
-        File[] subdirs = this.projectsDirectory.toFile().listFiles(File::isDirectory);
-        if(subdirs == null || subdirs.length == 0) {
+        File[] subDirs = this.projectsDirectory.toFile().listFiles(File::isDirectory);
+        if(subDirs == null || subDirs.length == 0) {
             return;
         }
-
-        Gson gson = new Gson();
         Map<String, ProjectDescriptor> descriptors = new LinkedHashMap<>();
-
-        for(File dir : subdirs) {
-            File jsonFile = new File(dir, "project.json");
-            if(!jsonFile.exists()) {
-                this.plugin.getLogger().warning("Project '" + dir.getName() + "' has no project.json — skipping");
+        Map<String, File> folders = new LinkedHashMap<>();
+        for(File dir : subDirs) {
+            ProjectDescriptor desc = this.readDescriptor(dir);
+            if(desc == null) {
+                this.plugin.getLogger().warning("Project in folder '" + dir.getName() + "': missing or invalid project.json — skipping");
                 continue;
             }
-            try {
-                String raw = Files.readString(jsonFile.toPath(), StandardCharsets.UTF_8);
-                ProjectDescriptor desc = gson.fromJson(raw, ProjectDescriptor.class);
-                if(desc.getName() == null || desc.getName().isBlank()) {
-                    this.plugin.getLogger().warning("Project '" + dir.getName() + "': project.json missing required 'name' field — skipping");
-                    continue;
-                }
-                descriptors.put(dir.getName(), desc);
-            } catch(IOException e) {
-                this.plugin.getLogger().warning("Project '" + dir.getName() + "': could not read project.json — " + e.getMessage());
-            } catch(JsonSyntaxException e) {
-                this.plugin.getLogger().warning("Project '" + dir.getName() + "': invalid JSON in project.json — " + e.getMessage());
+            if(desc.getName() == null || desc.getName().isBlank()) {
+                this.plugin.getLogger().warning("Project in folder '" + dir.getName() + "': project.json missing required 'name' field — skipping");
+                continue;
             }
+            String key = desc.getName().toLowerCase();
+            descriptors.put(key, desc);
+            folders.put(key, dir);
         }
-
         for(Map.Entry<String, ProjectDescriptor> entry : descriptors.entrySet()) {
             for(String dep : entry.getValue().getDependencies()) {
                 if(dep.endsWith(".js") && !this.scripts.containsKey(dep)) {
@@ -163,44 +143,40 @@ public class ScriptManager {
                 }
             }
         }
-
         List<String> ordered = this.topoSort(descriptors);
-        for(String folderName : ordered) {
-            this.loadProject(folderName, descriptors.get(folderName));
+        for(String key : ordered) {
+            this.loadProject(key, descriptors.get(key), folders.get(key));
         }
     }
 
     private List<String> topoSort(Map<String, ProjectDescriptor> descriptors) {
         Map<String, List<String>> dependents = new HashMap<>();
         Map<String, Integer> inDegree = new HashMap<>();
-
-        for(String folderName : descriptors.keySet()) {
-            inDegree.put(folderName, 0);
-            dependents.put(folderName, new ArrayList<>());
+        for(String key : descriptors.keySet()) {
+            inDegree.put(key, 0);
+            dependents.put(key, new ArrayList<>());
         }
-
         for(Map.Entry<String, ProjectDescriptor> entry : descriptors.entrySet()) {
-            String folderName = entry.getKey();
+            String key = entry.getKey();
             for(String dep : entry.getValue().getDependencies()) {
                 if(dep.endsWith(".js")) {
                     continue;
                 }
-                if(!descriptors.containsKey(dep)) {
-                    this.plugin.getLogger().warning("Project '" + folderName + "' depends on unknown project '" + dep + "' — ignoring");
+                String depKey = dep.toLowerCase();
+                if(!descriptors.containsKey(depKey)) {
+                    this.plugin.getLogger().warning("Project '" + key + "' depends on unknown project '" + dep + "' — ignoring");
                     continue;
                 }
-                dependents.get(dep).add(folderName);
-                inDegree.merge(folderName, 1, Integer::sum);
+                dependents.get(depKey).add(key);
+                inDegree.merge(key, 1, Integer::sum);
             }
         }
-
         Queue<String> queue = new ArrayDeque<>();
         for(Map.Entry<String, Integer> entry : inDegree.entrySet()) {
             if(entry.getValue() == 0) {
                 queue.add(entry.getKey());
             }
         }
-
         List<String> result = new ArrayList<>();
         while(!queue.isEmpty()) {
             String current = queue.poll();
@@ -212,106 +188,135 @@ public class ScriptManager {
                 }
             }
         }
-
         if(result.size() != descriptors.size()) {
             Set<String> cyclic = descriptors.keySet().stream()
                     .filter(k -> !result.contains(k))
                     .collect(Collectors.toSet());
             this.plugin.getLogger().severe("Circular dependency detected among projects: " + cyclic + " — these projects will not be loaded");
         }
-
         return result;
     }
 
-    private boolean loadProject(String folderName, ProjectDescriptor desc) {
-        File folder = new File(this.projectsDirectory.toFile(), folderName);
+    private boolean loadProject(String projectName, ProjectDescriptor desc, File folder) {
         File mainFile = new File(folder, desc.getMain());
         if(!mainFile.exists()) {
-            this.plugin.getLogger().severe("Project '" + folderName + "': main file '" + desc.getMain() + "' not found — skipping");
+            this.plugin.getLogger().severe("Project '" + projectName + "': main file '" + desc.getMain() + "' not found — skipping");
             return false;
         }
-
-        this.plugin.getLogger().info("Loading project: " + folderName + " ('" + desc.getName() + "')");
+        this.plugin.getLogger().info("Loading project: " + folder.getName() + " ('" + desc.getName() + "')");
         JSContext context = this.engine.createContext();
-        JavaObjectRegistry registry = this.addBindingsToContext(context, folderName);
-        this.projects.put(folderName, context);
-        this.projectRegistries.put(folderName, registry);
-
+        JavaObjectRegistry registry = this.addBindingsToContext(context, projectName);
+        this.projects.put(projectName, context);
+        this.projectRegistries.put(projectName, registry);
         try {
             String source = Files.readString(mainFile.toPath(), StandardCharsets.UTF_8);
             context.eval(source, mainFile.getAbsolutePath(), true);
             return true;
         } catch(Exception e) {
-            this.unloadProject(folderName);
+            this.unloadProject(projectName);
             e.printStackTrace();
             return false;
         }
     }
 
-    public JSContext getProject(String folderName) {
-        return this.projects.get(folderName);
+    private Map.Entry<ProjectDescriptor, File> findProject(String name) {
+        File[] subDirs = this.projectsDirectory.toFile().listFiles(File::isDirectory);
+        if(subDirs == null) return null;
+        for(File dir : subDirs) {
+            ProjectDescriptor desc = this.readDescriptor(dir);
+            if(desc != null && desc.getName() != null && desc.getName().equalsIgnoreCase(name)) {
+                return Map.entry(desc, dir);
+            }
+        }
+        return null;
     }
 
-    public JavaObjectRegistry getProjectRegistry(String folderName) {
-        return this.projectRegistries.get(folderName);
+    public boolean loadProject(String name) {
+        return this.loadProject(name, null);
     }
 
-    public boolean isProjectLoaded(String folderName) {
-        return this.projects.containsKey(folderName);
+    public boolean loadProject(String name, Pipe pipe) {
+        try {
+            String key = name.toLowerCase();
+            if(this.projects.containsKey(key)) {
+                return false;
+            }
+            Map.Entry<ProjectDescriptor, File> found = this.findProject(name);
+            if(found == null) {
+                return false;
+            }
+            return this.loadProject(key, found.getKey(), found.getValue());
+        } catch (Exception ex) {
+            sendStacktrace(ex, pipe);
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
+    public JSContext getProject(String projectName) {
+        return this.projects.get(projectName.toLowerCase());
+    }
+
+    public JavaObjectRegistry getProjectRegistry(String projectName) {
+        return this.projectRegistries.get(projectName.toLowerCase());
+    }
+
+    public boolean isProjectLoaded(String projectName) {
+        return this.projects.containsKey(projectName.toLowerCase());
     }
 
     public List<String> getProjectNames() {
         return new ArrayList<>(this.projects.keySet());
     }
 
-    public boolean unloadProject(String folderName) {
-        return this.unloadProject(folderName, null);
+    public boolean unloadProject(String projectName) {
+        return this.unloadProject(projectName, null);
     }
 
-    public boolean unloadProject(String folderName, Pipe pipe) {
+    public boolean unloadProject(String projectName, Pipe pipe) {
+        String key = projectName.toLowerCase();
         for(Object addon : this.addonManager.getAddons().values()) {
-            if(addon instanceof RegisteredManager) {
-                RegisteredManager manager = (RegisteredManager) addon;
-                manager.unregister(folderName);
+            if(addon instanceof RegisteredManager registeredManager) {
+                registeredManager.unregister(key);
             }
         }
-        JSContext removed = this.projects.remove(folderName);
+        JSContext removed = this.projects.remove(key);
         if(removed != null) {
             removed.close();
         }
-        JavaObjectRegistry registry = this.projectRegistries.remove(folderName);
+        JavaObjectRegistry registry = this.projectRegistries.remove(key);
         if(registry != null) {
             registry.clear();
         }
         return removed != null;
     }
 
-    public boolean reloadProject(String folderName) {
-        return this.reloadProject(folderName, null);
+    public boolean reloadProject(String projectName) {
+        return this.reloadProject(projectName, null);
     }
 
-    public boolean reloadProject(String folderName, Pipe pipe) {
-        File folder = new File(this.projectsDirectory.toFile(), folderName);
-        if(!folder.isDirectory()) {
+    public boolean reloadProject(String projectName, Pipe pipe) {
+        String key = projectName.toLowerCase();
+        Map.Entry<ProjectDescriptor, File> found = this.findProject(projectName);
+        if(found == null) {
             return false;
         }
+        this.unloadProject(key, pipe);
+        return this.loadProject(key, found.getKey(), found.getValue());
+    }
+
+    private ProjectDescriptor readDescriptor(File folder) {
         File jsonFile = new File(folder, "project.json");
         if(!jsonFile.exists()) {
-            return false;
+            return null;
         }
-        ProjectDescriptor desc;
         try {
             String raw = Files.readString(jsonFile.toPath(), StandardCharsets.UTF_8);
-            desc = new Gson().fromJson(raw, ProjectDescriptor.class);
+            return GSON.fromJson(raw, ProjectDescriptor.class);
         } catch(IOException | JsonSyntaxException e) {
             e.printStackTrace();
-            if(pipe != null) {
-                pipe.out(e.getMessage());
-            }
-            return false;
+            return null;
         }
-        this.unloadProject(folderName, pipe);
-        return this.loadProject(folderName, desc);
     }
 
     public Path getDirectory() {
@@ -333,7 +338,6 @@ public class ScriptManager {
     public String getScriptListString() {
         StringBuilder builder = new StringBuilder();
         Set<String> scripts = this.scripts.keySet();
-
         for(File file : FileUtils.listFiles(this.directory.toFile(), new String[]{"js", "dis"}, true)) {
             String name = file.getName();
             String strippedName = name.replace(".dis", "").replace(".js", "");
@@ -353,29 +357,33 @@ public class ScriptManager {
     }
 
     public String getProjectListString() {
-        File[] subdirs = this.projectsDirectory.toFile().listFiles(File::isDirectory);
-        if(subdirs == null || subdirs.length == 0) {
+        File[] subDirs = this.projectsDirectory.toFile().listFiles(File::isDirectory);
+        if(subDirs == null || subDirs.length == 0) {
             return "No projects found";
         }
         StringBuilder builder = new StringBuilder();
-        for(File dir : subdirs) {
-            if(this.projects.containsKey(dir.getName())) {
+        for(File dir : subDirs) {
+            ProjectDescriptor desc = this.readDescriptor(dir);
+            if(desc == null || desc.getName() == null || desc.getName().isBlank()) {
+                continue;
+            }
+            String key = desc.getName().toLowerCase();
+            if(this.projects.containsKey(key)) {
                 builder.append(ChatColor.GREEN);
             } else {
                 builder.append(ChatColor.GRAY);
             }
-            builder.append(dir.getName());
+            builder.append(key);
             builder.append(ChatColor.WHITE + ", ");
+        }
+        if(builder.isEmpty()) {
+            return "No projects found";
         }
         return builder.substring(0, builder.toString().length() - 2);
     }
 
     public List<String> getScriptNamesRaw() {
-        List<String> scriptNames = new ArrayList<>();
-        for(String str : this.scripts.keySet()) {
-            scriptNames.add(str);
-        }
-        return scriptNames;
+        return new ArrayList<>(this.scripts.keySet());
     }
 
     public List<String> getScriptNames() {
@@ -398,14 +406,11 @@ public class ScriptManager {
         if(script == null) {
             return false;
         }
-
         for(Object addon : this.addonManager.getAddons().values()) {
-            if(addon instanceof RegisteredManager) {
-                RegisteredManager manager = (RegisteredManager) addon;
-                manager.unregister(className);
+            if(addon instanceof RegisteredManager registeredManager) {
+                registeredManager.unregister(className);
             }
         }
-
         JSContext removed = this.scripts.remove(className);
         if (removed != null) {
             removed.close();
@@ -446,9 +451,7 @@ public class ScriptManager {
         } catch(Exception e) {
             this.unloadScript(scriptName, pipe);
             e.printStackTrace();
-            if(pipe != null) {
-                this.sendStacktrace(e, pipe);
-            }
+            this.sendStacktrace(e, pipe);
         }
         return false;
     }
@@ -465,18 +468,24 @@ public class ScriptManager {
     }
 
     public boolean reloadScript(String location, Pipe pipe) {
-        if(!location.endsWith(".js"))
-            location = location + ".js";
-
-        File file = new File(this.directory.toFile(), location);
-        if(!file.exists())
-            return false;
-
-        boolean unload = this.unloadScript(file.getName(), pipe);
-        if(!unload)
-            return false;
-
-        return this.loadScript(location, pipe);
+        try {
+            if(!location.endsWith(".js")) {
+                location = location + ".js";
+            }
+            File file = new File(this.directory.toFile(), location);
+            if(!file.exists()) {
+                return false;
+            }
+            boolean unload = this.unloadScript(file.getName(), pipe);
+            if(!unload) {
+                return false;
+            }
+            return this.loadScript(location, pipe);
+        } catch (Exception ex) {
+            this.sendStacktrace(ex, pipe);
+            ex.printStackTrace();
+        }
+        return false;
     }
 
     public boolean enabledScript(String location) {
@@ -484,35 +493,36 @@ public class ScriptManager {
     }
 
     public boolean enableScript(String location, Pipe pipe) {
-        if(!location.contains(".js")) {
-            location += ".js";
-        }
-        File file = new File(this.directory.toFile(), location);
-        if(file.getName().endsWith(".dis")) {
-            File toCopy = new File(this.directory.toFile(), location.replace(".dis", ""));
-            try {
-                Files.copy(Paths.get(file.toURI()), Paths.get(toCopy.toURI()));
-                file.delete();
-                return this.loadScript(location.replace(".dis", ""), pipe);
-            } catch(IOException e) {
-                e.printStackTrace();
-                return false;
+        try {
+            if(!location.contains(".js")) {
+                location += ".js";
             }
-        } else if(!file.exists()) {
-            File original = file;
-            file = new File(this.directory.toFile(), location + ".dis");
-            if(!file.exists()) {
-                return false;
-            } else {
+            File file = new File(this.directory.toFile(), location);
+            if(file.getName().endsWith(".dis")) {
+                File toCopy = new File(this.directory.toFile(), location.replace(".dis", ""));
                 try {
-                    Files.copy(Paths.get(file.toURI()), Paths.get(original.toURI()));
+                    Files.copy(Paths.get(file.toURI()), Paths.get(toCopy.toURI()));
                     file.delete();
-                    return this.loadScript(location.replace(".dis", ""));
+                    return this.loadScript(location.replace(".dis", ""), pipe);
                 } catch(IOException e) {
                     e.printStackTrace();
                     return false;
                 }
+            } else if(!file.exists()) {
+                File original = file;
+                file = new File(this.directory.toFile(), location + ".dis");
+                if(!file.exists()) {
+                    return false;
+                } else {
+                    Files.copy(Paths.get(file.toURI()), Paths.get(original.toURI()));
+                    file.delete();
+                    return this.loadScript(location.replace(".dis", ""));
+                }
             }
+        } catch(Exception ex) {
+            ex.printStackTrace();
+            this.sendStacktrace(ex, pipe);
+            return false;
         }
         return false;
     }
@@ -533,8 +543,9 @@ public class ScriptManager {
             try {
                 this.unloadScript(location, pipe);
                 Files.copy(Paths.get(file.toURI()), Paths.get(toCopy.toURI()));
-            } catch(IOException e) {
-                e.printStackTrace();
+            } catch(IOException ex) {
+                ex.printStackTrace();
+                this.sendStacktrace(ex, pipe);
                 return false;
             }
             file.delete();
@@ -542,12 +553,15 @@ public class ScriptManager {
         }
     }
 
-    private void sendStacktrace(Exception e, Pipe pipe) {
-        String message = e.getMessage();
+    private void sendStacktrace(Exception ex, Pipe pipe) {
+        if (pipe == null) {
+            return;
+        }
+        String message = ex.getMessage();
         if(message.contains("<eval>")) {
             pipe.out(message);
         } else {
-            String st = ExceptionUtils.getStackTrace(e);
+            String st = ExceptionUtils.getStackTrace(ex);
             Pattern pattern = Pattern.compile("(?<=program\\(<eval>:)(\\d*)(?=\\))");
             Matcher matcher = pattern.matcher(st);
             if(matcher.find()) {
@@ -555,6 +569,5 @@ public class ScriptManager {
             }
             pipe.out(message);
         }
-
     }
 }
