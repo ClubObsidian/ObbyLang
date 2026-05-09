@@ -47,15 +47,19 @@ public class VelocityObbyLangCommand implements SimpleCommand {
                     boolean loaded = this.scriptManager.loadScript(args[1], pipe);
                     if(loaded) {
                         MessageUtil.sendMessage(source, "Script has been loaded");
+                    } else if(this.scriptManager.loadProject(args[1], pipe)) {
+                        MessageUtil.sendMessage(source, "Project has been loaded");
                     } else {
-                        MessageUtil.sendMessage(source, "Script could not be loaded");
+                        MessageUtil.sendMessage(source, "Could not be loaded");
                     }
                 } else if(args[0].equalsIgnoreCase("unload")) {
                     boolean unloaded = this.scriptManager.unloadScript(args[1], pipe);
                     if(unloaded) {
                         MessageUtil.sendMessage(source, "Script has been unloaded");
+                    } else if(this.scriptManager.unloadProject(args[1], pipe)) {
+                        MessageUtil.sendMessage(source, "Project has been unloaded");
                     } else {
-                        MessageUtil.sendMessage(source, "Script could not be unloaded");
+                        MessageUtil.sendMessage(source, "Could not be unloaded");
                     }
                 } else if(args[0].equalsIgnoreCase("reload")) {
                     boolean reload = this.scriptManager.reloadScript(args[1], pipe);

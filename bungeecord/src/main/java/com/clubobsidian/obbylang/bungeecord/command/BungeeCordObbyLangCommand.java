@@ -45,15 +45,19 @@ public class BungeeCordObbyLangCommand extends Command {
                     boolean loaded = this.scriptManager.loadScript(args[1], pipe);
                     if(loaded) {
                         sender.sendMessage("Script has been loaded");
+                    } else if(this.scriptManager.loadProject(args[1], pipe)) {
+                        sender.sendMessage("Project has been loaded");
                     } else {
-                        sender.sendMessage("Script could not be loaded");
+                        sender.sendMessage("Could not be loaded");
                     }
                 } else if(args[0].equalsIgnoreCase("unload")) {
                     boolean unloaded = this.scriptManager.unloadScript(args[1], pipe);
                     if(unloaded) {
                         sender.sendMessage("Script has been unloaded");
+                    } else if(this.scriptManager.unloadProject(args[1], pipe)) {
+                        sender.sendMessage("Project has been unloaded");
                     } else {
-                        sender.sendMessage("Script could not be unloaded");
+                        sender.sendMessage("Could not be unloaded");
                     }
                 } else if(args[0].equalsIgnoreCase("reload")) {
                     boolean reload = this.scriptManager.reloadScript(args[1], pipe);
