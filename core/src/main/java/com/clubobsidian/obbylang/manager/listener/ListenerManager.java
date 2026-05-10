@@ -86,7 +86,6 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                 @FieldValue("listenerManager") ListenerManager<?> listenerManager,
                 @FieldValue("eventName") String eventName,
                 @FieldValue("eventPriority") Object eventPriority,
-                @FieldValue("declaringClass") String declaringClass,
                 @Argument(0) Object event) {
 
             @SuppressWarnings("unchecked")
@@ -95,7 +94,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
 
             for (ScriptWrapper wrapper : scripts) {
                 JSFunction script = wrapper.getScript();
-                JSValue wrappedEvent = NashornJavaCompat.wrapJavaObject(declaringClass, event);
+                JSValue wrappedEvent = NashornJavaCompat.wrapJavaObject(wrapper.getOwnerName(), event);
                 JSUtil.call(script, new JSValue[]{ wrappedEvent });
             }
         }
@@ -244,7 +243,6 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                         .newInstance(this, event, priority, declaringClass);
 
                 this.fakeServer.registerListener(listenerInstance);
-
             } catch (NoSuchMethodException | InvocationTargetException
                      | InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
@@ -293,7 +291,9 @@ public abstract class ListenerManager<T> implements RegisteredManager {
     }
 
     @SuppressWarnings("unchecked")
-    public void register(String declaringClass, JSFunction script, String[] events,
+    public void register(String declaringClass,
+                         JSFunction script,
+                         String[] events,
                          String eventPriorityStr) {
         if (this.scripts == null) {
             this.scripts = initScripts();
@@ -313,13 +313,15 @@ public abstract class ListenerManager<T> implements RegisteredManager {
         for (String event : events) {
             event = event.toLowerCase();
             this.createListener(declaringClass, event, eventPriority, eventPriorityUpper);
-
             Map<T, ScriptWrapper[]> priorityMap = this.scripts.get(event);
             ScriptWrapper[] oldArray = priorityMap.get(eventPriority);
             ScriptWrapper[] newArray = new ScriptWrapper[oldArray.length + 1];
             System.arraycopy(oldArray, 0, newArray, 0, oldArray.length);
             newArray[newArray.length - 1] = new ScriptWrapper(
-                    script, this.scriptManager.getScript(declaringClass));
+                    script,
+                    this.scriptManager.getScript(declaringClass),
+                    declaringClass
+            );
             priorityMap.put(eventPriority, newArray);
         }
     }
@@ -338,8 +340,7 @@ public abstract class ListenerManager<T> implements RegisteredManager {
 
                 List<Integer> removalIndexes = new ArrayList<>();
                 for (int i = 0; i < oldArray.length; i++) {
-                    if (oldArray[i].getOwner().equals(
-                            this.scriptManager.getScript(declaringClass))) {
+                    if (oldArray[i].getOwner().equals(this.scriptManager.getScript(declaringClass))) {
                         removalIndexes.add(i);
                     }
                 }

@@ -140,8 +140,8 @@ public class ScriptManager {
             }
         }
         List<String> ordered = this.topoSort(descriptors);
-        for(String key : ordered) {
-            this.loadProject(key, descriptors.get(key), folders.get(key));
+        for(String projectName : ordered) {
+            this.loadProject(projectName, descriptors.get(projectName), folders.get(projectName));
         }
     }
 
@@ -252,11 +252,7 @@ public class ScriptManager {
     }
 
     public JSContext getProject(String projectName) {
-        return this.projects.get(projectName.toLowerCase());
-    }
-
-    public boolean isProjectLoaded(String projectName) {
-        return this.projects.containsKey(projectName.toLowerCase());
+        return this.projects.get(projectName);
     }
 
     public List<String> getProjectNames() {
