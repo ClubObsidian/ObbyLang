@@ -82,10 +82,6 @@ public class ScriptManager {
         return false;
     }
 
-    private JSContext createContext(String scriptName) {
-        return this.engine.createContext();
-    }
-
     private void loadScripts() {
         try {
             Files.createDirectories(this.scriptDirectory);
@@ -545,7 +541,7 @@ public class ScriptManager {
         }
         try {
             this.plugin.getLogger().info("Loading: " + scriptName);
-            JSContext context = this.createContext(scriptName);
+            JSContext context = this.engine.createContext();
             JavaObjectRegistry registry = this.addBindingsToContext(context, scriptName);
             this.scripts.put(scriptName, context);
             this.scriptRegistries.put(scriptName, registry);
