@@ -77,18 +77,20 @@ public class VelocityObbyLangCommand implements SimpleCommand {
                         }
                     }
                 } else if(args[0].equalsIgnoreCase("enable")) {
-                    boolean enable = this.scriptManager.enableScript(args[1], pipe);
-                    if(enable) {
+                    if(this.scriptManager.enableScript(args[1], pipe)) {
                         MessageUtil.sendMessage(source, "Script has been enabled");
+                    } else if(this.scriptManager.enableProject(args[1], pipe)) {
+                        MessageUtil.sendMessage(source, "Project has been enabled");
                     } else {
-                        MessageUtil.sendMessage(source, "Script can not be enabled");
+                        MessageUtil.sendMessage(source, "Could not be enabled");
                     }
                 } else if(args[0].equalsIgnoreCase("disable")) {
-                    boolean disable = this.scriptManager.disableScript(args[1], pipe);
-                    if(disable) {
+                    if(this.scriptManager.disableScript(args[1], pipe)) {
                         MessageUtil.sendMessage(source, "Script has been disabled");
+                    } else if(this.scriptManager.disableProject(args[1], pipe)) {
+                        MessageUtil.sendMessage(source, "Project has been disabled");
                     } else {
-                        MessageUtil.sendMessage(source, "Script can not be disabled");
+                        MessageUtil.sendMessage(source, "Could not be disabled");
                     }
                 } else {
                     this.sendCommandList(source);

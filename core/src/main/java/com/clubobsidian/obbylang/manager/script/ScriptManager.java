@@ -50,11 +50,11 @@ public class ScriptManager {
     private static final Gson GSON = new Gson();
 
     private boolean loaded;
-    private final Path directory;
+    private final Path scriptDirectory;
     private final Path projectsDirectory;
     private final JSRuntime engine;
     private final Map<String, JSContext> scripts = new ConcurrentHashMap<>();
-    private final Map<String, JavaObjectRegistry> registries = new ConcurrentHashMap<>();
+    private final Map<String, JavaObjectRegistry> scriptRegistries = new ConcurrentHashMap<>();
     private final Map<String, JSContext> projects = new ConcurrentHashMap<>();
     private final Map<String, JavaObjectRegistry> projectRegistries = new ConcurrentHashMap<>();
 
@@ -66,7 +66,7 @@ public class ScriptManager {
         ClassLoader cl = plugin.getClass().getClassLoader();
         Thread.currentThread().setContextClassLoader(cl);
         this.plugin = plugin;
-        this.directory = Paths.get(plugin.getDataFolder().getPath(), "scripts");
+        this.scriptDirectory = Paths.get(plugin.getDataFolder().getPath(), "scripts");
         this.projectsDirectory = Paths.get(plugin.getDataFolder().getPath(), "projects");
         this.engine = new JSRuntime();
         this.addonManager = addonManager;
@@ -88,12 +88,12 @@ public class ScriptManager {
 
     private void loadScripts() {
         try {
-            Files.createDirectories(this.directory);
+            Files.createDirectories(this.scriptDirectory);
         } catch(IOException e) {
             e.printStackTrace();
         }
 
-        Collection<File> fileCollection = FileUtils.listFiles(this.directory.toFile(), new String[]{"js"}, true);
+        Collection<File> fileCollection = FileUtils.listFiles(this.scriptDirectory.toFile(), new String[]{"js"}, true);
         File[] files = fileCollection.toArray(new File[fileCollection.size()]);
 
         Collection<File> sortedScripts = Arrays.stream(files)
@@ -221,7 +221,9 @@ public class ScriptManager {
 
     private Map.Entry<ProjectDescriptor, File> findProject(String name) {
         File[] subDirs = this.projectsDirectory.toFile().listFiles(File::isDirectory);
-        if(subDirs == null) return null;
+        if(subDirs == null) {
+            return null;
+        }
         for(File dir : subDirs) {
             ProjectDescriptor desc = this.readDescriptor(dir);
             if(desc != null && desc.getName() != null && desc.getName().equalsIgnoreCase(name)) {
@@ -257,16 +259,27 @@ public class ScriptManager {
         return this.projects.get(projectName.toLowerCase());
     }
 
-    public JavaObjectRegistry getProjectRegistry(String projectName) {
-        return this.projectRegistries.get(projectName.toLowerCase());
-    }
-
     public boolean isProjectLoaded(String projectName) {
         return this.projects.containsKey(projectName.toLowerCase());
     }
 
     public List<String> getProjectNames() {
         return new ArrayList<>(this.projects.keySet());
+    }
+
+    public List<String> getDisabledProjectNames() {
+        File[] subDirs = this.projectsDirectory.toFile().listFiles(File::isDirectory);
+        if(subDirs == null) {
+            return Collections.emptyList();
+        }
+        List<String> names = new ArrayList<>();
+        for(File dir : subDirs) {
+            ProjectDescriptor desc = this.readDisabledDescriptor(dir);
+            if(desc != null && desc.getName() != null && !desc.getName().isBlank()) {
+                names.add(desc.getName().toLowerCase());
+            }
+        }
+        return names;
     }
 
     public boolean unloadProject(String projectName) {
@@ -311,8 +324,67 @@ public class ScriptManager {
         return this.loadProject(key, found.getKey(), found.getValue());
     }
 
+    public boolean enableProject(String name) {
+        return this.enableProject(name, null);
+    }
+
+    public boolean enableProject(String name, Pipe pipe) {
+        try {
+            File[] subDirs = this.projectsDirectory.toFile().listFiles(File::isDirectory);
+            if(subDirs == null) {
+                return false;
+            }
+            for(File dir : subDirs) {
+                ProjectDescriptor desc = this.readDisabledDescriptor(dir);
+                if(desc == null || !desc.getName().equalsIgnoreCase(name)) {
+                    continue;
+                }
+                File disFile = new File(dir, "project.json.dis");
+                File jsonFile = new File(dir, "project.json");
+                Files.copy(disFile.toPath(), jsonFile.toPath());
+                disFile.delete();
+            }
+            return this.loadProject(name, pipe);
+        } catch(IOException ex) {
+            ex.printStackTrace();
+            this.sendStacktrace(ex, pipe);
+        }
+        return false;
+    }
+
+    public boolean disableProject(String name) {
+        return this.disableProject(name, null);
+    }
+
+    public boolean disableProject(String name, Pipe pipe) {
+        Map.Entry<ProjectDescriptor, File> found = this.findProject(name);
+        if (found == null) {
+            return false;
+        }
+        File dir = found.getValue();
+        File jsonFile = new File(dir, "project.json");
+        File disFile = new File(dir, "project.json.dis");
+        this.unloadProject(name.toLowerCase(), pipe);
+        try {
+            Files.copy(jsonFile.toPath(), disFile.toPath());
+            jsonFile.delete();
+            return true;
+        } catch(IOException ex) {
+            ex.printStackTrace();
+            this.sendStacktrace(ex, pipe);
+            return false;
+        }
+    }
+
     private ProjectDescriptor readDescriptor(File folder) {
-        File jsonFile = new File(folder, "project.json");
+        return this.readDescriptorFile(new File(folder, "project.json"));
+    }
+
+    private ProjectDescriptor readDisabledDescriptor(File folder) {
+        return this.readDescriptorFile(new File(folder, "project.json.dis"));
+    }
+
+    private ProjectDescriptor readDescriptorFile(File jsonFile) {
         if(!jsonFile.exists()) {
             return null;
         }
@@ -325,8 +397,12 @@ public class ScriptManager {
         }
     }
 
-    public Path getDirectory() {
-        return this.directory;
+    public Path getScriptDirectory() {
+        return this.scriptDirectory;
+    }
+
+    public Path getProjectDirectory() {
+        return this.projectsDirectory;
     }
 
     public JSContext getScript(String name) {
@@ -335,8 +411,8 @@ public class ScriptManager {
     }
 
     public JavaObjectRegistry getRegistry(String name) {
-        JavaObjectRegistry registry = this.registries.get(name);
-        return registry != null ? registry : this.projectRegistries.get(name);
+        JavaObjectRegistry scriptRegistry = this.scriptRegistries.get(name);
+        return scriptRegistry != null ? scriptRegistry : this.projectRegistries.get(name);
     }
 
     public boolean isScriptLoaded(String script) {
@@ -346,7 +422,7 @@ public class ScriptManager {
     public String getScriptListString() {
         StringBuilder builder = new StringBuilder();
         Set<String> scripts = this.scripts.keySet();
-        for(File file : FileUtils.listFiles(this.directory.toFile(), new String[]{"js", "dis"}, true)) {
+        for(File file : FileUtils.listFiles(this.scriptDirectory.toFile(), new String[]{"js", "dis"}, true)) {
             String name = file.getName();
             String strippedName = name.replace(".dis", "").replace(".js", "");
             if(name.endsWith(".dis")) {
@@ -372,17 +448,19 @@ public class ScriptManager {
         StringBuilder builder = new StringBuilder();
         for(File dir : subDirs) {
             ProjectDescriptor desc = this.readDescriptor(dir);
-            if(desc == null || desc.getName() == null || desc.getName().isBlank()) {
-                continue;
-            }
-            String key = desc.getName().toLowerCase();
-            if(this.projects.containsKey(key)) {
-                builder.append(ChatColor.GREEN);
+            if(desc != null && desc.getName() != null && !desc.getName().isBlank()) {
+                String key = desc.getName().toLowerCase();
+                builder.append(this.projects.containsKey(key) ? ChatColor.GREEN : ChatColor.GRAY);
+                builder.append(key);
+                builder.append(ChatColor.WHITE + ", ");
             } else {
-                builder.append(ChatColor.GRAY);
+                ProjectDescriptor disDesc = this.readDisabledDescriptor(dir);
+                if(disDesc != null && disDesc.getName() != null && !disDesc.getName().isBlank()) {
+                    builder.append(ChatColor.RED);
+                    builder.append(disDesc.getName().toLowerCase());
+                    builder.append(ChatColor.WHITE + ", ");
+                }
             }
-            builder.append(key);
-            builder.append(ChatColor.WHITE + ", ");
         }
         if(builder.isEmpty()) {
             return "No projects found";
@@ -397,9 +475,21 @@ public class ScriptManager {
     public List<String> getScriptNames() {
         List<String> scriptNames = new ArrayList<>();
         for(String str : this.scripts.keySet()) {
-            scriptNames.add(str.replace(".js", "").replace(".dis", ""));
+            scriptNames.add(normalizeScriptEnding(str));
         }
         return scriptNames;
+    }
+
+    private String normalizeScriptEnding(String str) {
+        return str.replace(".js", "").replace(".dis", "");
+    }
+
+    public List<String> getDisabledScriptNames() {
+        return FileUtils.listFiles(this.scriptDirectory.toFile(), new String[]{"dis"}, true)
+                .stream()
+                .filter(file -> file.getName().endsWith(".js.dis"))
+                .map(file -> normalizeScriptEnding(file.getName()))
+                .toList();
     }
 
     public boolean unloadScript(String className) {
@@ -407,27 +497,33 @@ public class ScriptManager {
     }
 
     public boolean unloadScript(String className, Pipe pipe) {
-        if(!className.endsWith(".js")) {
-            className += ".js";
-        }
-        JSContext script = this.scripts.get(className);
-        if(script == null) {
-            return false;
-        }
-        for(Object addon : this.addonManager.getAddons().values()) {
-            if(addon instanceof RegisteredManager registeredManager) {
-                registeredManager.unregister(className);
+        try {
+            if(!className.endsWith(".js")) {
+                className += ".js";
             }
+            JSContext script = this.scripts.get(className);
+            if(script == null) {
+                return false;
+            }
+            for(Object addon : this.addonManager.getAddons().values()) {
+                if(addon instanceof RegisteredManager registeredManager) {
+                    registeredManager.unregister(className);
+                }
+            }
+            JSContext removed = this.scripts.remove(className);
+            if (removed != null) {
+                removed.close();
+            }
+            JavaObjectRegistry registry = this.scriptRegistries.remove(className);
+            if (registry != null) {
+                registry.clear();
+            }
+            return removed != null;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            this.sendStacktrace(ex, pipe);
         }
-        JSContext removed = this.scripts.remove(className);
-        if (removed != null) {
-            removed.close();
-        }
-        JavaObjectRegistry registry = this.registries.remove(className);
-        if (registry != null) {
-            registry.clear();
-        }
-        return removed != null;
+        return false;
     }
 
     public boolean loadScript(String location) {
@@ -438,7 +534,7 @@ public class ScriptManager {
         if(!location.endsWith(".js")) {
             location += ".js";
         }
-        File file = new File(this.directory.toFile(), location);
+        File file = new File(this.scriptDirectory.toFile(), location);
         return this.loadScript(file, pipe);
     }
 
@@ -452,7 +548,7 @@ public class ScriptManager {
             JSContext context = this.createContext(scriptName);
             JavaObjectRegistry registry = this.addBindingsToContext(context, scriptName);
             this.scripts.put(scriptName, context);
-            this.registries.put(scriptName, registry);
+            this.scriptRegistries.put(scriptName, registry);
             String source = Files.readString(file.toPath(), StandardCharsets.UTF_8);
             context.eval(source, file.getName(), false);
             return true;
@@ -480,7 +576,7 @@ public class ScriptManager {
             if(!location.endsWith(".js")) {
                 location = location + ".js";
             }
-            File file = new File(this.directory.toFile(), location);
+            File file = new File(this.scriptDirectory.toFile(), location);
             if(!file.exists()) {
                 return false;
             }
@@ -505,9 +601,9 @@ public class ScriptManager {
             if(!location.contains(".js")) {
                 location += ".js";
             }
-            File file = new File(this.directory.toFile(), location);
+            File file = new File(this.scriptDirectory.toFile(), location);
             if(file.getName().endsWith(".dis")) {
-                File toCopy = new File(this.directory.toFile(), location.replace(".dis", ""));
+                File toCopy = new File(this.scriptDirectory.toFile(), location.replace(".dis", ""));
                 try {
                     Files.copy(Paths.get(file.toURI()), Paths.get(toCopy.toURI()));
                     file.delete();
@@ -518,7 +614,7 @@ public class ScriptManager {
                 }
             } else if(!file.exists()) {
                 File original = file;
-                file = new File(this.directory.toFile(), location + ".dis");
+                file = new File(this.scriptDirectory.toFile(), location + ".dis");
                 if(!file.exists()) {
                     return false;
                 } else {
@@ -543,11 +639,11 @@ public class ScriptManager {
         if(!location.endsWith(".js")) {
             location += ".js";
         }
-        File file = new File(this.directory.toFile(), location);
+        File file = new File(this.scriptDirectory.toFile(), location);
         if(!file.exists()) {
             return false;
         } else {
-            File toCopy = new File(this.directory.toFile(), location + ".dis");
+            File toCopy = new File(this.scriptDirectory.toFile(), location + ".dis");
             try {
                 this.unloadScript(location, pipe);
                 Files.copy(Paths.get(file.toURI()), Paths.get(toCopy.toURI()));

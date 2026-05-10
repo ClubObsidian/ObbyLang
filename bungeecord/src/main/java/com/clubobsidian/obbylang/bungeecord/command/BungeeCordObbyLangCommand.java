@@ -75,18 +75,20 @@ public class BungeeCordObbyLangCommand extends Command {
                         }
                     }
                 } else if(args[0].equalsIgnoreCase("enable")) {
-                    boolean enable = this.scriptManager.enableScript(args[1], pipe);
-                    if(enable) {
+                    if(this.scriptManager.enableScript(args[1], pipe)) {
                         sender.sendMessage("Script has been enabled");
+                    } else if(this.scriptManager.enableProject(args[1], pipe)) {
+                        sender.sendMessage("Project has been enabled");
                     } else {
-                        sender.sendMessage("Script can not be enabled");
+                        sender.sendMessage("Could not be enabled");
                     }
                 } else if(args[0].equalsIgnoreCase("disable")) {
-                    boolean disable = this.scriptManager.disableScript(args[1], pipe);
-                    if(disable) {
+                    if(this.scriptManager.disableScript(args[1], pipe)) {
                         sender.sendMessage("Script has been disabled");
+                    } else if(this.scriptManager.disableProject(args[1], pipe)) {
+                        sender.sendMessage("Project has been disabled");
                     } else {
-                        sender.sendMessage("Script can not be disabled");
+                        sender.sendMessage("Could not be disabled");
                     }
                 } else {
                     this.sendCommandList(sender);
