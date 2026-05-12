@@ -93,9 +93,13 @@ public abstract class ListenerManager<T> implements RegisteredManager {
                     .getEventScripts(eventName, eventPriority);
 
             for (ScriptWrapper wrapper : scripts) {
-                JSFunction script = wrapper.getScript();
-                JSValue wrappedEvent = NashornJavaCompat.wrapJavaObject(wrapper.getOwnerName(), event);
-                JSUtil.call(script, new JSValue[]{ wrappedEvent });
+                try {
+                    JSFunction script = wrapper.getScript();
+                    JSValue wrappedEvent = NashornJavaCompat.wrapJavaObject(wrapper.getOwnerName(), event);
+                    JSUtil.call(script, new JSValue[]{wrappedEvent});
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         }
     }
