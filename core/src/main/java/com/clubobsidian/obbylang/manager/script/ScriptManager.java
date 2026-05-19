@@ -429,6 +429,9 @@ public class ScriptManager {
             builder.append(strippedName);
             builder.append(ChatColor.WHITE + ", ");
         }
+        if(builder.isEmpty()) {
+            return "No scripts found";
+        }
         return builder.substring(0, builder.toString().length() - 2);
     }
 
