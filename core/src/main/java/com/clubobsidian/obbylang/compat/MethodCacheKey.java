@@ -32,17 +32,22 @@ public class MethodCacheKey {
     }
 
     private boolean arraysEquals(Object[] thisArgs, Object[] thatArgs) {
+        if (thisArgs == null || thatArgs == null) {
+            return thisArgs == thatArgs;
+        }
         if (thisArgs.length != thatArgs.length) {
             return false;
         }
         for (int i = 0; i < thisArgs.length; i++) {
-            if (thisArgs[i] == null && thatArgs[i] != null) {
-                return false;
-            }
-            if (thisArgs[i] == null && thatArgs[i] == null) {
+            Object left = thisArgs[i];
+            Object right = thatArgs[i];
+            if (left == null || right == null) {
+                if (left != right) {
+                    return false;
+                }
                 continue;
             }
-            if (!thisArgs[i].getClass().getName().equals(thatArgs[i].getClass().getName())) {
+            if (!left.getClass().getName().equals(right.getClass().getName())) {
                 return false;
             }
         }
@@ -50,9 +55,9 @@ public class MethodCacheKey {
     }
 
     private int arrayHashCode(Object[] args) {
-        int hash = 0;
+        int hash = 1;
         for (Object obj : args) {
-            hash += obj.getClass().getName().hashCode();
+            hash = 31 * hash + (obj == null ? 0 : obj.getClass().getName().hashCode());
         }
         return hash;
     }

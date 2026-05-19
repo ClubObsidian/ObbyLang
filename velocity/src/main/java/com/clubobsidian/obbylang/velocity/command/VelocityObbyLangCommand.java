@@ -72,6 +72,8 @@ public class VelocityObbyLangCommand implements SimpleCommand {
                         boolean load = this.scriptManager.loadScript(args[1], pipe);
                         if(load) {
                             MessageUtil.sendMessage(source, "Script has been loaded");
+                        } else if(this.scriptManager.loadProject(args[1], pipe)) {
+                            MessageUtil.sendMessage(source, "Project has been loaded");
                         } else {
                             MessageUtil.sendMessage(source, "Could not be loaded");
                         }

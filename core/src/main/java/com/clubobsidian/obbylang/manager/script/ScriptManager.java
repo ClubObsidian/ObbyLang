@@ -652,18 +652,7 @@ public class ScriptManager {
     private void sendStacktrace(Exception ex, Pipe pipe) {
         if (pipe == null) {
             return;
-        }
-        String message = ex.getMessage();
-        if(message.contains("<eval>")) {
-            pipe.out(message);
-        } else {
-            String st = ExceptionUtils.getStackTrace(ex);
-            Pattern pattern = Pattern.compile("(?<=program\\(<eval>:)(\\d*)(?=\\))");
-            Matcher matcher = pattern.matcher(st);
-            if(matcher.find()) {
-                message += " at line " + matcher.group();
-            }
-            pipe.out(message);
-        }
+        } //TODO - update when QJS4J gets better error logging
+        pipe.out(ex.getMessage());
     }
 }

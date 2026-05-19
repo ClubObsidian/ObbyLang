@@ -8,24 +8,25 @@ import java.time.Duration;
 
 public final class JavaObjectRegistry {
 
-    private final Cache<Integer, Object> wrapperToJava = Caffeine.newBuilder().maximumSize(10_000)
+    private final Cache<IdentityKey<JSObject>, Object> wrapperToJava = Caffeine.newBuilder().maximumSize(10_000)
             .expireAfterAccess(Duration.ofMinutes(1))
             .build();
-    private final Cache<Integer, JSObject> javaToWrapper = Caffeine.newBuilder().maximumSize(10_000)
+    private final Cache<IdentityKey<Object>, JSObject> javaToWrapper = Caffeine.newBuilder().maximumSize(10_000)
             .expireAfterAccess(Duration.ofMinutes(1))
             .build();
 
     public void register(JSObject wrapper, Object javaObj) {
-        this.wrapperToJava.put(System.identityHashCode(wrapper), javaObj);
-        this.javaToWrapper.put(System.identityHashCode(javaObj), wrapper);
+
+        this.wrapperToJava.put(IdentityKey.of(wrapper), javaObj);
+        this.javaToWrapper.put(IdentityKey.of(javaObj), wrapper);
     }
 
     public JSObject existingWrapper(Object javaObj) {
-        return this.javaToWrapper.getIfPresent(System.identityHashCode(javaObj));
+        return this.javaToWrapper.getIfPresent(IdentityKey.of(javaObj));
     }
 
     public Object unwrap(JSObject wrapper) {
-        return this.wrapperToJava.getIfPresent(System.identityHashCode(wrapper));
+        return this.wrapperToJava.getIfPresent(IdentityKey.of(wrapper));
     }
 
     public void clear() {

@@ -5,17 +5,11 @@ plugins {
 
 def velocityVersion = '3.5.0-SNAPSHOT'
 
-/*blossom {
-    replaceTokenIn('com/clubobsidian/obbylang/velocity/plugin/VelocityObbyLangPlugin.java')
-    replaceToken('${pluginVersion}', project.version)
-}*/
-
-
 sourceSets {
     main {
         blossom {
-            resources {
-                property('${pluginVersion}', project.version)
+            javaSources {
+                property('pluginVersion', project.version)
             }
         }
     }

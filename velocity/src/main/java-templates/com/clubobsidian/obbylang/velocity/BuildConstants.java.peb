@@ -1,0 +1,5 @@
+package com.clubobsidian.obbylang.velocity;
+
+public class BuildConstants {
+    public static final String PLUGIN_VERSION = "{{ pluginVersion }}";
+}

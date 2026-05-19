@@ -890,7 +890,7 @@ public final class NashornJavaCompat {
         } catch (IllegalAccessException ignored) {}
         // Strategy 2: public lookup (public fields in non-open modules)
         try {
-            return MethodHandles.publicLookup().unreflectGetter(f);
+            return MethodHandles.publicLookup().unreflectSetter(f);
         } catch (IllegalAccessException ignored) {}
         // Strategy 3: force-accessible
         try {
@@ -1417,7 +1417,12 @@ public final class NashornJavaCompat {
         return Proxy.newProxyInstance(cl, new Class<?>[]{ functionalInterface },
                 (proxy, method, methodArgs) -> {
                     if (method.getDeclaringClass() == Object.class) {
-                        return method.invoke(proxy, methodArgs);
+                        return switch (method.getName()) {
+                            case "hashCode" -> System.identityHashCode(proxy);
+                            case "equals" -> proxy == (methodArgs != null ? methodArgs[0] : null);
+                            case "toString" -> proxy.getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(proxy));
+                            default -> null;
+                        };
                     }
                     JSContext ctx = jsFn.getRealmContext();
                     // Wrap incoming Java args into JS values using the registry so that

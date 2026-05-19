@@ -70,6 +70,8 @@ public class BukkitObbyLangCommand implements CommandExecutor {
                         boolean load = this.scriptManager.loadScript(args[1], pipe);
                         if(load) {
                             sender.sendMessage("Script has been loaded");
+                        } else if(this.scriptManager.loadProject(args[1], pipe)) {
+                            sender.sendMessage("Project has been loaded");
                         } else {
                             sender.sendMessage("Could not be loaded");
                         }

@@ -18,7 +18,6 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.plugin.protocollib;
 
-import com.caoccao.qjs4j.core.JSContext;
 import com.caoccao.qjs4j.core.JSFunction;
 import com.caoccao.qjs4j.core.JSValue;
 import com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin;
@@ -64,7 +63,6 @@ public class ProtocolLibManager implements RegisteredManager {
             adapter = new PacketAdapter(BukkitObbyLangPlugin.get(), packetTypes) {
                 @Override
                 public void onPacketSending(PacketEvent event) {
-                    JSContext context = script.getContext();
                     JSUtil.call(script, new JSValue[]{NashornJavaCompat.wrapJavaObject(declaringClass, event)});
                 }
             };
@@ -72,7 +70,6 @@ public class ProtocolLibManager implements RegisteredManager {
             adapter = new PacketAdapter(BukkitObbyLangPlugin.get(), packetTypes) {
                 @Override
                 public void onPacketReceiving(PacketEvent event) {
-                    JSContext context = script.getContext();
                     JSUtil.call(script, new JSValue[]{NashornJavaCompat.wrapJavaObject(declaringClass, event)});
                 }
             };
