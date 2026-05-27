@@ -25,7 +25,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 
 public class BukkitObbyLangCommand implements CommandExecutor {
 

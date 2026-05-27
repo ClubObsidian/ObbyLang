@@ -25,7 +25,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.util.StringUtil;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 

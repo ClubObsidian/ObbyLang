@@ -24,7 +24,7 @@ import com.clubobsidian.obbylang.pipe.Pipe;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 
 public class BungeeCordObbyLangCommand extends Command {
 

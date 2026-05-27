@@ -23,7 +23,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 
 public abstract class MessageManager<T> {
 

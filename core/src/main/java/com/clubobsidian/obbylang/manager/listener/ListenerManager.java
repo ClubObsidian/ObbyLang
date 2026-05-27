@@ -44,7 +44,7 @@ import javassist.bytecode.annotation.MemberValue;
 import org.apache.commons.lang3.ClassUtils;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;

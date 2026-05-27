@@ -28,7 +28,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 
 public class BukkitDependencyManager extends DependencyManager implements Listener {
 

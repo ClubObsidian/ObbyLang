@@ -26,7 +26,7 @@ import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 
 public class VelocityListenerManager extends ListenerManager<PostOrder> {
 

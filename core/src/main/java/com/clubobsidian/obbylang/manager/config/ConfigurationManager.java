@@ -22,7 +22,7 @@ import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.clubobsidian.wrappy.Configuration;
 import org.apache.commons.io.FileUtils;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

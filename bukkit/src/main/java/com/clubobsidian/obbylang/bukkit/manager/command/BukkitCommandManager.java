@@ -31,7 +31,7 @@ import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.command.TabCompleter;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

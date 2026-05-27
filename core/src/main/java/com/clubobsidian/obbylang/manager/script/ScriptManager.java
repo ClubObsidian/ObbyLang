@@ -31,7 +31,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;

@@ -21,7 +21,7 @@ package com.clubobsidian.obbylang.manager.script;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 import javax.script.CompiledScript;
 import java.util.ArrayList;
 import java.util.List;

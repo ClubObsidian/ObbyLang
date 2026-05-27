@@ -24,7 +24,7 @@ import com.clubobsidian.obbylang.manager.addon.AddonManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import org.bukkit.Bukkit;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 
 public class PluginManager {
 

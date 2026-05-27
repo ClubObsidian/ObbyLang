@@ -25,7 +25,7 @@ import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;

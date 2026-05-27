@@ -24,7 +24,7 @@ import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.velocity.event.ObbyLangCustomEvent;
 import com.clubobsidian.obbylang.velocity.plugin.VelocityObbyLangPlugin;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 
 public class VelocityCustomEventManager extends CustomEventManager {
 

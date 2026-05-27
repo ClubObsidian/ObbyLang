@@ -37,7 +37,7 @@ import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
 import com.google.inject.Injector;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

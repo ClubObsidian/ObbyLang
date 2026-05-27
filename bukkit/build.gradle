@@ -11,6 +11,7 @@ jar {
 shadowJar {
     archiveBaseName.set('ObbyLangBukkit')
     relocate 'net.kyori.adventure', 'com.clubobsidian.obbylang.adventure'
+    relocate 'com.google.inject', 'com.clubobsidian.obbylang.guice'
 }
 
 processResources {

@@ -25,7 +25,7 @@ import com.clubobsidian.obbylang.velocity.util.MessageUtil;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 
 public class VelocityObbyLangCommand implements SimpleCommand {
 

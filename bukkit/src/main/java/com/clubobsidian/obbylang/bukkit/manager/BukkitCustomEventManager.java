@@ -23,7 +23,7 @@ import com.clubobsidian.obbylang.manager.event.CustomEventManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import org.bukkit.Bukkit;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 
 public class BukkitCustomEventManager extends CustomEventManager {
 

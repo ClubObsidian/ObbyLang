@@ -23,7 +23,7 @@ import com.clubobsidian.obbylang.manager.event.CustomEventManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import net.md_5.bungee.api.ProxyServer;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 
 public class BungeeCordCustomEventManager extends CustomEventManager {
 
