@@ -21,6 +21,7 @@ package com.clubobsidian.obbylang;
 import com.clubobsidian.obbylang.inject.InjectorWrapper;
 import com.clubobsidian.obbylang.manager.addon.AddonManager;
 import com.clubobsidian.obbylang.manager.command.CommandManager;
+import com.clubobsidian.obbylang.manager.datastore.DataStoreManager;
 import com.clubobsidian.obbylang.manager.config.ConfigurationManager;
 import com.clubobsidian.obbylang.manager.database.DatabaseManager;
 import com.clubobsidian.obbylang.manager.event.CustomEventManager;
@@ -107,6 +108,7 @@ public class ObbyLang {
     private void loadBuiltinManagers() {
         AddonManager addonManager = this.getInstance(AddonManager.class);
         addonManager.registerAddon("disable", this.getInstance(DisableManager.class));
+        addonManager.registerAddon("dataStore", this.getInstance(DataStoreManager.class));
         addonManager.registerAddon("scheduler", this.getInstance(SchedulerManager.class));
         addonManager.registerAddon("server", this.plugin.getServer());
         addonManager.registerAddon("listener", this.getInstance(ListenerManager.class));

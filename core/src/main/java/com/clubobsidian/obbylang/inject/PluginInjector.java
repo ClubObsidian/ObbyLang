@@ -30,6 +30,7 @@ import com.clubobsidian.obbylang.manager.message.MessageManager;
 import com.clubobsidian.obbylang.manager.plugin.DependencyManager;
 import com.clubobsidian.obbylang.manager.proxy.ProxyManager;
 import com.clubobsidian.obbylang.manager.redis.RedisManager;
+import com.clubobsidian.obbylang.manager.datastore.DataStoreManager;
 import com.clubobsidian.obbylang.manager.script.DisableManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
@@ -191,6 +192,7 @@ public class PluginInjector {
             binder.bind(ScriptManager.class).asEagerSingleton();
             binder.bind(RedisManager.class).asEagerSingleton();
             binder.bind(DisableManager.class).asEagerSingleton();
+            binder.bind(DataStoreManager.class).asEagerSingleton();
         }
     }
 

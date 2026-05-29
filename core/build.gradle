@@ -8,4 +8,5 @@ dependencies {
     api("net.kyori:adventure-text-minimessage:$adventureVersion")
     api("net.kyori:adventure-text-serializer-gson:$adventureVersion")
     api 'com.google.inject:guice:5.1.0'
+    api 'org.xerial:sqlite-jdbc:3.53.1.0'
 }
