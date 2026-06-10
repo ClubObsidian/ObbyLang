@@ -18,6 +18,8 @@
 
 package com.clubobsidian.obbylang.manager.datastore;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -33,6 +35,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -45,7 +48,9 @@ public class DataStore {
     private static final String EXISTS = "SELECT 1 FROM kv WHERE key=?";
     private static final String SELECT_KEYS = "SELECT key FROM kv";
 
-    private final Map<String, String> cache = new ConcurrentHashMap<>();
+    private final Cache<String, String> cache = Caffeine.newBuilder().maximumSize(10_000)
+            .expireAfterAccess(Duration.ofMinutes(1))
+            .build();
     private final Connection connection;
     private final BlockingQueue<Runnable> writeQueue = new LinkedBlockingQueue<>();
     private final ExecutorService executor;
@@ -84,7 +89,7 @@ public class DataStore {
     }
 
     public void delete(String key) {
-        this.cache.remove(key);
+        this.cache.invalidate(key);
         boolean addedToQueue = this.writeQueue.offer(() -> {
             try (PreparedStatement ps = this.connection.prepareStatement(DELETE)) {
                 ps.setString(1, key);
@@ -136,7 +141,7 @@ public class DataStore {
     }
 
     public String get(String key) {
-        String cached = this.cache.get(key);
+        String cached = this.cache.getIfPresent(key);
         if (cached != null) {
             return cached;
         }
@@ -163,7 +168,7 @@ public class DataStore {
     }
 
     public boolean has(String key) {
-        String cached = this.cache.get(key);
+        String cached = this.cache.getIfPresent(key);
         if (cached != null) {
             return true;
         }
@@ -188,7 +193,7 @@ public class DataStore {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        result.addAll(this.cache.keySet());
+        result.addAll(this.cache.asMap().keySet());
         return new ArrayList<>(result);
     }
 

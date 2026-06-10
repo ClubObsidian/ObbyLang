@@ -82,6 +82,7 @@ subprojects {
         relocate 'com.google.j2objc', 'com.clubobsidian.obbylang.j2objc'
         relocate 'com.google.thirdparty.publicsuffix', 'com.clubobsidian.obbylang.publicsuffix'
         relocate 'com.mongodb', 'com.clubobsidian.obbylang.mongodb'
+        relocate 'com.github.benmanes.caffeine', 'com.clubobsidian.obbylang.caffeine'
     }
 
     dependencies {
@@ -100,6 +101,7 @@ subprojects {
         api 'com.zaxxer:influx4j:2.14'
         api 'org.mongodb:mongodb-driver-sync:4.6.1'
         api 'org.openjdk.nashorn:nashorn-core:15.6'
+        api 'com.github.ben-manes.caffeine:caffeine:3.2.3'
         testImplementation(platform('org.junit:junit-bom:6.0.3'))
         testImplementation('org.junit.jupiter:junit-jupiter')
         testRuntimeOnly('org.junit.platform:junit-platform-launcher')
