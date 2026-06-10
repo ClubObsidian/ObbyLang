@@ -219,7 +219,7 @@ public class DataStore {
         }
     }
 
-    private void drain() {
+    private void drainSync() {
         CompletableFuture<Void> sentinel = new CompletableFuture<>();
         this.writeQueue.offer(() -> sentinel.complete(null));
         this.executor.submit(this::drainQueue);
@@ -231,7 +231,7 @@ public class DataStore {
     }
 
     public boolean close() {
-        this.drain();
+        this.drainSync();
         try {
             this.connection.close();
             return true;
