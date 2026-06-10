@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.openjdk.nashorn.api.scripting.JSObject;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 import org.sqlite.SQLiteOpenMode;
@@ -97,8 +98,28 @@ public class DataStore {
         }
     }
 
+    private String stringify(Object value) {
+        if (value instanceof ScriptObjectMirror mirror) {
+            if (mirror.isArray()) {
+                StringJoiner sj = new StringJoiner(",", "[", "]");
+                mirror.values().forEach(v -> sj.add(stringify(v)));
+                return sj.toString();
+            } else {
+                StringJoiner sj = new StringJoiner(",", "{", "}");
+                mirror.forEach((k, v) -> sj.add("\"" + k + "\":" + stringify(v)));
+                return sj.toString();
+            }
+        } else if (value instanceof String s) {
+            return "\"" + s + "\"";
+        } else if (value == null || ScriptObjectMirror.isUndefined(value)) {
+            return "null";
+        } else {
+            return value.toString(); // numbers, booleans
+        }
+    }
+
     public void setList(String key, Object array) {
-        Collection<Object> values = array instanceof JSObject
+        Collection<Object> values = (array instanceof JSObject jsArr) && jsArr.isArray()
                 ? ((JSObject) array).values()
                 : array instanceof Collection
                 ? (Collection<Object>) array
@@ -106,7 +127,7 @@ public class DataStore {
         List<String> list = new ArrayList<>();
         for (Object v : values) {
             if (v != null) {
-                list.add(v.toString());
+                list.add(stringify(v));
             } else {
                 list.add(null);
             }
