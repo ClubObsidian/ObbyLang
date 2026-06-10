@@ -111,7 +111,7 @@ public class DataStore {
                 list.add(null);
             }
         }
-        this.set(key, this.gson.toJson(list));
+        this.set(key, this.gson.toJson(list, new TypeToken<List<String>>() {}.getType()));
     }
 
     public String get(String key) {
