@@ -68,7 +68,7 @@ public class DataStore {
 
     public void set(String key, String value) {
         this.cache.put(key, value);
-        this.writeQueue.offer(() -> {
+        boolean addedToQueue = this.writeQueue.offer(() -> {
             try (PreparedStatement ps = this.connection.prepareStatement(UPSERT)) {
                 ps.setString(1, key);
                 ps.setString(2, value);
@@ -77,12 +77,14 @@ public class DataStore {
                 e.printStackTrace();
             }
         });
-        this.executor.submit(this::drainQueue);
+        if (addedToQueue) {
+            this.executor.submit(this::drainQueue);
+        }
     }
 
     public void delete(String key) {
         this.cache.remove(key);
-        this.writeQueue.offer(() -> {
+        boolean addedToQueue = this.writeQueue.offer(() -> {
             try (PreparedStatement ps = this.connection.prepareStatement(DELETE)) {
                 ps.setString(1, key);
                 ps.executeUpdate();
@@ -90,12 +92,17 @@ public class DataStore {
                 e.printStackTrace();
             }
         });
-        this.executor.submit(this::drainQueue);
+        if (addedToQueue) {
+            this.executor.submit(this::drainQueue);
+        }
     }
 
     public void setList(String key, Object array) {
-        JSObject jsArray = (JSObject) array;
-        Collection<Object> values = jsArray.values();
+        Collection<Object> values = array instanceof JSObject
+                ? ((JSObject) array).values()
+                : array instanceof Collection
+                ? (Collection<Object>) array
+                : Collections.singleton(array);
         List<String> list = new ArrayList<>();
         for (Object v : values) {
             if (v != null) {
@@ -172,14 +179,14 @@ public class DataStore {
         return this.gson.fromJson(json, new TypeToken<List<String>>() {}.getType());
     }
 
-    public List<Object> getList(String key, JSObject fn) {
+    public List<Object> getList(String key, JSObject jsObj) {
         List<String> raw = this.getList(key);
         if (raw == null) {
             return null;
         }
         List<Object> result = new ArrayList<>();
         for (String elem : raw) {
-            result.add(fn.call(null, elem));
+            result.add(jsObj.call(null, elem));
         }
         return result;
     }
