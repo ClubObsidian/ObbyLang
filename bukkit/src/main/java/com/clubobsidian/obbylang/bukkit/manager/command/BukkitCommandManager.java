@@ -18,18 +18,18 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.command;
 
+import com.caoccao.qjs4j.core.JSFunction;
 import com.clubobsidian.obbylang.bukkit.util.ReflectionUtil;
 import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
 import com.clubobsidian.obbylang.manager.message.MessageManager;
+import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.command.TabCompleter;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
@@ -48,8 +48,10 @@ public class BukkitCommandManager extends CommandManager {
     private final MessageManager messageManager;
 
     @Inject
-    protected BukkitCommandManager(CommandWrapperManager<?> wrapperManager, MessageManager messageManager) {
-        super(wrapperManager);
+    protected BukkitCommandManager(CommandWrapperManager<?> wrapperManager,
+                                   ScriptManager scriptManager,
+                                   MessageManager messageManager) {
+        super(wrapperManager, scriptManager);
         this.messageManager = messageManager;
     }
 
@@ -78,13 +80,12 @@ public class BukkitCommandManager extends CommandManager {
         return this.cm;
     }
 
-    public void register(String declaringClass, ScriptObjectMirror cmdScript,
-                         String cmd, ScriptObjectMirror tabScript) {
+    public void register(String declaringClass, JSFunction cmdScript, String cmd, JSFunction tabScript) {
         this.register(declaringClass, cmdScript, new String[]{cmd}, tabScript);
     }
 
-    public void register(String declaringClass, ScriptObjectMirror cmdScript,
-                         String[] cmds, ScriptObjectMirror tabScript) {
+    public void register(String declaringClass, JSFunction cmdScript,
+                         String[] cmds, JSFunction tabScript) {
         TabCompleter tabCompleter = this.createTabCompleter(declaringClass, tabScript);
         List<CommandWrapper<?>> registered = super.register(declaringClass, cmdScript, cmds);
         for(CommandWrapper<?> wrapper : registered) {
@@ -97,7 +98,7 @@ public class BukkitCommandManager extends CommandManager {
         return this.getKnownCommands().get(commandName);
     }
 
-    public BukkitTabCompleter createTabCompleter(String owner, ScriptObjectMirror script) {
+    public BukkitTabCompleter createTabCompleter(String owner, JSFunction script) {
         return new BukkitTabCompleter(owner, script);
     }
 

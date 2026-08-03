@@ -18,15 +18,15 @@
 
 package com.clubobsidian.obbylang.bungeecord.manager.command;
 
+import com.caoccao.qjs4j.core.JSFunction;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
 import net.md_5.bungee.api.plugin.Command;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public class BungeeCordCommandWrapperManager extends CommandWrapperManager<Command> {
 
     @Override
-    public CommandWrapper<Command> createCommandWrapper(String declaringClass, String command, ScriptObjectMirror script) {
-        return new BungeeCordCommandWrapper(script, command, script);
+    public CommandWrapper<Command> createCommandWrapper(String declaringClass, String command, JSFunction script) {
+        return new BungeeCordCommandWrapper(declaringClass, command, script);
     }
 }

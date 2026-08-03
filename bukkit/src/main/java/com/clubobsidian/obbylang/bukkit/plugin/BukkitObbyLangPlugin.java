@@ -35,8 +35,6 @@ import com.clubobsidian.obbylang.bukkit.manager.plugin.dynamicgui.GuiManager;
 import com.clubobsidian.obbylang.inject.PluginInjector;
 import com.clubobsidian.obbylang.manager.addon.AddonManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
-import javassist.ClassClassPath;
-import javassist.ClassPool;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -86,7 +84,6 @@ public class BukkitObbyLangPlugin extends JavaPlugin implements ObbyLangPlugin, 
                 .addAddon(BukkitObbyLangCommandTabCompleter.class)
                 .create();
         this.addonManager = this.obbyLang.getInstance(AddonManager.class);
-        ClassPool.getDefault().insertClassPath(new ClassClassPath(Listener.class));
         this.getLogger().info("About to enable ObbyLang");
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         this.obbyLang.onEnable();

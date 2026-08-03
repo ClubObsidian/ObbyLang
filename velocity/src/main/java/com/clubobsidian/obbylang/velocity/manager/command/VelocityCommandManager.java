@@ -21,6 +21,7 @@ package com.clubobsidian.obbylang.velocity.manager.command;
 import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
+import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.velocity.plugin.VelocityObbyLangPlugin;
 import com.velocitypowered.api.command.Command;
 import com.velocitypowered.api.command.CommandMeta;
@@ -32,8 +33,8 @@ public class VelocityCommandManager extends CommandManager {
     private final com.velocitypowered.api.command.CommandManager cmdManager;
 
     @Inject
-    protected VelocityCommandManager(CommandWrapperManager<?> wrapperManager) {
-        super(wrapperManager);
+    protected VelocityCommandManager(CommandWrapperManager<?> wrapperManager, ScriptManager scriptManager) {
+        super(wrapperManager, scriptManager);
         this.cmdManager = VelocityObbyLangPlugin
                 .get()
                 .getServer()

@@ -18,21 +18,21 @@
 
 package com.clubobsidian.obbylang.manager.command;
 
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import com.caoccao.qjs4j.core.JSFunction;
 
 public abstract class CommandWrapper<T> {
 
-    private final Object owner;
+    private final String owner;
     private final String commandName;
-    private final ScriptObjectMirror base;
+    private final JSFunction base;
 
-    public CommandWrapper(Object owner, String commandName, ScriptObjectMirror base) {
-        this.owner = owner;
+    public CommandWrapper(String declaringClass, String commandName, JSFunction base) {
+        this.owner = declaringClass;
         this.commandName = commandName;
         this.base = base;
     }
 
-    public Object getOwner() {
+    public String getDeclaringClass() {
         return this.owner;
     }
 
@@ -40,7 +40,7 @@ public abstract class CommandWrapper<T> {
         return this.commandName;
     }
 
-    public ScriptObjectMirror getBase() {
+    public JSFunction getBase() {
         return this.base;
     }
 

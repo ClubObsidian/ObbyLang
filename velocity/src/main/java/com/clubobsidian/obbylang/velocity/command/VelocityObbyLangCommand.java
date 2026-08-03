@@ -47,43 +47,52 @@ public class VelocityObbyLangCommand implements SimpleCommand {
                     boolean loaded = this.scriptManager.loadScript(args[1], pipe);
                     if(loaded) {
                         MessageUtil.sendMessage(source, "Script has been loaded");
+                    } else if(this.scriptManager.loadProject(args[1], pipe)) {
+                        MessageUtil.sendMessage(source, "Project has been loaded");
                     } else {
-                        MessageUtil.sendMessage(source, "Script could not be loaded");
+                        MessageUtil.sendMessage(source, "Could not be loaded");
                     }
                 } else if(args[0].equalsIgnoreCase("unload")) {
                     boolean unloaded = this.scriptManager.unloadScript(args[1], pipe);
                     if(unloaded) {
                         MessageUtil.sendMessage(source, "Script has been unloaded");
+                    } else if(this.scriptManager.unloadProject(args[1], pipe)) {
+                        MessageUtil.sendMessage(source, "Project has been unloaded");
                     } else {
-                        MessageUtil.sendMessage(source, "Script could not be unloaded");
+                        MessageUtil.sendMessage(source, "Could not be unloaded");
                     }
                 } else if(args[0].equalsIgnoreCase("reload")) {
                     boolean reload = this.scriptManager.reloadScript(args[1], pipe);
                     if(reload) {
                         MessageUtil.sendMessage(source, "Script has been reloaded");
+                    } else if(this.scriptManager.reloadProject(args[1], pipe)) {
+                        MessageUtil.sendMessage(source, "Project has been reloaded");
                     } else {
-                        MessageUtil.sendMessage(source, "Script could not be reloaded");
-                        MessageUtil.sendMessage(source, "Attemping to load the script");
+                        MessageUtil.sendMessage(source, "Could not be reloaded, attempting to load");
                         boolean load = this.scriptManager.loadScript(args[1], pipe);
                         if(load) {
                             MessageUtil.sendMessage(source, "Script has been loaded");
+                        } else if(this.scriptManager.loadProject(args[1], pipe)) {
+                            MessageUtil.sendMessage(source, "Project has been loaded");
                         } else {
-                            MessageUtil.sendMessage(source, "Script could not be loaded");
+                            MessageUtil.sendMessage(source, "Could not be loaded");
                         }
                     }
                 } else if(args[0].equalsIgnoreCase("enable")) {
-                    boolean enable = this.scriptManager.enableScript(args[1], pipe);
-                    if(enable) {
+                    if(this.scriptManager.enableScript(args[1], pipe)) {
                         MessageUtil.sendMessage(source, "Script has been enabled");
+                    } else if(this.scriptManager.enableProject(args[1], pipe)) {
+                        MessageUtil.sendMessage(source, "Project has been enabled");
                     } else {
-                        MessageUtil.sendMessage(source, "Script can not be enabled");
+                        MessageUtil.sendMessage(source, "Could not be enabled");
                     }
                 } else if(args[0].equalsIgnoreCase("disable")) {
-                    boolean disable = this.scriptManager.disableScript(args[1], pipe);
-                    if(disable) {
+                    if(this.scriptManager.disableScript(args[1], pipe)) {
                         MessageUtil.sendMessage(source, "Script has been disabled");
+                    } else if(this.scriptManager.disableProject(args[1], pipe)) {
+                        MessageUtil.sendMessage(source, "Project has been disabled");
                     } else {
-                        MessageUtil.sendMessage(source, "Script can not be disabled");
+                        MessageUtil.sendMessage(source, "Could not be disabled");
                     }
                 } else {
                     this.sendCommandList(source);
@@ -91,7 +100,8 @@ public class VelocityObbyLangCommand implements SimpleCommand {
                 return;
             } else if(args.length == 1) {
                 if(args[0].equalsIgnoreCase("list")) {
-                    MessageUtil.sendMessage(source, this.scriptManager.getScriptListString());
+                    MessageUtil.sendMessage(source, "Scripts: " + this.scriptManager.getScriptListString());
+                    MessageUtil.sendMessage(source, "Projects: " + this.scriptManager.getProjectListString());
                     return;
                 }
             }

@@ -18,16 +18,18 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.plugin.protocollib;
 
+import com.caoccao.qjs4j.core.JSFunction;
+import com.caoccao.qjs4j.core.JSValue;
 import com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin;
+import com.clubobsidian.obbylang.compat.NashornJavaCompat;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
+import com.clubobsidian.obbylang.util.JSUtil;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import javax.script.CompiledScript;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,14 +50,12 @@ public class ProtocolLibManager implements RegisteredManager {
         }
     }
 
-    public PacketAdapter register(String declaringClass, ScriptObjectMirror script, PacketType packetType) {
+    public PacketAdapter register(String declaringClass, JSFunction script, PacketType packetType) {
         return this.register(declaringClass, script, new PacketType[]{packetType});
     }
 
-    public PacketAdapter register(String declaringClass, ScriptObjectMirror script, PacketType[] packetTypes) {
+    public PacketAdapter register(String declaringClass, JSFunction script, PacketType[] packetTypes) {
         this.init(declaringClass);
-        CompiledScript compiledScript = this.scriptManager.getScript(declaringClass);
-
         boolean isServer = packetTypes[0].isServer();
 
         PacketAdapter adapter = null;
@@ -63,14 +63,14 @@ public class ProtocolLibManager implements RegisteredManager {
             adapter = new PacketAdapter(BukkitObbyLangPlugin.get(), packetTypes) {
                 @Override
                 public void onPacketSending(PacketEvent event) {
-                    script.call(compiledScript, event);
+                    JSUtil.call(script, new JSValue[]{NashornJavaCompat.wrapJavaObject(declaringClass, event)});
                 }
             };
         } else {
             adapter = new PacketAdapter(BukkitObbyLangPlugin.get(), packetTypes) {
                 @Override
                 public void onPacketReceiving(PacketEvent event) {
-                    script.call(compiledScript, event);
+                    JSUtil.call(script, new JSValue[]{NashornJavaCompat.wrapJavaObject(declaringClass, event)});
                 }
             };
         }

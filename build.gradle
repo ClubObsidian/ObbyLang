@@ -2,20 +2,40 @@ plugins {
     id 'java-library'
     id 'eclipse'
     id 'idea'
-    id 'com.github.johnrengelman.shadow' version '7.1.1'
+    id("com.gradleup.shadow") version "9.1.0"
+}
+
+allprojects {
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+        mavenCentral()
+        maven { url = "https://oss.sonatype.org/content/repositories/snapshots" }
+        maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+        maven { url = "https://jitpack.io" }
+        maven { url = "https://repo.papermc.io/repository/maven-public/" }
+    }
 }
 
 subprojects {
     apply plugin: 'java-library'
-    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'com.gradleup.shadow'
 
     group 'com.clubobsidian'
-    version '4.0.0-SNAPSHOT'
+    version '5.0.0-SNAPSHOT'
 
     tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
 
     test {
         useJUnitPlatform()
@@ -26,7 +46,6 @@ subprojects {
         relocate 'javax.annotation', 'com.clubobsidian.obbylang.javaxannotation'
         relocate 'afu', 'com.clubobsidian.obbylang.afu'
         relocate 'io.netty', 'com.clubobsidian.obbylang.netty'
-        relocate 'javassist', 'com.clubobsidian.obbylang.javassist'
         relocate 'io.lettuce.core', 'com.clubobsidian.obbylang.io.lettuce.core'
         relocate 'org.apache.commons.io', 'com.clubobsidian.obbylang.commons.io'
         relocate 'com.typesafe', 'com.clubobsidian.obbylang.typesafe'
@@ -63,27 +82,17 @@ subprojects {
         relocate 'com.google.j2objc', 'com.clubobsidian.obbylang.j2objc'
         relocate 'com.google.thirdparty.publicsuffix', 'com.clubobsidian.obbylang.publicsuffix'
         relocate 'com.mongodb', 'com.clubobsidian.obbylang.mongodb'
-    }
-
-    repositories {
-        flatDir {
-            dirs 'libs'
-        }
-        mavenCentral()
-        maven { url = "https://oss.sonatype.org/content/repositories/snapshots" }
-        maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
-        maven { url 'https://jitpack.io' }
-        maven { url = "https://nexus.velocitypowered.com/repository/maven-public/" }
+        relocate 'com.github.benmanes.caffeine', 'com.clubobsidian.obbylang.caffeine'
     }
 
     dependencies {
         compileOnly 'org.slf4j:slf4j-api:1.7.32'
+        compileOnly("javax.inject:javax.inject:1")
         api 'com.zaxxer:HikariCP:5.0.1'
         api 'com.github.clubobsidian:wrappy:2.3.2'
         api 'org.jsoup:jsoup:1.11.3'
         api 'io.lettuce:lettuce-core:6.1.6.RELEASE'
-        api 'org.javassist:javassist:3.28.0-GA'
-        api 'net.bytebuddy:byte-buddy:1.12.7'
+        api 'net.bytebuddy:byte-buddy:1.18.8'
         api 'com.google.inject:guice:5.1.0'
         api 'commons-io:commons-io:2.11.0'
         api 'org.apache.commons:commons-lang3:3.12.0'
@@ -91,8 +100,10 @@ subprojects {
         api 'com.github.clubobsidian:crouton:0.6.1'
         api 'com.zaxxer:influx4j:2.14'
         api 'org.mongodb:mongodb-driver-sync:4.6.1'
-        api 'org.openjdk.nashorn:nashorn-core:15.6'
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+        api name: 'qjs4j-0.1.2' //'com.caoccao.qjs4j:qjs4j:0.1.1'
+        api 'com.github.ben-manes.caffeine:caffeine:3.2.3'
+        testImplementation(platform('org.junit:junit-bom:6.0.3'))
+        testImplementation('org.junit.jupiter:junit-jupiter')
+        testRuntimeOnly('org.junit.platform:junit-platform-launcher')
     }
 }

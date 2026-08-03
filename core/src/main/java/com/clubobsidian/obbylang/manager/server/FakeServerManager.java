@@ -18,12 +18,21 @@
 
 package com.clubobsidian.obbylang.manager.server;
 
+import com.clubobsidian.obbylang.manager.scheduler.SchedulerJob;
+
 public abstract class FakeServerManager {
 
     public abstract Object getPlugin(String pluginName);
 
     public abstract boolean registerListener(Object listener);
 
-    public abstract int scheduleSyncRepeatingTask(Runnable run, int initialTickDelay, int repeatingTickDelay);
+    public abstract boolean supportsSyncScheduler();
 
+    public abstract SchedulerJob sync(Runnable task);
+
+    public abstract SchedulerJob syncDelayed(Runnable task, long delay);
+
+    public abstract SchedulerJob scheduleSyncRepeatingTask(Runnable task,
+                                                           long initialTickDelay,
+                                                           long repeatingTickDelay);
 }

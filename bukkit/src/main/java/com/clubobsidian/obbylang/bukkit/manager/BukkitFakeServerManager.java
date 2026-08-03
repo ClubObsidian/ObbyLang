@@ -19,26 +19,13 @@
 package com.clubobsidian.obbylang.bukkit.manager;
 
 import com.clubobsidian.obbylang.bukkit.plugin.BukkitObbyLangPlugin;
+import com.clubobsidian.obbylang.bukkit.scheduler.BukkitSchedulerJob;
+import com.clubobsidian.obbylang.manager.scheduler.SchedulerJob;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 
 public class BukkitFakeServerManager extends FakeServerManager {
-
-    private static final boolean FOLIA = checkForFolia();
-
-    private static boolean checkForFolia() {
-        try {
-            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    public static boolean isFolia() {
-        return FOLIA;
-    }
 
     @Override
     public Object getPlugin(String plugin) {
@@ -47,8 +34,7 @@ public class BukkitFakeServerManager extends FakeServerManager {
 
     @Override
     public boolean registerListener(Object obj) {
-        if(obj instanceof Listener) {
-            Listener listener = (Listener) obj;
+        if(obj instanceof Listener listener) {
             Bukkit.getServer().getPluginManager().registerEvents(listener, BukkitObbyLangPlugin.get());
             return true;
         }
@@ -56,9 +42,33 @@ public class BukkitFakeServerManager extends FakeServerManager {
     }
 
     @Override
-    public int scheduleSyncRepeatingTask(Runnable task, int delay, int period) {
-        return isFolia() ? -1 : Bukkit.getServer()
+    public boolean supportsSyncScheduler() {
+        return true;
+    }
+
+    @Override
+    public SchedulerJob sync(Runnable task) {
+        return new BukkitSchedulerJob(
+                Bukkit.getServer()
+                        .getScheduler()
+                        .runTask(BukkitObbyLangPlugin.get(), task)
+                        .getTaskId()
+        );
+    }
+
+    @Override
+    public SchedulerJob syncDelayed(Runnable task, long delay) {
+        return new BukkitSchedulerJob(Bukkit.getServer()
                 .getScheduler()
-                .scheduleSyncRepeatingTask(BukkitObbyLangPlugin.get(), task, delay, period);
+                .scheduleSyncDelayedTask(BukkitObbyLangPlugin.get(), task, delay / 50L)
+        );
+    }
+
+    @Override
+    public SchedulerJob scheduleSyncRepeatingTask(Runnable task, long delay, long period) {
+        return new BukkitSchedulerJob(Bukkit.getServer()
+                .getScheduler()
+                .scheduleSyncRepeatingTask(BukkitObbyLangPlugin.get(), task, delay / 50L, period / 50L)
+        );
     }
 }

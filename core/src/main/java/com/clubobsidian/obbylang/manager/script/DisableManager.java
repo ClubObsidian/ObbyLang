@@ -18,11 +18,12 @@
 
 package com.clubobsidian.obbylang.manager.script;
 
+import com.caoccao.qjs4j.core.JSContext;
+import com.caoccao.qjs4j.core.JSFunction;
+import com.caoccao.qjs4j.core.JSValue;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.inject.Inject;
-import javax.script.CompiledScript;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DisableManager implements RegisteredManager {
 
-    private final Map<String, List<ScriptObjectMirror>> disableFunctions = new ConcurrentHashMap<>();
+    private final Map<String, List<JSValue>> disableFunctions = new ConcurrentHashMap<>();
 
     private final ScriptManager scriptManager;
 
@@ -39,23 +40,22 @@ public class DisableManager implements RegisteredManager {
         this.scriptManager = scriptManager;
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script) {
+    public void register(String declaringClass, JSValue script) {
         this.init(declaringClass);
         this.disableFunctions.get(declaringClass).add(script);
     }
 
     public void unregister(String declaringClass) {
         this.init(declaringClass);
-        CompiledScript owner = this.scriptManager.getScript(declaringClass);
-        for(ScriptObjectMirror script : this.disableFunctions.get(declaringClass)) {
-            script.call(owner);
+        for(JSValue script : this.disableFunctions.get(declaringClass)) {
+            JSFunction function = script.asFunction().get();
+            JSContext owner = function.getContext();
+            function.call(owner, owner.getCurrentThis(), new JSValue[]{});
         }
         this.disableFunctions.keySet().remove(declaringClass);
     }
 
     private void init(String declaringClass) {
-        if(this.disableFunctions.get(declaringClass) == null) {
-            this.disableFunctions.put(declaringClass, new ArrayList<>());
-        }
+        this.disableFunctions.computeIfAbsent(declaringClass, k -> new ArrayList<>());
     }
 }

@@ -22,6 +22,7 @@ import com.clubobsidian.obbylang.ObbyLang;
 import com.clubobsidian.obbylang.ObbyLangPlatform;
 import com.clubobsidian.obbylang.inject.PluginInjector;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
+import com.clubobsidian.obbylang.velocity.BuildConstants;
 import com.clubobsidian.obbylang.velocity.command.VelocityObbyLangCommand;
 import com.clubobsidian.obbylang.velocity.manager.VelocityCustomEventManager;
 import com.clubobsidian.obbylang.velocity.manager.VelocityFakeServerManager;
@@ -43,7 +44,7 @@ import java.nio.file.Path;
 import java.util.logging.Logger;
 
 
-@Plugin(id = "obbylangvelocity", name = "ObbyLangVelocity", version = "${pluginVersion}")
+@Plugin(id = "obbylangvelocity", name = "ObbyLangVelocity", version = BuildConstants.PLUGIN_VERSION)
 public class VelocityObbyLangPlugin implements ObbyLangPlugin {
 
     public static VelocityObbyLangPlugin instance;

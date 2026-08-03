@@ -18,32 +18,46 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.command;
 
+import com.caoccao.qjs4j.core.*;
+import com.clubobsidian.obbylang.compat.NashornJavaCompat;
 import com.clubobsidian.obbylang.manager.command.SenderWrapper;
+import com.clubobsidian.obbylang.util.JSUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BukkitTabCompleter implements TabCompleter {
 
-    private final Object owner;
-    private final ScriptObjectMirror script;
+    private final String declaringClass;
+    private final JSFunction script;
 
-    public BukkitTabCompleter(Object owner, ScriptObjectMirror base) {
-        this.owner = owner;
-        this.script = base;
+    public BukkitTabCompleter(String declaringClass, JSFunction script) {
+        this.declaringClass = declaringClass;
+        this.script = script;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         SenderWrapper<?> senderWrapper = BukkitCommand.createWrapper(sender);
-        Object call = this.script.call(owner, senderWrapper, command, alias, args);
-        if(call == null || !(call instanceof List)) {
-            return null;
+        JSContext context = this.script.getContext();
+        JSValue call = JSUtil.call(this.script, new JSValue[]{
+                NashornJavaCompat.wrapJavaObject(declaringClass, senderWrapper),
+                NashornJavaCompat.wrapJavaObject(declaringClass, command),
+                new JSString(alias),
+                JSUtil.convertStringArray(context, args)
+        });
+        if(call.isArray()) {
+            JSArray array = call.asArray().get();
+            List<String> completions = new ArrayList<>();
+            for (int i = 0; i < array.getLength(); i++) {
+                completions.add(array.get(i).toJavaObject().toString());
+            }
+            return completions;
         }
-        return (List<String>) call;
+        return null;
     }
 }

@@ -18,15 +18,15 @@
 
 package com.clubobsidian.obbylang.bukkit.manager.command;
 
+import com.caoccao.qjs4j.core.JSFunction;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
 import org.bukkit.command.Command;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public class BukkitCommandWrapperManager extends CommandWrapperManager<Command> {
 
     @Override
-    public CommandWrapper<Command> createCommandWrapper(String declaringClass, String command, ScriptObjectMirror script) {
-        return new BukkitCommandWrapper(script, command, script);
+    public CommandWrapper<Command> createCommandWrapper(String declaringClass, String command, JSFunction script) {
+        return new BukkitCommandWrapper(declaringClass, command, script);
     }
 }

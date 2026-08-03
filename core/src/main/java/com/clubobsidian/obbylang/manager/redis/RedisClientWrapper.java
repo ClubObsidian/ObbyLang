@@ -18,16 +18,18 @@
 
 package com.clubobsidian.obbylang.manager.redis;
 
+import com.caoccao.qjs4j.core.JSFunction;
+import com.caoccao.qjs4j.core.JSString;
+import com.caoccao.qjs4j.core.JSValue;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
+import com.clubobsidian.obbylang.util.JSUtil;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.pubsub.RedisPubSubListener;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import javax.script.CompiledScript;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,15 +58,14 @@ public class RedisClientWrapper {
         this.pingBefore = pingBefore;
     }
 
-    public void register(final ScriptObjectMirror script, final String registeredChannel) {
+    public void register(final JSFunction script, final String registeredChannel) {
         StatefulRedisPubSubConnection<String, String> con = this.client.connectPubSub();
 
         RedisPubSubListener<String, String> listener = new RedisPubSubListener<>() {
             @Override
             public void message(String channel, String message) {
                 if(channel.equalsIgnoreCase(registeredChannel)) {
-                    CompiledScript owner = scriptManager.getScript(declaringClass);
-                    script.call(owner, message);
+                    JSUtil.call(script, new JSValue[]{new JSString(message)});
                 }
             }
 

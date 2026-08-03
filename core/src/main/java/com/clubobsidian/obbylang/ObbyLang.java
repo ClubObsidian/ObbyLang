@@ -45,19 +45,36 @@ import java.nio.file.Files;
 
 public class ObbyLang {
 
+    @Inject
+    private static ObbyLang instance;
+
+    public static ObbyLang get() {
+        return instance;
+    }
+
     private final Injector injector;
     private final ObbyLangPlugin plugin;
     private final ScriptManager scriptManager;
+    private final MappingsManager mappingsManager;
 
     @Inject
     private ObbyLang(InjectorWrapper wrapper, ObbyLangPlugin plugin) {
         this.injector = wrapper.getInjector();
         this.plugin = plugin;
         this.scriptManager = this.injector.getInstance(ScriptManager.class);
+        this.mappingsManager = this.injector.getInstance(MappingsManager.class);
     }
 
     public <T> T getInstance(Class<? extends T> clazz) {
         return this.injector.getInstance(clazz);
+    }
+
+    public ScriptManager getScriptManager() {
+        return this.scriptManager;
+    }
+
+    public MappingsManager getMappingsManager() {
+        return this.mappingsManager;
     }
 
     public void onEnable() {
@@ -94,13 +111,16 @@ public class ObbyLang {
 
         this.injector.getInstance(MappingsManager.class).loadEventMappingsFromFile();
         this.loadBuiltinManagers();
-        scriptManager.load();
+        this.scriptManager.load();
         this.plugin.createObbyLangCommand();
     }
 
     public void onDisable() {
         for(String script : this.scriptManager.getScriptNamesRaw()) {
             this.scriptManager.unloadScript(script);
+        }
+        for(String project : this.scriptManager.getProjectNames()) {
+            this.scriptManager.unloadProject(project);
         }
     }
 

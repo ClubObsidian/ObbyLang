@@ -18,37 +18,30 @@
 
 package com.clubobsidian.obbylang.manager.listener;
 
-import com.clubobsidian.obbylang.ObbyLang;
+import com.caoccao.qjs4j.core.JSFunction;
+import com.caoccao.qjs4j.core.JSValue;
+import com.clubobsidian.obbylang.compat.NashornJavaCompat;
 import com.clubobsidian.obbylang.manager.RegisteredManager;
 import com.clubobsidian.obbylang.manager.script.MappingsManager;
 import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import com.clubobsidian.obbylang.manager.script.ScriptWrapper;
 import com.clubobsidian.obbylang.manager.server.FakeServerManager;
 import com.clubobsidian.obbylang.plugin.ObbyLangPlugin;
+import com.clubobsidian.obbylang.util.JSUtil;
 import com.clubobsidian.obbylang.util.ListenerUtil;
-import javassist.CannotCompileException;
-import javassist.ClassClassPath;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtConstructor;
-import javassist.CtField;
-import javassist.CtMethod;
-import javassist.CtNewConstructor;
-import javassist.CtNewMethod;
-import javassist.Modifier;
-import javassist.NotFoundException;
-import javassist.bytecode.AnnotationsAttribute;
-import javassist.bytecode.ConstPool;
-import javassist.bytecode.annotation.Annotation;
-import javassist.bytecode.annotation.MemberValue;
-import org.apache.commons.lang3.ClassUtils;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.description.annotation.AnnotationDescription;
+import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.bind.annotation.Argument;
+import net.bytebuddy.implementation.bind.annotation.FieldValue;
+import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 
 import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -57,8 +50,8 @@ import java.util.logging.Level;
 
 public abstract class ListenerManager<T> implements RegisteredManager {
 
-    //T is event priority
-    private Map<String, Map<T, ScriptWrapper[]>> scripts; //Will be wrapped in a separate object later for per script reloading
+    // T is event priority
+    private Map<String, Map<T, ScriptWrapper[]>> scripts;
     private final Map<T, List<String>> registeredEvents = new ConcurrentHashMap<>();
     private final MappingsManager mappingsManager;
     private final ScriptManager scriptManager;
@@ -74,38 +67,73 @@ public abstract class ListenerManager<T> implements RegisteredManager {
         this.plugin = plugin;
     }
 
-    protected void loadEvents(String[] events) {
-        for(String event : events) {
-            event = event.toLowerCase();
-            Map<T, ScriptWrapper[]> scriptMap = new HashMap<>();
+    // ─────────────────────────────────────────────────────────────────────────
+    // Interceptor — called by ByteBuddy-generated listener methods
+    // ─────────────────────────────────────────────────────────────────────────
 
-            for(T priority : this.getPriorities()) {
-                scriptMap.put(priority, new ScriptWrapper[0]);
-            }
-            if(this.scripts.get(event) == null) {
-                this.scripts.put(event, scriptMap);
+    /**
+     * Static interceptor class used by ByteBuddy's MethodDelegation.
+     *
+     * <p>ByteBuddy injects the {@code listenerManager} field value and the event
+     * argument at the call site. The interceptor pulls the relevant scripts and
+     * dispatches each one via {@link JSUtil#call}, wrapping the event object via
+     * {@link NashornJavaCompat#wrapJavaObject} so JS can call methods on it.
+     */
+    public static class EventInterceptor {
+
+        @RuntimeType
+        public static void intercept(
+                @FieldValue("listenerManager") ListenerManager<?> listenerManager,
+                @FieldValue("eventName") String eventName,
+                @FieldValue("eventPriority") Object eventPriority,
+                @Argument(0) Object event) {
+
+            @SuppressWarnings("unchecked")
+            ScriptWrapper[] scripts = ((ListenerManager<Object>) listenerManager)
+                    .getEventScripts(eventName, eventPriority);
+
+            for (ScriptWrapper wrapper : scripts) {
+                try {
+                    JSFunction script = wrapper.getScript();
+                    JSValue wrappedEvent = NashornJavaCompat.wrapJavaObject(wrapper.getOwnerName(), event);
+                    JSUtil.call(script, new JSValue[]{wrappedEvent});
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Initialization
+    // ─────────────────────────────────────────────────────────────────────────
+
+    protected void loadEvents(String[] events) {
+        for (String event : events) {
+            event = event.toLowerCase();
+            if (this.scripts.get(event) != null) continue;
+            Map<T, ScriptWrapper[]> scriptMap = new HashMap<>();
+            for (T priority : this.getPriorities()) {
+                scriptMap.put(priority, new ScriptWrapper[0]);
+            }
+            this.scripts.put(event, scriptMap);
+        }
+    }
 
     protected Map<String, Map<T, ScriptWrapper[]>> initScripts() {
         Map<String, Map<T, ScriptWrapper[]>> scripts = new HashMap<>();
-        Iterator<Entry<String, String>> it = this.mappingsManager.getEventMappings().entrySet().iterator();
-        while(it.hasNext()) {
-            Entry<String, String> next = it.next();
-            String className = next.getKey();
-            if(!eventClassExists(className)) {
+        for (Entry<String, String> entry : this.mappingsManager.getEventMappings().entrySet()) {
+            String className = entry.getKey();
+            if (!eventClassExists(className)) {
                 this.plugin.getLogger().log(Level.INFO, String.format("The class %s does not exist", className));
                 continue;
             }
             Map<T, ScriptWrapper[]> scriptMap = new HashMap<>();
-            for(T priority : this.getPriorities()) {
+            for (T priority : this.getPriorities()) {
                 scriptMap.put(priority, new ScriptWrapper[0]);
             }
-            scripts.put(next.getValue(), scriptMap);
+            scripts.put(entry.getValue(), scriptMap);
         }
-
         return scripts;
     }
 
@@ -113,141 +141,165 @@ public abstract class ListenerManager<T> implements RegisteredManager {
         try {
             Class.forName(className);
             return true;
-        } catch(ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             return false;
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Script lookup
+    // ─────────────────────────────────────────────────────────────────────────
+
     public ScriptWrapper[] getEventScripts(String event, T priority) {
-        if(this.scripts == null) {
+        if (this.scripts == null) {
             this.scripts = this.initScripts();
         }
         return this.scripts.get(event).get(priority);
     }
 
-    private void createListener(String event, T priority, String eventPriorityStr) {
-        List<String> events = this.registeredEvents.get(priority);
+    // ─────────────────────────────────────────────────────────────────────────
+    // Listener generation via ByteBuddy
+    // ─────────────────────────────────────────────────────────────────────────
 
-        if(events == null) {
-            events = new ArrayList<>();
-            this.registeredEvents.put(priority, events);
+    private void createListener(String declaringClass, String event,
+                                T priority,
+                                String eventPriorityStr) {
+        List<String> events = this.registeredEvents.computeIfAbsent(priority, k -> new ArrayList<>());
+        if (events.contains(event)) {
+            return;
         }
+        events.add(event);
 
-        if(!events.contains(event)) {
-            events.add(event);
-            //Create listener
-            Map<String, String> mappings = this.mappingsManager.getEventMappings();
-            Iterator<Entry<String, String>> it = mappings.entrySet().iterator();
+        Map<String, String> mappings = this.mappingsManager.getEventMappings();
+        for (Entry<String, String> entry : mappings.entrySet()) {
+            if (!entry.getValue().equals(event)) continue;
 
-            while(it.hasNext()) {
-                Entry<String, String> next = it.next();
-                if(next.getValue().equals(event)) {
-                    try {
-                        ClassPool.getDefault().insertClassPath(new ClassClassPath(Class.forName(next.getKey())));
-                    } catch(ClassNotFoundException e1) {
-                        e1.printStackTrace();
-                    }
+            String eventClassName = entry.getKey();
+            Class<?> eventClass;
+            try {
+                eventClass = Class.forName(eventClassName);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                return;
+            }
 
-                    String generatedName = eventPriorityStr + next.getValue() + "ObbyLangListener";
-                    CtClass ctClass = ClassPool.getDefault().makeClass("com.clubobsidian.obbylang.manager.listener." + generatedName);
-                    if(ctClass.isFrozen()) {
-                        try {
-                            Class<?> listenerClass = ctClass.toClass(ObbyLang.class.getClassLoader(), ObbyLang.class.getProtectionDomain());
-                            this.fakeServer.registerListener(listenerClass.newInstance());
-                        } catch(CannotCompileException | InstantiationException | IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
+            String generatedName = "com.clubobsidian.obbylang.manager.listener."
+                    + eventPriorityStr
+                    + event
+                    + "ObbyLangListener";
 
-                        return;
-                    }
-                    try {
-                        if(this.getListenerClass() != null) {
-                            ctClass.addInterface(ClassPool.getDefault().get(this.getListenerClass().getName()));
-                        }
-                        String generatedPriority = null;
-                        if(this.getEventPriorityClass() != null) {
-                            Class<?> priorityClass = priority.getClass();
-                            generatedPriority = this.getEventPriorityClass().getName() + "." + eventPriorityStr;
-                            if(ClassUtils.isPrimitiveOrWrapper(priorityClass)) {
-                                generatedPriority = "(($w)" + generatedPriority + ")";
-                                System.out.println("Generated priority: " + generatedPriority);
-                            }
-                        } else if(priority instanceof String) {
-                            generatedPriority = "\"" + priority + "\"";
-                        }
+            try {
+                // Build the annotation for the handler method
+                AnnotationDescription handlerAnnotation = buildHandlerAnnotation(
+                        priority, eventPriorityStr);
 
-                        StringBuilder builder = new StringBuilder();
-                        ctClass.setModifiers(Modifier.PUBLIC);
+                // Build the ByteBuddy subclass/implementor
+                DynamicType.Builder<?> builder = new ByteBuddy()
+                        .subclass(Object.class)
+                        .name(generatedName);
 
-                        CtField field = CtField
-                                .make("com.clubobsidian.obbylang.manager.listener.ListenerManager listenerManager;",
-                                        ctClass);
-                        field.setModifiers(Modifier.PRIVATE);
-                        ctClass.addField(field);
-
-                        builder.append("public " + generatedName);
-                        builder.append("(com.clubobsidian.obbylang.manager.listener.ListenerManager listenerManager)");
-                        builder.append("{");
-                        builder.append("this.listenerManager = listenerManager;");
-                        builder.append("}");
-
-                        CtConstructor con = CtNewConstructor.make(builder.toString(), ctClass);
-                        con.setModifiers(Modifier.PUBLIC);
-                        ctClass.addConstructor(con);
-
-                        builder = new StringBuilder();
-
-
-                        builder.append("public void " + next.getValue() + "(" + next.getKey() + " event)");
-                        builder.append("{");
-                        builder.append("com.clubobsidian.obbylang.manager.script.ScriptWrapper[] scripts = this.listenerManager.getEventScripts(\"" + next.getValue() + "\", " + generatedPriority + ");");
-                        builder.append("for(int i = 0; i < scripts.length; i++)");
-                        builder.append("{");
-                        builder.append("scripts[i].getScript().call(scripts[i].getOwner(), new Object[] {(Object) event});");
-                        builder.append("}");
-                        builder.append("}");
-
-                        CtMethod ctMethod = CtNewMethod.make(builder.toString(), ctClass);
-                        ctMethod.setModifiers(Modifier.PUBLIC);
-
-                        ConstPool constPool = ctClass.getClassFile().getConstPool();
-                        AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
-                        Annotation annotation = new Annotation(this.getHandlerClass().getName(), constPool);
-
-                        if(this.getEventPriorityClass() != null) { //Annotation attribute
-                            MemberValue memberValue = ListenerUtil.getMemberValue(priority, constPool);
-                            annotation.addMemberValue(this.getPriorityName(), memberValue);
-                        }
-
-                        attr.addAnnotation(annotation);
-                        ctMethod.getMethodInfo().addAttribute(attr);
-
-                        ctClass.addMethod(ctMethod); //Thread.currentThread().getContextClassLoader(), ListenerManager.class.getProtectionDomain()
-                        Class<?> listenerClass = ctClass.toClass(ListenerManager.class);
-                        this.fakeServer.registerListener(listenerClass.getDeclaredConstructors()[0].newInstance(this));
-                    } catch(CannotCompileException | NotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
+                // Implement the listener interface if present
+                if (this.getListenerClass() != null) {
+                    builder = builder.implement(this.getListenerClass());
                 }
+
+                // Fields to carry context into the generated method
+                builder = builder
+                        .defineField("listenerManager", ListenerManager.class,
+                                net.bytebuddy.description.modifier.Visibility.PRIVATE)
+                        .defineField("eventName", String.class,
+                                net.bytebuddy.description.modifier.Visibility.PRIVATE)
+                        .defineField("eventPriority", Object.class,
+                                net.bytebuddy.description.modifier.Visibility.PRIVATE)
+                        .defineField("declaringClass", String.class,
+                                net.bytebuddy.description.modifier.Visibility.PRIVATE);
+
+                // Constructor: (ListenerManager, String eventName, Object priority, String declaringClass)
+                builder = builder
+                        .defineConstructor(net.bytebuddy.description.modifier.Visibility.PUBLIC)
+                        .withParameters(ListenerManager.class, String.class, Object.class, String.class)
+                        .intercept(net.bytebuddy.implementation.MethodCall
+                                .invoke(Object.class.getDeclaredConstructor())
+                                .andThen(net.bytebuddy.implementation.FieldAccessor
+                                        .ofField("listenerManager").setsArgumentAt(0))
+                                .andThen(net.bytebuddy.implementation.FieldAccessor
+                                        .ofField("eventName").setsArgumentAt(1))
+                                .andThen(net.bytebuddy.implementation.FieldAccessor
+                                        .ofField("eventPriority").setsArgumentAt(2))
+                                .andThen(net.bytebuddy.implementation.FieldAccessor
+                                        .ofField("declaringClass").setsArgumentAt(3)));
+
+                // The handler method — named after the event, takes the event class as arg
+                builder = builder
+                        .defineMethod(event, void.class,
+                                net.bytebuddy.description.modifier.Visibility.PUBLIC)
+                        .withParameters(eventClass)
+                        .intercept(MethodDelegation.to(EventInterceptor.class))
+                        .annotateMethod(handlerAnnotation);
+
+                Class<?> listenerClass = builder
+                        .make()
+                        .load(ListenerManager.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
+                        .getLoaded();
+
+                Object listenerInstance = listenerClass
+                        .getDeclaredConstructors()[0]
+                        .newInstance(this, event, priority, declaringClass);
+
+                this.fakeServer.registerListener(listenerInstance);
+            } catch (NoSuchMethodException | InvocationTargetException
+                     | InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
             }
         }
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String event) {
-        this.register(declaringClass, script, new String[]{event});
+    /**
+     * Builds the handler annotation (e.g. {@code @EventHandler(priority = EventPriority.HIGH)})
+     * using the subclass-provided annotation and priority classes.
+     */
+    private AnnotationDescription buildHandlerAnnotation(T priority, String eventPriorityStr) {
+        AnnotationDescription.Builder annotBuilder =
+                AnnotationDescription.Builder.ofType(
+                        this.getHandlerClass().asSubclass(java.lang.annotation.Annotation.class));
+
+        if (this.getEventPriorityClass() != null) {
+            // Enum priority — look up the constant by name
+            Object priorityValue = ListenerUtil.getStaticDeclaredField(
+                    this.getEventPriorityClass(), eventPriorityStr.toUpperCase()
+            );
+            if (priorityValue instanceof Enum<?> enumValue) {
+                annotBuilder = annotBuilder.define(this.getPriorityName(), enumValue);
+            }
+        }
+        // If no priority class (String-based priority), no annotation member needed
+
+        return annotBuilder.build();
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String[] events) {
+    // ─────────────────────────────────────────────────────────────────────────
+    // Public register / unregister API
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public void register(String declaringClass, JSFunction script, String event) {
+        this.register(declaringClass, script, new String[]{ event });
+    }
+
+    public void register(String declaringClass, JSFunction script, String[] events) {
         this.register(declaringClass, script, events, this.getDefaultPriority());
     }
 
-    public void register(String declaringClass, ScriptObjectMirror script, String event, String eventPriorityStr) {
-        this.register(declaringClass, script, new String[]{event}, eventPriorityStr);
+    public void register(String declaringClass, JSFunction script, String event,
+                         String eventPriorityStr) {
+        this.register(declaringClass, script, new String[]{ event }, eventPriorityStr);
     }
 
     @SuppressWarnings("unchecked")
-    public void register(String declaringClass, ScriptObjectMirror script, String[] events, String eventPriorityStr) {
-        if(this.scripts == null) {
+    public void register(String declaringClass,
+                         JSFunction script,
+                         String[] events,
+                         String eventPriorityStr) {
+        if (this.scripts == null) {
             this.scripts = initScripts();
         } else {
             this.loadEvents(events);
@@ -256,71 +308,67 @@ public abstract class ListenerManager<T> implements RegisteredManager {
         String eventPriorityUpper = eventPriorityStr.toUpperCase();
         Class<?> priorityClass = this.getEventPriorityClass();
         T eventPriority;
-        if(priorityClass != null) {
+        if (priorityClass != null) {
             eventPriority = (T) ListenerUtil.getStaticDeclaredField(priorityClass, eventPriorityUpper);
         } else {
             eventPriority = (T) eventPriorityStr;
         }
 
-        for(String event : events) {
+        for (String event : events) {
             event = event.toLowerCase();
-            this.createListener(event, eventPriority, eventPriorityUpper);
-
+            this.createListener(declaringClass, event, eventPriority, eventPriorityUpper);
             Map<T, ScriptWrapper[]> priorityMap = this.scripts.get(event);
-
             ScriptWrapper[] oldArray = priorityMap.get(eventPriority);
             ScriptWrapper[] newArray = new ScriptWrapper[oldArray.length + 1];
-            for(int i = 0; i < oldArray.length; i++) {
-                newArray[i] = oldArray[i];
-            }
-            newArray[newArray.length - 1] = new ScriptWrapper(script, this.scriptManager.getScript(declaringClass));
+            System.arraycopy(oldArray, 0, newArray, 0, oldArray.length);
+            newArray[newArray.length - 1] = new ScriptWrapper(
+                    script,
+                    this.scriptManager.getScript(declaringClass),
+                    declaringClass
+            );
             priorityMap.put(eventPriority, newArray);
         }
     }
 
     public void unregister(String declaringClass) {
-        if(this.scripts == null) {
+        if (this.scripts == null) {
             this.scripts = initScripts();
         }
 
-        Iterator<Entry<String, Map<T, ScriptWrapper[]>>> it = this.scripts.entrySet().iterator();
-        while(it.hasNext()) {
-            Entry<String, Map<T, ScriptWrapper[]>> next = it.next();
-
-            Iterator<Entry<T, ScriptWrapper[]>> valueIterator = next.getValue().entrySet().iterator();
-
-            while(valueIterator.hasNext()) {
-                Entry<T, ScriptWrapper[]> valueIteratorNext = valueIterator.next();
-                ScriptWrapper[] oldArray = valueIteratorNext.getValue();
-                if(oldArray.length == 0)
+        for (Entry<String, Map<T, ScriptWrapper[]>> entry : this.scripts.entrySet()) {
+            for (Entry<T, ScriptWrapper[]> valueEntry : entry.getValue().entrySet()) {
+                ScriptWrapper[] oldArray = valueEntry.getValue();
+                if (oldArray.length == 0) {
                     continue;
+                }
 
                 List<Integer> removalIndexes = new ArrayList<>();
-
-                for(int i = 0; i < oldArray.length; i++) {
-                    ScriptWrapper wrapper = oldArray[i];
-                    if(wrapper.getOwner().equals(this.scriptManager.getScript(declaringClass))) {
+                for (int i = 0; i < oldArray.length; i++) {
+                    if (oldArray[i].getOwner().equals(this.scriptManager.getScript(declaringClass))) {
                         removalIndexes.add(i);
                     }
                 }
-
-                if(removalIndexes.size() == 0)
+                if (removalIndexes.isEmpty()) {
                     continue;
+                }
 
                 ScriptWrapper[] newArray = new ScriptWrapper[oldArray.length - removalIndexes.size()];
-
                 int offset = 0;
-                for(int i = 0; i < oldArray.length; i++) {
-                    if(removalIndexes.contains(i)) {
-                        offset += 1;
+                for (int i = 0; i < oldArray.length; i++) {
+                    if (removalIndexes.contains(i)) {
+                        offset++;
                         continue;
                     }
                     newArray[i - offset] = oldArray[i];
                 }
-                valueIteratorNext.setValue(newArray);
+                valueEntry.setValue(newArray);
             }
         }
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Abstract API for subclasses
+    // ─────────────────────────────────────────────────────────────────────────
 
     public abstract String getPriorityName();
 

@@ -26,6 +26,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.util.StringUtil;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -46,7 +47,16 @@ public class BukkitObbyLangCommandTabCompleter implements TabCompleter {
                 return StringUtil.copyPartialMatches(args[args.length - 1], this.obbyLangArgs, Lists.newArrayList());
             } else if(args.length == 2 && !args[0].equalsIgnoreCase("list")) {
                 if(this.obbyLangArgs.contains(args[0])) {
-                    return StringUtil.copyPartialMatches(args[args.length - 1], this.scriptManager.getScriptNames(), Lists.newArrayList());
+                    List<String> names = new ArrayList<>();
+                    String sub = args[0].toLowerCase();
+                    if (sub.equals("load") || sub.equals("unload") || sub.equals("reload") || sub.equals("disable")) {
+                        names.addAll(this.scriptManager.getProjectNames());
+                        names.addAll(this.scriptManager.getScriptNames());
+                    } else if(sub.equals("enable")) {
+                        names.addAll(this.scriptManager.getDisabledScriptNames());
+                        names.addAll(this.scriptManager.getDisabledProjectNames());
+                    }
+                    return StringUtil.copyPartialMatches(args[args.length - 1], names, Lists.newArrayList());
                 }
             }
         }

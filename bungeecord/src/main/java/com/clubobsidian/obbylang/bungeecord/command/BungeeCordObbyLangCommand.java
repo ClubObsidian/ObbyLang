@@ -45,43 +45,52 @@ public class BungeeCordObbyLangCommand extends Command {
                     boolean loaded = this.scriptManager.loadScript(args[1], pipe);
                     if(loaded) {
                         sender.sendMessage("Script has been loaded");
+                    } else if(this.scriptManager.loadProject(args[1], pipe)) {
+                        sender.sendMessage("Project has been loaded");
                     } else {
-                        sender.sendMessage("Script could not be loaded");
+                        sender.sendMessage("Could not be loaded");
                     }
                 } else if(args[0].equalsIgnoreCase("unload")) {
                     boolean unloaded = this.scriptManager.unloadScript(args[1], pipe);
                     if(unloaded) {
                         sender.sendMessage("Script has been unloaded");
+                    } else if(this.scriptManager.unloadProject(args[1], pipe)) {
+                        sender.sendMessage("Project has been unloaded");
                     } else {
-                        sender.sendMessage("Script could not be unloaded");
+                        sender.sendMessage("Could not be unloaded");
                     }
                 } else if(args[0].equalsIgnoreCase("reload")) {
                     boolean reload = this.scriptManager.reloadScript(args[1], pipe);
                     if(reload) {
                         sender.sendMessage("Script has been reloaded");
+                    } else if(this.scriptManager.reloadProject(args[1], pipe)) {
+                        sender.sendMessage("Project has been reloaded");
                     } else {
-                        sender.sendMessage("Script could not be reloaded");
-                        sender.sendMessage("Attemping to load the script");
+                        sender.sendMessage("Could not be reloaded, attempting to load");
                         boolean load = this.scriptManager.loadScript(args[1], pipe);
                         if(load) {
                             sender.sendMessage("Script has been loaded");
+                        } else if(this.scriptManager.loadProject(args[1], pipe)) {
+                            sender.sendMessage("Project has been loaded");
                         } else {
-                            sender.sendMessage("Script could not be loaded");
+                            sender.sendMessage("Could not be loaded");
                         }
                     }
                 } else if(args[0].equalsIgnoreCase("enable")) {
-                    boolean enable = this.scriptManager.enableScript(args[1], pipe);
-                    if(enable) {
+                    if(this.scriptManager.enableScript(args[1], pipe)) {
                         sender.sendMessage("Script has been enabled");
+                    } else if(this.scriptManager.enableProject(args[1], pipe)) {
+                        sender.sendMessage("Project has been enabled");
                     } else {
-                        sender.sendMessage("Script can not be enabled");
+                        sender.sendMessage("Could not be enabled");
                     }
                 } else if(args[0].equalsIgnoreCase("disable")) {
-                    boolean disable = this.scriptManager.disableScript(args[1], pipe);
-                    if(disable) {
+                    if(this.scriptManager.disableScript(args[1], pipe)) {
                         sender.sendMessage("Script has been disabled");
+                    } else if(this.scriptManager.disableProject(args[1], pipe)) {
+                        sender.sendMessage("Project has been disabled");
                     } else {
-                        sender.sendMessage("Script can not be disabled");
+                        sender.sendMessage("Could not be disabled");
                     }
                 } else {
                     this.sendCommandList(sender);
@@ -89,7 +98,8 @@ public class BungeeCordObbyLangCommand extends Command {
                 return;
             } else if(args.length == 1) {
                 if(args[0].equalsIgnoreCase("list")) {
-                    sender.sendMessage(this.scriptManager.getScriptListString());
+                    sender.sendMessage("Scripts: " + this.scriptManager.getScriptListString());
+                    sender.sendMessage("Projects: " + this.scriptManager.getProjectListString());
                     return;
                 }
             }

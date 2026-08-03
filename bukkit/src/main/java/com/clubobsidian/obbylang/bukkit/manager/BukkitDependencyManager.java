@@ -33,8 +33,8 @@ import javax.inject.Inject;
 public class BukkitDependencyManager extends DependencyManager implements Listener {
 
     @Inject
-    protected BukkitDependencyManager(EventBus eventBus, ScriptManager scriptManager, FakeServerManager fakeServer) {
-        super(eventBus, scriptManager, fakeServer);
+    protected BukkitDependencyManager(EventBus eventBus, FakeServerManager fakeServer) {
+        super(eventBus, fakeServer);
     }
 
     @Override

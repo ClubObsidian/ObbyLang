@@ -21,6 +21,7 @@ package com.clubobsidian.obbylang.bungeecord.manager.command;
 import com.clubobsidian.obbylang.manager.command.CommandManager;
 import com.clubobsidian.obbylang.manager.command.CommandWrapper;
 import com.clubobsidian.obbylang.manager.command.CommandWrapperManager;
+import com.clubobsidian.obbylang.manager.script.ScriptManager;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.PluginManager;
@@ -34,8 +35,8 @@ public class BungeeCordCommandManager extends CommandManager {
     private Map<String, Command> cm = null;
 
     @Inject
-    protected BungeeCordCommandManager(CommandWrapperManager<?> wrapperManager) {
-        super(wrapperManager);
+    protected BungeeCordCommandManager(CommandWrapperManager<?> wrapperManager, ScriptManager scriptManager) {
+        super(wrapperManager, scriptManager);
     }
 
     @SuppressWarnings("unchecked")

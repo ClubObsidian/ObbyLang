@@ -26,7 +26,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
@@ -45,14 +48,17 @@ public class MappingsManager {
         return this.eventMappings;
     }
 
+    public boolean isClassMapped(String className) {
+        return this.eventMappings.containsKey(className);
+    }
+
     public boolean addEventMapping(String eventClassPath, String className) {
         if(!ClassUtil.classExists(eventClassPath)) {
             String toLog = "Invalid event class mapping" + eventClassPath;
             this.plugin.getLogger().log(Level.SEVERE, toLog);
             return false;
         }
-
-        this.eventMappings.put(eventClassPath, className.toLowerCase());
+        this.eventMappings.put(eventClassPath, className.toLowerCase(Locale.ROOT));
         return true;
     }
 
