@@ -100,7 +100,7 @@ subprojects {
         api 'com.github.clubobsidian:crouton:0.6.1'
         api 'com.zaxxer:influx4j:2.14'
         api 'org.mongodb:mongodb-driver-sync:4.6.1'
-        api 'com.caoccao.qjs4j:qjs4j:0.1.1'
+        api name: 'qjs4j-0.1.2' //'com.caoccao.qjs4j:qjs4j:0.1.1'
         api 'com.github.ben-manes.caffeine:caffeine:3.2.3'
         testImplementation(platform('org.junit:junit-bom:6.0.3'))
         testImplementation('org.junit.jupiter:junit-jupiter')
